@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.crc.crcloud.steam.iam.dao.OauthLdapMapper">
+
+
+        <!-- 通用查询映射结果 -->
+        <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.OauthLdap">
+                    <id column="id" property="id" />
+                    <result column="name" property="name" />
+                    <result column="organization_id" property="organizationId" />
+                    <result column="server_address" property="serverAddress" />
+                    <result column="port" property="port" />
+                    <result column="account" property="account" />
+                    <result column="ldap_password" property="ldapPassword" />
+                    <result column="use_ssl" property="useSsl" />
+                    <result column="is_enabled" property="isEnabled" />
+                    <result column="base_dn" property="baseDn" />
+                    <result column="directory_type" property="directoryType" />
+                    <result column="object_class" property="objectClass" />
+                    <result column="custom_filter" property="customFilter" />
+                    <result column="saga_batch_size" property="sagaBatchSize" />
+                    <result column="connection_timeout" property="connectionTimeout" />
+                    <result column="uuid_field" property="uuidField" />
+                    <result column="login_name_field" property="loginNameField" />
+                    <result column="real_name_field" property="realNameField" />
+                    <result column="email_field" property="emailField" />
+                    <result column="phone_field" property="phoneField" />
+                    <result column="object_version_number" property="objectVersionNumber" />
+                    <result column="created_by" property="createdBy" />
+                    <result column="creation_date" property="creationDate" />
+                    <result column="last_updated_by" property="lastUpdatedBy" />
+                    <result column="last_update_date" property="lastUpdateDate" />
+        </resultMap>
+
+
+        <!-- 通用查询结果列 -->
+        <sql id="Base_Column_List">
+                     id,
+                     name,
+                     organization_id,
+                     server_address,
+                     port,
+                     account,
+                     ldap_password,
+                     use_ssl,
+                     is_enabled,
+                     base_dn,
+                     directory_type,
+                     object_class,
+                     custom_filter,
+                     saga_batch_size,
+                     connection_timeout,
+                     uuid_field,
+                     login_name_field,
+                     real_name_field,
+                     email_field,
+                     phone_field,
+                     object_version_number,
+                     created_by,
+                     creation_date,
+                     last_updated_by,
+                     last_update_date
+        </sql>
+
+    <select id="page" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/>
+        from oauth_ldap
+
+    </select>
+
+
+
+</mapper>

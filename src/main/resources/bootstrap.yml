@@ -19,3 +19,6 @@ spring:
 management:
   server:
     port: 8093
+  health:
+    ldap:
+      enabled: false
