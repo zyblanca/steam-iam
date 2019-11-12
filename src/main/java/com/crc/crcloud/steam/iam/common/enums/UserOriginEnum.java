@@ -17,11 +17,11 @@ public enum UserOriginEnum implements IBaseEnum<String> {
 
     @Override
     public String getDesc() {
-        return this.name();
+        return desc;
     }
 
     @Override
     public String getValue() {
-        return desc;
+        return this.name();
     }
 }

@@ -32,7 +32,7 @@ public class OrganizationUserController {
         Supplier<OrganizationUserPageResponseVO> random = () -> {
             return OrganizationUserPageResponseVO.builder()
                     .realName("刘" + RandomUtil.randomString(10))
-                    .loginName("liuyang-" + RandomUtil.randomInt(5))
+                    .loginName("liuyang-" + RandomUtil.randomNumbers(5))
                     .roleName(RandomUtil.randomEle(CollUtil.newArrayList("组织管理员", "组织成员")))
                     .origin(RandomUtil.randomEle(UserOriginEnum.values()).getDesc())
                     .build();
@@ -50,4 +50,5 @@ public class OrganizationUserController {
         pageResult.setRecords(records);
         return new ResponseEntity<>(pageResult);
     }
+
 }
