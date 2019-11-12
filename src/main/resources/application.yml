@@ -46,7 +46,7 @@ choerodon:
       enabled: true # 是否启用消费端
       thread-num: 5  # 消费线程数
       max-poll-size: 200 # 每次拉取的最大消息数量
-      poll-interval-ms: 1000 # 拉取消息的间隔(毫秒)，默认1000毫秒
+      poll-interval-ms: 10000 # 拉取消息的间隔(毫秒)，默认1000毫秒
   schedule:
     consumer:
       enabled: true # 启用任务调度消费端
