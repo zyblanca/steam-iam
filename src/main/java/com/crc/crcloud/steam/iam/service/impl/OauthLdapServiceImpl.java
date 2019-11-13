@@ -1,8 +1,6 @@
 package com.crc.crcloud.steam.iam.service.impl;
 
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.UserDetail;
@@ -10,22 +8,20 @@ import com.crc.crcloud.steam.iam.dao.IamOrganizationMapper;
 import com.crc.crcloud.steam.iam.dao.OauthLdapMapper;
 import com.crc.crcloud.steam.iam.entity.IamOrganization;
 import com.crc.crcloud.steam.iam.entity.OauthLdap;
-import com.crc.crcloud.steam.iam.model.dto.OauthLdapDTO;
 import com.crc.crcloud.steam.iam.model.vo.OauthLdapVO;
 import com.crc.crcloud.steam.iam.service.OauthLdapService;
-import io.choerodon.core.convertor.ConvertHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.Date;
 import java.util.Objects;
 
 /**
- * @Author
- * @Description
+ * @Author liuchun
+ * @Description ldap服务
  * @Date 2019-11-12
  */
 @Service
@@ -46,15 +42,8 @@ public class OauthLdapServiceImpl implements OauthLdapService {
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     @Override
     public OauthLdapVO insert(OauthLdapVO oauthLdapVO) {
-        //组织名称即为ldap名称
-        IamOrganization iamOrganization = getOrThrow(oauthLdapVO.getOrganizationId());
-        oauthLdapVO.setName(iamOrganization.getName());
-        //没有设置SSL默认不使用
-        if (Objects.isNull(oauthLdapVO.getUseSsl())) {
-            oauthLdapVO.setUseSsl(0L);
-        }
-        //默认启用状态
-        oauthLdapVO.setIsEnabled(1L);
+
+        initLdapData(oauthLdapVO);
         //保存
         OauthLdap oauthLdap = CopyUtil.copy(oauthLdapVO, OauthLdap.class);
         oauthLdapMapper.insert(oauthLdap);
@@ -78,7 +67,7 @@ public class OauthLdapServiceImpl implements OauthLdapService {
         OauthLdap oauthLdap = oauthLdapMapper.selectById(oauthLdapVO.getId());
         //ladp不存在或者指定的ldap不属于该组织
         if (Objects.isNull(oauthLdap) || !Objects.equals(oauthLdapVO.getOrganizationId(), oauthLdap.getOrganizationId())) {
-            new IamAppCommException("ldap.data.null");
+            throw new IamAppCommException("ldap.data.null");
         }
         oauthLdap.setIsEnabled(oauthLdap.getIsEnabled());
         oauthLdap.setLastUpdatedBy(UserDetail.getUserId());
@@ -89,47 +78,67 @@ public class OauthLdapServiceImpl implements OauthLdapService {
     }
 
     /**
-     * 更新
+     * 更新ldap配置
      *
-     * @param projectId   项目ID
-     * @param oauthLdapVO
-     * @return
+     * @param oauthLdapVO ldap配置
+     * @return ldap配置
      */
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     @Override
-    public OauthLdapVO update(Long projectId, OauthLdapVO oauthLdapVO) {
-        //最好使用自定义修改语句，修改条件包含项目ID
-        OauthLdapDTO dataDTO = ConvertHelper.convert(oauthLdapVO, OauthLdapDTO.class);
-        oauthLdapMapper.updateById(ConvertHelper.convert(dataDTO, OauthLdap.class));
-        return queryOne(projectId, oauthLdapVO.getId());
+    public OauthLdapVO update(OauthLdapVO oauthLdapVO) {
+        if (Objects.isNull(oauthLdapVO.getId())) {
+            throw new IamAppCommException("ldap.id.null");
+        }
+        initLdapData(oauthLdapVO);
+        //保存
+        OauthLdap oauthLdap = CopyUtil.copy(oauthLdapVO, OauthLdap.class);
+        oauthLdap.setLastUpdatedBy(UserDetail.getUserId());
+        oauthLdap.setLastUpdateDate(new Date());
+        oauthLdapMapper.updateLdapData(oauthLdap);
+        return queryOne(oauthLdapVO.getOrganizationId(), oauthLdapVO.getId());
     }
 
     /**
      * 查询单个详情
      *
-     * @param projectId 项目ID
-     * @param id
-     * @return
+     * @param organizationId 组织id
+     * @param id             ldap id
+     * @return ldap配置信息
      */
     @Override
-    public OauthLdapVO queryOne(Long projectId, Long id) {
-        //查询的数据 如果包含项目ID，校验项目ID是否一致，不一致抛异常
+    public OauthLdapVO queryOne(Long organizationId, Long id) {
+        getOrThrow(organizationId);
         OauthLdap data = oauthLdapMapper.selectById(id);
-        if (Objects.isNull(data)) {
-            throw new IamAppCommException("common.data.null.error");
+        if (Objects.isNull(data) || !Objects.equals(organizationId, data.getOrganizationId())) {
+            throw new IamAppCommException("ldap.data.null");
         }
-        OauthLdapDTO dataDTO = ConvertHelper.convert(data, OauthLdapDTO.class);
-        return ConvertHelper.convert(dataDTO, OauthLdapVO.class);
+        return CopyUtil.copy(data, OauthLdapVO.class);
     }
 
 
     //获取组织信息，校验组织是否存在
-    public IamOrganization getOrThrow(Long organizationId) {
+    private IamOrganization getOrThrow(Long organizationId) {
         IamOrganization iamOrganization = iamOrganizationMapper.selectById(organizationId);
         if (Objects.isNull(iamOrganization)) {
             throw new IamAppCommException("organization.data.empty");
         }
         return iamOrganization;
+    }
+
+    //初始化数据
+    private void initLdapData(OauthLdapVO oauthLdapVO) {
+        //组织名称即为ldap名称
+        IamOrganization iamOrganization = getOrThrow(oauthLdapVO.getOrganizationId());
+        oauthLdapVO.setName(iamOrganization.getName());
+        //没有设置SSL默认不使用
+        if (Objects.isNull(oauthLdapVO.getUseSsl())) {
+            oauthLdapVO.setUseSsl(0L);
+        }
+        //默认启用状态
+        if (Objects.isNull(oauthLdapVO.getIsEnabled())) {
+            oauthLdapVO.setIsEnabled(1L);
+        }
+
     }
 
 }

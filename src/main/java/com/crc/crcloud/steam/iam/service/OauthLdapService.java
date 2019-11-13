@@ -3,13 +3,12 @@ package com.crc.crcloud.steam.iam.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.crc.crcloud.steam.iam .model.vo.OauthLdapVO;
-
+import com.crc.crcloud.steam.iam.model.vo.OauthLdapVO;
 
 
 /**
  * @Author
- * @Description 
+ * @Description
  * @Date 2019-11-12
  */
 public interface OauthLdapService {
@@ -17,6 +16,7 @@ public interface OauthLdapService {
 
     /**
      * 新增ldap配置
+     *
      * @param oauthLdap ldap配置
      * @return ldap配置
      */
@@ -24,6 +24,7 @@ public interface OauthLdapService {
 
     /**
      * 启用/禁用ldap配置
+     *
      * @param oauthLdap ldap配置
      * @return ldap配置
      */
@@ -31,23 +32,21 @@ public interface OauthLdapService {
 
 
     /**
-    * 更新
-    * @param projectId  项目ID
-    * @param oauthLdap
-    * @return
-    */
-    OauthLdapVO  update(Long projectId, OauthLdapVO oauthLdap);
+     * 更新ldap配置
+     *
+     * @param oauthLdap ldap配置
+     * @return ldap配置
+     */
+    OauthLdapVO update(OauthLdapVO oauthLdap);
 
     /**
-     *
      * 查询单个详情
-     * @param projectId  项目ID
-     * @param id
-     * @return
+     *
+     * @param organizationId 组织id
+     * @param id             ldap id
+     * @return ldap配置信息
      */
-    OauthLdapVO queryOne(Long projectId, Long id);
-
-
+    OauthLdapVO queryOne(Long organizationId, Long id);
 
 
 }

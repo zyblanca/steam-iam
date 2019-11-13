@@ -69,38 +69,40 @@ public class OauthLdapController {
     }
 
     /**
-     * 修改
+     * 修改ldap配置
      *
-     * @param projectId 项目ID
-     * @param oauthLdap
-     * @return
+     * @param organizationId 组织id
+     * @param oauthLdap      ldap配置
+     * @return ldap配置
      */
-    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
+    @Permission(level = ResourceLevel.ORGANIZATION)
     @ApiOperation(value = "修改", notes = "修改", response = OauthLdapVO.class)
-    @PutMapping
+    @PutMapping(value = "/organizations/{organization_id}/ldaps")
     public ResponseEntity<OauthLdapVO> update(@ApiParam(value = "项目ID", required = true)
-                                              @PathVariable(name = "project_id") Long projectId,
-                                              @ApiParam(value = "", required = true)
-                                              @RequestBody OauthLdapVO oauthLdap) {
-        return Optional.ofNullable(oauthLdapService.update(projectId, oauthLdap))
+                                              @PathVariable(name = "organization_id") Long organizationId,
+                                              @ApiParam(value = "ldap配置", required = true)
+                                              @RequestBody @Validated OauthLdapVO oauthLdap) {
+        oauthLdap.setOrganizationId(organizationId);
+        return Optional.ofNullable(oauthLdapService.update(oauthLdap))
                 .map(ResponseEntity::new)
                 .orElseThrow(() -> new IamAppCommException("common.update.error"));
     }
 
     /**
-     * 详情
+     * ldap详情
      *
-     * @param id
-     * @return
+     * @param organizationId 组织id
+     * @param id ldap id
+     * @return ldap配置信息
      */
     @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
     @ApiOperation(value = "查询单个信息", notes = "查询单个详情", response = OauthLdapVO.class)
-    @GetMapping("{id}")
-    public ResponseEntity<OauthLdapVO> load(@ApiParam(value = "项目ID", required = true)
-                                            @PathVariable(name = "project_id") Long projectId,
-                                            @ApiParam(value = "", required = true)
+    @GetMapping("/organizations/{organization_id}/{id}")
+    public ResponseEntity<OauthLdapVO> load(@ApiParam(value = "组织id", required = true)
+                                            @PathVariable(name = "organization_id") Long organizationId,
+                                            @ApiParam(value = "ldap id", required = true)
                                             @PathVariable(name = "id") Long id) {
-        return Optional.ofNullable(oauthLdapService.queryOne(projectId, id)).map(ResponseEntity::new)
+        return Optional.ofNullable(oauthLdapService.queryOne(organizationId, id)).map(ResponseEntity::new)
                 .orElseThrow(() -> new IamAppCommException("common.data.null.error"));
     }
 

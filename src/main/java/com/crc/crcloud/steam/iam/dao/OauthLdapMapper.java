@@ -12,6 +12,17 @@ import org.apache.ibatis.annotations.Param;
  */
 public interface OauthLdapMapper extends BaseMapper<OauthLdap> {
 
-
+    /**
+     * 修改ldap状态
+     * @param oauthLdap ldap配置
+     * @return 修改数量
+     */
     int changeStatus(@Param("oauthLdap") OauthLdap oauthLdap);
+
+    /**
+     * 修改ldap数据
+     * @param oauthLdap ldap配置
+     * @return  修改数量
+     */
+    int updateLdapData(@Param("oauthLdap")OauthLdap oauthLdap);
 }
