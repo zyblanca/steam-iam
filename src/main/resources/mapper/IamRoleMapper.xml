@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.crc.crcloud.steam.iam.dao.IamRoleMapper">
+
+
+        <!-- 通用查询映射结果 -->
+        <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamRole">
+                    <id column="id" property="id" />
+                    <result column="name" property="name" />
+                    <result column="code" property="code" />
+                    <result column="description" property="description" />
+                    <result column="fd_level" property="fdLevel" />
+                    <result column="is_enabled" property="isEnabled" />
+                    <result column="is_modified" property="isModified" />
+                    <result column="is_enable_forbidden" property="isEnableForbidden" />
+                    <result column="is_built_in" property="isBuiltIn" />
+                    <result column="is_assignable" property="isAssignable" />
+                    <result column="object_version_number" property="objectVersionNumber" />
+                    <result column="created_by" property="createdBy" />
+                    <result column="creation_date" property="creationDate" />
+                    <result column="last_updated_by" property="lastUpdatedBy" />
+                    <result column="last_update_date" property="lastUpdateDate" />
+        </resultMap>
+
+
+        <!-- 通用查询结果列 -->
+        <sql id="Base_Column_List">
+                     id,
+                     name,
+                     code,
+                     description,
+                     fd_level,
+                     is_enabled,
+                     is_modified,
+                     is_enable_forbidden,
+                     is_built_in,
+                     is_assignable,
+                     object_version_number,
+                     created_by,
+                     creation_date,
+                     last_updated_by,
+                     last_update_date
+        </sql>
+
+    <select id="page" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/>
+        from iam_role
+
+    </select>
+
+
+
+</mapper>

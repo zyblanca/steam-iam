@@ -14,7 +14,7 @@ import javax.validation.constraints.NotNull;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrganizationUserPageRequestVO {
+public class IamOrganizationUserPageRequestVO {
     @NotNull
     @Min(1)
     private Integer page;

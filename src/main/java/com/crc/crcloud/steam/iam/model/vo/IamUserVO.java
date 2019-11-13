@@ -3,19 +3,16 @@ package com.crc.crcloud.steam.iam.model.vo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
-import java.lang.Integer;
-import java.lang.Long;
-import java.lang.Byte;
 
 /**
  * @Author:
  * @Date: 2019-11-12
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor

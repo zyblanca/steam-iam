@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrganizationUserPageResponseVO {
+public class IamOrganizationUserPageResponseVO {
     @ApiModelProperty("登录名")
     private String loginName;
     @ApiModelProperty("用户名")
