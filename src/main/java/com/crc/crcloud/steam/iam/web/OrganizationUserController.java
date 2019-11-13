@@ -1,23 +1,25 @@
 package com.crc.crcloud.steam.iam.web;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
-import com.crc.crcloud.steam.iam.model.vo.IamOrganizationUserPageRequestVO;
-import com.crc.crcloud.steam.iam.model.vo.IamOrganizationUserPageResponseVO;
-import com.crc.crcloud.steam.iam.model.vo.IamUserCreateRequestVO;
+import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
+import com.crc.crcloud.steam.iam.model.vo.user.IamOrganizationUserPageRequestVO;
+import com.crc.crcloud.steam.iam.model.vo.user.IamOrganizationUserPageResponseVO;
+import com.crc.crcloud.steam.iam.model.vo.user.IamUserCreateRequestVO;
+import com.crc.crcloud.steam.iam.model.vo.user.IamUserSafeVO;
+import com.crc.crcloud.steam.iam.service.IamUserService;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -26,11 +28,13 @@ import java.util.function.Supplier;
 @RestController
 @RequestMapping(value = "/v1/organizations/{organization_id}/user")
 public class OrganizationUserController {
+    @Autowired
+    private IamUserService iamUserService;
 
     @Permission(permissionPublic = true)
     @ApiOperation(value = "组织成员列表", notes = "分页", response = IamOrganizationUserPageResponseVO.class)
     @PostMapping("page")
-    public ResponseEntity<IPage<IamOrganizationUserPageResponseVO>> page(@PathVariable("organization_id") String organizationId
+    public ResponseEntity<IPage<IamOrganizationUserPageResponseVO>> page(@PathVariable("organization_id") Long organizationId
             , @RequestBody @Valid IamOrganizationUserPageRequestVO vo) {
         Supplier<IamOrganizationUserPageResponseVO> random = () -> {
             return IamOrganizationUserPageResponseVO.builder()
@@ -57,11 +61,10 @@ public class OrganizationUserController {
     @Permission(permissionPublic = true)
     @ApiOperation(value = "手动创建组织成员")
     @PostMapping
-    public ResponseEntity createUser(@PathVariable("organization_id") String organizationId,
-                                     @RequestBody @Valid IamUserCreateRequestVO vo) {
-        Map<String, Object> stringObjectMap = BeanUtil.beanToMap(vo);
-        stringObjectMap.put("id", RandomUtil.randomInt());
-        return new ResponseEntity(stringObjectMap);
+    public ResponseEntity<IamUserSafeVO> createUser(@PathVariable("organization_id") Long organizationId,
+                                                    @RequestBody @Valid IamUserCreateRequestVO vo) {
+        IamUserDTO userDTO = iamUserService.createUserByManual(vo, CollUtil.newHashSet(organizationId));
+        return new ResponseEntity<>(new IamUserSafeVO(userDTO));
     }
 
 }

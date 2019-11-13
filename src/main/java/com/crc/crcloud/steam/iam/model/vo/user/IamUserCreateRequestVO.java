@@ -1,4 +1,4 @@
-package com.crc.crcloud.steam.iam.model.vo;
+package com.crc.crcloud.steam.iam.model.vo.user;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -18,6 +18,9 @@ import javax.validation.constraints.NotBlank;
 @NoArgsConstructor
 @AllArgsConstructor
 public class IamUserCreateRequestVO {
+    /**
+     * 登录名只能由字母、数字、"-"、"_"、"."组成，且不能以“-”开头，不能以"."、 “.git"或者“.atom”结尾
+     */
     @Length(max = 40, message = "user.loginName.length")
     @NotBlank
     @ApiModelProperty("登录名")

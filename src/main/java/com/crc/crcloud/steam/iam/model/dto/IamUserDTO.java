@@ -1,20 +1,16 @@
 package com.crc.crcloud.steam.iam.model.dto;
 
-import java.util.Date;
-import java.lang.Integer;
-import java.lang.Long;
-import java.lang.Byte;
-
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.NoArgsConstructor;
+
+import java.util.Date;
 
 /**
  * @Author:
  * @Date: 2019-11-12
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
@@ -23,7 +19,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 public class IamUserDTO {
 
     /**
-    * 
+    *
     */
     private Long id;
 
@@ -95,22 +91,22 @@ public class IamUserDTO {
     /**
     * 用户是否启用。1启用，0未启用
     */
-    private Byte isEnabled;
+    private Boolean isEnabled;
 
     /**
     * 是否锁定账户
     */
-    private Byte isLocked;
+    private Boolean isLocked;
 
     /**
     * 是否是ldap来源。1是，0不是
     */
-    private Byte isLdap;
+    private Boolean isLdap;
 
     /**
     * 是否为管理员用户。1表示是，0表示不是
     */
-    private Byte isAdmin;
+    private Boolean isAdmin;
 
     /**
     * 锁定账户截止时间
@@ -120,30 +116,30 @@ public class IamUserDTO {
     /**
     * 密码输错累积次数
     */
-    private Byte passwordAttempt;
+    private Integer passwordAttempt;
 
     /**
-    * 
+    *
     */
     private Long objectVersionNumber;
 
     /**
-    * 
+    *
     */
     private Long createdBy;
 
     /**
-    * 
+    *
     */
     private Date creationDate;
 
     /**
-    * 
+    *
     */
     private Long lastUpdatedBy;
 
     /**
-    * 
+    *
     */
     private Date lastUpdateDate;
 

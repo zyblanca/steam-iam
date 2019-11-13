@@ -61,13 +61,11 @@
                      last_updated_by,
                      last_update_date
         </sql>
-
-    <select id="page" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"/>
-        from iam_user
-
+    <update id="fillHashPassword">
+        update iam_user set hash_password = #{hashPassword},last_password_updated_at = now()  where  id = ${userId}
+    </update>
+    <select id="getHashPassword" resultType="java.lang.String">
+        select hash_password from iam_user where id = ${userId}
     </select>
-
-
 
 </mapper>
