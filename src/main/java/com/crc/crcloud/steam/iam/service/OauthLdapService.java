@@ -16,19 +16,19 @@ public interface OauthLdapService {
 
 
     /**
-     * 新增
-     * @param projectId  项目ID
-     * @param oauthLdap
-     * @return
+     * 新增ldap配置
+     * @param oauthLdap ldap配置
+     * @return ldap配置
      */
-    OauthLdapVO insert(Long projectId, OauthLdapVO oauthLdap);
+    OauthLdapVO insert(OauthLdapVO oauthLdap);
 
     /**
-    * 删除
-    * @param projectId  项目ID
-    * @param id
-    */
-    void delete(Long projectId, Long id);
+     * 启用/禁用ldap配置
+     * @param oauthLdap ldap配置
+     * @return ldap配置
+     */
+    OauthLdapVO changeStatus(OauthLdapVO oauthLdap);
+
 
     /**
     * 更新
@@ -47,12 +47,7 @@ public interface OauthLdapService {
      */
     OauthLdapVO queryOne(Long projectId, Long id);
 
-    /**
-     * 分页查询
-     * @param oauthLdap
-     * @param projectId  项目ID
-     * @param page  分页信息
-     * @return
-     */
-    IPage<OauthLdapVO> queryPage(OauthLdapVO oauthLdap, Long projectId, Page page);
+
+
+
 }
