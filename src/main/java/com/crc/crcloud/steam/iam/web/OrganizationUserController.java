@@ -26,7 +26,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 组织成员
@@ -54,7 +56,7 @@ public class OrganizationUserController {
             BeanUtil.copyProperties(t, responseVO);
             responseVO.setOrigin(t.getIsLdap() ? UserOriginEnum.LDAP.getDesc() : UserOriginEnum.MANUAL.getDesc());
             List<IamRoleDTO> roles = iamUserRoleMap.getOrDefault(t.getId(), new ArrayList<>());
-            responseVO.setRoleName(CollUtil.join(roles, ","));
+            responseVO.setRoleName(roles.stream().map(IamRoleDTO::getName).collect(Collectors.joining(",")));
             return responseVO;
         };
         return new ResponseEntity<>(pageResult.convert(convert));
@@ -67,6 +69,22 @@ public class OrganizationUserController {
                                                     @RequestBody @Valid IamUserCreateRequestVO vo) {
         IamUserDTO userDTO = iamUserService.createUserByManual(vo, CollUtil.newHashSet(organizationId));
         return new ResponseEntity<>(new IamUserSafeVO(userDTO));
+    }
+
+    @ApiOperation("获取所有组织成员")
+    @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
+    @GetMapping
+    public ResponseEntity<List<IamUserSafeVO>> list(@PathVariable("organization_id") Long organizationId) {
+        IamOrganizationUserPageRequestVO pageRequestVO = IamOrganizationUserPageRequestVO.builder().pageSize(999).build();
+        List<IamUserSafeVO> orgUsers = new ArrayList<>(500);
+        AtomicInteger page = new AtomicInteger();
+        IPage<IamUserSafeVO> pageResult;
+        do {
+            pageRequestVO.setPage(page.incrementAndGet());
+            pageResult = iamUserService.pageQueryOrganizationUser(organizationId, pageRequestVO).convert(IamUserSafeVO::new);
+            orgUsers.addAll(pageResult.getRecords());
+        } while (pageResult.getCurrent() < pageResult.getPages());
+        return new ResponseEntity<>(orgUsers);
     }
 
 }
