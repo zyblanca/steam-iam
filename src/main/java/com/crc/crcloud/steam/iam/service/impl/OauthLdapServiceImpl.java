@@ -8,6 +8,7 @@ import com.crc.crcloud.steam.iam.dao.IamOrganizationMapper;
 import com.crc.crcloud.steam.iam.dao.OauthLdapMapper;
 import com.crc.crcloud.steam.iam.entity.IamOrganization;
 import com.crc.crcloud.steam.iam.entity.OauthLdap;
+import com.crc.crcloud.steam.iam.model.dto.LdapConnectionDTO;
 import com.crc.crcloud.steam.iam.model.vo.OauthLdapVO;
 import com.crc.crcloud.steam.iam.service.OauthLdapService;
 import lombok.extern.slf4j.Slf4j;
@@ -115,6 +116,13 @@ public class OauthLdapServiceImpl implements OauthLdapService {
         return CopyUtil.copy(data, OauthLdapVO.class);
     }
 
+
+    @Override
+    public LdapConnectionDTO testConnetion(OauthLdapVO oauthLdapVO) {
+        //验证信息
+        queryOne(oauthLdapVO.getOrganizationId(),oauthLdapVO.getId());
+        return null;
+    }
 
     //获取组织信息，校验组织是否存在
     private IamOrganization getOrThrow(Long organizationId) {

@@ -3,6 +3,7 @@ package com.crc.crcloud.steam.iam.web;
 
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
+import com.crc.crcloud.steam.iam.model.dto.LdapConnectionDTO;
 import com.crc.crcloud.steam.iam.model.vo.OauthLdapVO;
 import com.crc.crcloud.steam.iam.service.OauthLdapService;
 import io.choerodon.core.iam.InitRoleCode;
@@ -92,7 +93,7 @@ public class OauthLdapController {
      * ldap详情
      *
      * @param organizationId 组织id
-     * @param id ldap id
+     * @param id             ldap id
      * @return ldap配置信息
      */
     @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
@@ -106,5 +107,19 @@ public class OauthLdapController {
                 .orElseThrow(() -> new IamAppCommException("common.data.null.error"));
     }
 
-
+    /**
+     * 测试ldap连接
+     *
+     * @return 是否连接成功
+     */
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @ApiOperation(value = "测试ldap连接", response = LdapConnectionDTO.class)
+    @PostMapping("/organizations/{organization_id}/ldaps/{id}/test_connect")
+    public ResponseEntity<LdapConnectionDTO> testConnect(@PathVariable("organization_id") Long organizationId,
+                                                         @PathVariable("id") Long id,
+                                                         @RequestBody OauthLdapVO oauthLdapVO) {
+        oauthLdapVO.setOrganizationId(organizationId);
+        oauthLdapVO.setId(id);
+        return new ResponseEntity<>(oauthLdapService.testConnetion(oauthLdapVO));
+    }
 }

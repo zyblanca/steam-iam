@@ -1,5 +1,6 @@
 package com.crc.crcloud.steam.iam.common.utils;
 
+import com.crc.crcloud.steam.iam.common.enums.LdapTypeEnum;
 import com.crc.crcloud.steam.iam.model.dto.OauthLdapDTO;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
@@ -23,7 +24,7 @@ public class LdapUtil {
      * @param anonymousReadOnly 匿名访问,查看基本信息，不需要账户
      * @return ldap连接模板
      */
-    public LdapTemplate getLdapTemplate(OauthLdapDTO oauthLdapDTO, boolean anonymousReadOnly) {
+    public static LdapTemplate getLdapTemplate(OauthLdapDTO oauthLdapDTO, boolean anonymousReadOnly) {
         LdapContextSource contextSource = new LdapContextSource();
         //匿名登入不需要账户信息
         if (anonymousReadOnly) {
@@ -47,7 +48,12 @@ public class LdapUtil {
         //必须设置
         contextSource.afterPropertiesSet();
 
-        return new LdapTemplate(contextSource);
+
+        LdapTemplate ldapTemplate = new LdapTemplate(contextSource);
+        if (Objects.equals(LdapTypeEnum.MICROSOFT_ACTIVE_DIRECTORY.getValue(), oauthLdapDTO.getDirectoryType())) {
+            ldapTemplate.setIgnorePartialResultException(true);
+        }
+        return ldapTemplate;
     }
 
 
