@@ -7,28 +7,36 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
+import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.dao.IamUserMapper;
 import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
+import com.crc.crcloud.steam.iam.model.dto.user.SearchDTO;
+import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
+import com.crc.crcloud.steam.iam.model.vo.user.IamOrganizationUserPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamUserCreateRequestVO;
+import com.crc.crcloud.steam.iam.service.IamMemberRoleService;
+import com.crc.crcloud.steam.iam.service.IamUserOrganizationRelService;
 import com.crc.crcloud.steam.iam.service.IamUserService;
 import io.choerodon.core.convertor.ConvertHelper;
+import io.choerodon.core.iam.ResourceLevel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -44,10 +52,28 @@ public class IamUserServiceImpl implements IamUserService {
 
 	@Autowired
 	private IamUserMapper iamUserMapper;
+	@Autowired
+	private IamUserOrganizationRelService iamUserOrganizationRelService;
+	@Autowired
+	private IamMemberRoleService memberRoleService;
 	/**线程安全*/
 	private final BCryptPasswordEncoder ENCODER = new BCryptPasswordEncoder();
+
+	@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
 	@Override
 	public @NotNull IamUserDTO createUserByManual(@Valid IamUserCreateRequestVO vo, @NotEmpty Set<Long> organizationIds) {
+		@NotNull IamUserDTO user = createUserByManual(vo);
+		log.info("手动添加用户[{}],期望属于组织[{}]", vo.getRealName(), CollUtil.join(organizationIds, ","));
+		iamUserOrganizationRelService.link(user.getId(), organizationIds);
+		log.info("手动添加用户[{}],期望属于角色[{}]", vo.getRealName(), CollUtil.join(vo.getRoleIds(), ","));
+		for (Long organizationId : organizationIds) {
+			memberRoleService.grantUserRole(user.getId(), vo.getRoleIds(), organizationId, ResourceLevel.ORGANIZATION);
+		}
+		return user;
+	}
+
+	@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
+	public @NotNull IamUserDTO createUserByManual(@Valid IamUserCreateRequestVO vo) {
 		//只能以字母和数字开头，且长度不能少于2，内容可以包含字母数字.-
 		Predicate<String> matchLoginName = loginName -> ReUtil.isMatch("^[a-zA-Z0-9][a-zA-Z0-9.-]+$", loginName);
 		//不能以. .git .atom 结尾
@@ -66,7 +92,7 @@ public class IamUserServiceImpl implements IamUserService {
 		initUser(entity);
 		iamUserMapper.insert(entity);
 		iamUserMapper.fillHashPassword(entity.getId(), ENCODER.encode(vo.getPassword()));
-		log.info("手动添加用户[{}],期望属于组织[{}]", vo.getRealName(), CollUtil.join(organizationIds, ","));
+		log.info("手动添加用户[{}]", vo.getRealName());
 		return ConvertHelper.convert(entity, IamUserDTO.class);
 	}
 
@@ -124,5 +150,20 @@ public class IamUserServiceImpl implements IamUserService {
 				.map(t -> ConvertHelper.convert(t, IamUserDTO.class));
 	}
 
+	@Override
+	public IamUserDTO getAndThrow(@NotNull Long userId) {
+		return getOne(t -> t.eq(IamUser::getId, userId)).orElseThrow(() -> new IamAppCommException("user.not.exist"));
+	}
 
+	@Override
+	public IPage<IamUserVO> pageQueryOrganizationUser(@NotNull Long
+															  organizationId, @Valid IamOrganizationUserPageRequestVO vo) {
+		List<String> keywords = StrUtil.splitTrim(vo.getKeywords(), ",");
+		if (StrUtil.isNotBlank(vo.getKeywords())) {
+			keywords.add(vo.getKeywords());
+		}
+		SearchDTO searchDTO = SearchDTO.builder().roleIds(vo.getRoleIds()).keywords(CollUtil.newHashSet(keywords)).build();
+		IPage<IamUser> pageResult = iamUserMapper.pageQueryOrganizationUser(new Page<>(vo.getPage(), vo.getPageSize()), CollUtil.newHashSet(organizationId), searchDTO);
+		return pageResult.convert(t -> CopyUtil.copy(t, IamUserVO.class));
+	}
 }

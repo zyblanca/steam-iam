@@ -1,10 +1,11 @@
 package com.crc.crcloud.steam.iam.service;
 
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.crc.crcloud.steam.iam.model.vo.IamMemberRoleVO;
+import io.choerodon.core.iam.ResourceLevel;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.util.Set;
 
 
 /**
@@ -14,45 +15,15 @@ import com.crc.crcloud.steam.iam.model.vo.IamMemberRoleVO;
  */
 public interface IamMemberRoleService {
 
-
     /**
-     * 新增
-     * @param projectId  项目ID
-     * @param iamMemberRole
-     * @return
+     * 授权用户角色到目标资源；（给用户授权在某组织下角色）
+     * <p>增量授权</p>
+     * <p>资源类型只允许{site,organization,project}</p>
+     * <p>会进行匹配，角色类型和资源类型是否匹配，也会校验资源</p>
+     * @param userId 用户编号
+     * @param roleIds 角色ID
+     * @param sourceId 关联资源
+     * @param resourceLevel 资源类型
      */
-    IamMemberRoleVO insert(Long projectId, IamMemberRoleVO iamMemberRole);
-
-    /**
-    * 删除
-    * @param projectId  项目ID
-    * @param id
-    */
-    void delete(Long projectId, Long id);
-
-    /**
-    * 更新
-    * @param projectId  项目ID
-    * @param iamMemberRole
-    * @return
-    */
-    IamMemberRoleVO  update(Long projectId, IamMemberRoleVO iamMemberRole);
-
-    /**
-     *
-     * 查询单个详情
-     * @param projectId  项目ID
-     * @param id
-     * @return
-     */
-    IamMemberRoleVO queryOne(Long projectId, Long id);
-
-    /**
-     * 分页查询
-     * @param iamMemberRole
-     * @param projectId  项目ID
-     * @param page  分页信息
-     * @return
-     */
-    IPage<IamMemberRoleVO> queryPage(IamMemberRoleVO iamMemberRole, Long projectId, Page page);
+    void grantUserRole(@NotNull Long userId, @NotEmpty Set<Long> roleIds, @NotNull Long sourceId, @NotNull ResourceLevel resourceLevel);
 }

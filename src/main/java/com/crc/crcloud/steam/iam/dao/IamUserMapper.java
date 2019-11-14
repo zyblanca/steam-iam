@@ -1,12 +1,16 @@
 package com.crc.crcloud.steam.iam.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.entity.IamUser;
+import com.crc.crcloud.steam.iam.model.dto.user.SearchDTO;
 import org.apache.ibatis.annotations.Param;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.Set;
 
 
 /**
@@ -30,4 +34,12 @@ public interface IamUserMapper extends BaseMapper<IamUser> {
      */
     @Nullable
     String getHashPassword(@NotNull @Param("userId") Long userId);
+
+    /**
+     * 查询组织用户
+     * @param page
+     * @param searchDTO
+     * @return
+     */
+    IPage<IamUser> pageQueryOrganizationUser(@Param("page") Page<IamUser> page, @Param("organizationIds") Set<Long> organizationIds, @Param("searchDTO") SearchDTO searchDTO);
 }

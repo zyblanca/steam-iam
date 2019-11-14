@@ -3,28 +3,28 @@
 <mapper namespace="com.crc.crcloud.steam.iam.dao.IamRoleMapper">
 
 
-        <!-- 通用查询映射结果 -->
-        <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamRole">
-                    <id column="id" property="id" />
-                    <result column="name" property="name" />
-                    <result column="code" property="code" />
-                    <result column="description" property="description" />
-                    <result column="fd_level" property="fdLevel" />
-                    <result column="is_enabled" property="isEnabled" />
-                    <result column="is_modified" property="isModified" />
-                    <result column="is_enable_forbidden" property="isEnableForbidden" />
-                    <result column="is_built_in" property="isBuiltIn" />
-                    <result column="is_assignable" property="isAssignable" />
-                    <result column="object_version_number" property="objectVersionNumber" />
-                    <result column="created_by" property="createdBy" />
-                    <result column="creation_date" property="creationDate" />
-                    <result column="last_updated_by" property="lastUpdatedBy" />
-                    <result column="last_update_date" property="lastUpdateDate" />
-        </resultMap>
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamRole">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="description" property="description"/>
+        <result column="fd_level" property="fdLevel"/>
+        <result column="is_enabled" property="isEnabled"/>
+        <result column="is_modified" property="isModified"/>
+        <result column="is_enable_forbidden" property="isEnableForbidden"/>
+        <result column="is_built_in" property="isBuiltIn"/>
+        <result column="is_assignable" property="isAssignable"/>
+        <result column="object_version_number" property="objectVersionNumber"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="creation_date" property="creationDate"/>
+        <result column="last_updated_by" property="lastUpdatedBy"/>
+        <result column="last_update_date" property="lastUpdateDate"/>
+    </resultMap>
 
 
-        <!-- 通用查询结果列 -->
-        <sql id="Base_Column_List">
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
                      id,
                      name,
                      code,
@@ -41,13 +41,15 @@
                      last_updated_by,
                      last_update_date
         </sql>
-
-    <select id="page" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"/>
-        from iam_role
-
+    <select id="getUserRoles" resultMap="BaseResultMap">
+        select role.*
+        from iam_role role inner join iam_member_role m_role on role.id = m_role.role_id
+        where
+        m_role.member_id = ${userId} and m_role.member_type = 'user' and m_role.source_type in
+        <foreach collection="levels" item="level" separator="," open="(" close=")">
+            #{level}
+        </foreach>
     </select>
-
 
 
 </mapper>

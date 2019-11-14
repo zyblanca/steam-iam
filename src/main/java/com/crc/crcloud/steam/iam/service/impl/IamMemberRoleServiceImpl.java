@@ -1,121 +1,77 @@
 package com.crc.crcloud.steam.iam.service.impl;
 
 
-
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.crc.crcloud.steam.iam.common.enums.MemberType;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.dao.IamMemberRoleMapper;
 import com.crc.crcloud.steam.iam.entity.IamMemberRole;
-import com.crc.crcloud.steam.iam.model.dto.IamMemberRoleDTO;
-import com.crc.crcloud.steam.iam.model.vo.IamMemberRoleVO;
+import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
+import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.service.IamMemberRoleService;
-import io.choerodon.core.convertor.ConvertHelper;
+import com.crc.crcloud.steam.iam.service.IamRoleService;
+import com.crc.crcloud.steam.iam.service.IamUserService;
+import io.choerodon.core.convertor.ApplicationContextHelper;
+import io.choerodon.core.iam.ResourceLevel;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
  * @Author
- * @Description 
+ * @Description
  * @Date 2019-11-12
  */
+@Slf4j
+@Validated
 @Service
-public class IamMemberRoleServiceImpl implements IamMemberRoleService {
+public class IamMemberRoleServiceImpl extends ServiceImpl<IamMemberRoleMapper, IamMemberRole> implements IamMemberRoleService {
 
 	@Autowired
 	private IamMemberRoleMapper iamMemberRoleMapper;
 
-	/**
-	 * 新增
-	 * @param projectId  项目ID
-	 * @param iamMemberRoleVO
-	 * @return
-	 */
-	@Transactional(rollbackFor = Exception.class,isolation = Isolation.READ_COMMITTED)
+	@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
 	@Override
-	public IamMemberRoleVO insert(Long projectId,IamMemberRoleVO iamMemberRoleVO){
-		IamMemberRoleDTO iamMemberRoleDTO = ConvertHelper.convert(iamMemberRoleVO,IamMemberRoleDTO.class);
-		IamMemberRole iamMemberRole = ConvertHelper.convert(iamMemberRoleDTO,IamMemberRole.class);
-		iamMemberRoleMapper.insert(iamMemberRole);
-		IamMemberRoleDTO insertDTO = ConvertHelper.convert(iamMemberRole,IamMemberRoleDTO.class);
-		return ConvertHelper.convert(insertDTO,IamMemberRoleVO.class);
-	}
-
-	/**
-	 * 删除
-	 * @param projectId  项目ID
-	 * @param id
-	 */
-	@Transactional(rollbackFor = Exception.class,isolation = Isolation.READ_COMMITTED)
-	@Override
-	public void delete(Long projectId,Long id){
-		//如果表中含有projectId，请先查询数据，判断projectId是否一致 不一致抛异常，一致则进行删除
-		iamMemberRoleMapper.deleteById(id);
-	}
-
-	/**
-	 * 更新
-	 * @param projectId  项目ID
-	 * @param iamMemberRoleVO
-	 * @return
-	 */
-	@Transactional(rollbackFor = Exception.class,isolation = Isolation.READ_COMMITTED)
-	@Override
-	public IamMemberRoleVO  update(Long projectId,IamMemberRoleVO iamMemberRoleVO){
-		//最好使用自定义修改语句，修改条件包含项目ID
-		IamMemberRoleDTO dataDTO =ConvertHelper.convert(iamMemberRoleVO,IamMemberRoleDTO.class);
-		iamMemberRoleMapper.updateById(ConvertHelper.convert(dataDTO,IamMemberRole.class));
-			return queryOne(projectId ,iamMemberRoleVO.getId());
-	}
-	/**
-	 *
-	 * 查询单个详情
-	 * @param projectId  项目ID
-	 * @param id
-	 * @return
-	 */
-	@Override
-	public IamMemberRoleVO queryOne(Long projectId ,Long id){
-		//查询的数据 如果包含项目ID，校验项目ID是否一致，不一致抛异常
-		IamMemberRole data = iamMemberRoleMapper.selectById(id);
-		if(Objects.isNull(data)){
-			throw new IamAppCommException("common.data.null.error");
+	public void grantUserRole(@NotNull Long userId, @NotEmpty Set<Long> roleIds, @NotNull Long sourceId, @NotNull ResourceLevel resourceLevel) {
+		if (!CollUtil.newHashSet(ResourceLevel.SITE, ResourceLevel.ORGANIZATION, ResourceLevel.PROJECT).contains(resourceLevel)) {
+			throw new IamAppCommException("role.grant.source.type.not.support");
 		}
-		IamMemberRoleDTO dataDTO = ConvertHelper.convert(data,IamMemberRoleDTO.class);
-		return ConvertHelper.convert(dataDTO, IamMemberRoleVO.class);
-	}
-	/**
-	 * 分页查询
-	 * @param iamMemberRoleVO
-	 * @param projectId  项目ID
-	 * @param page  分页信息
-	 * @return
-	 */
-	@Override
-	public IPage<IamMemberRoleVO> queryPage(IamMemberRoleVO iamMemberRoleVO, Long projectId,Page page) {
+		IamUserService iamUserService = ApplicationContextHelper.getContext().getBean(IamUserService.class);
+		IamUserDTO iamUser = iamUserService.getAndThrow(userId);
+		//todo 校验资源有效性
+		IamRoleService iamRoleService = ApplicationContextHelper.getContext().getBean(IamRoleService.class);
 
-		IamMemberRoleDTO iamMemberRoleDTO =ConvertHelper.convert(iamMemberRoleVO,IamMemberRoleDTO.class);
+		@NotNull List<IamRoleDTO> userRoles = iamRoleService.getUserRoles(iamUser.getId(), resourceLevel);
 
-
-		//查询
-		IPage<IamMemberRole> pageResult = iamMemberRoleMapper.page(page , iamMemberRoleDTO);
-		IPage<IamMemberRoleVO> result = new Page<>();
-		if (Objects.isNull(pageResult) || pageResult.getTotal() == 0) {
-			return result;
+		//需要授权的角色
+		Set<Long> needGrantRoles = CollUtil.newHashSet(roleIds);
+		//从待授权列表中移除已经授权过的角色
+		userRoles.forEach(r -> needGrantRoles.remove(r.getId()));
+		@NotNull List<IamRoleDTO> roles = iamRoleService.getRoles(needGrantRoles);
+		if (needGrantRoles.size() != roles.size()) {
+			throw new IamAppCommException("role.not.exist");
+		} else if (!roles.stream().allMatch(t -> Objects.equals(t.getFdLevel(), resourceLevel.value()))) {
+			throw new IamAppCommException("role.grant.source.type.not.match");
 		}
-
-		result.setSize(pageResult.getSize());
-		result.setTotal(pageResult.getTotal());
-		List<IamMemberRoleDTO> recordsDTO = ConvertHelper.convertList(pageResult.getRecords(),IamMemberRoleDTO.class);
-		List<IamMemberRoleVO> recordsVO  = ConvertHelper.convertList(recordsDTO,IamMemberRoleVO.class);
-		result.setRecords(recordsVO);
-		return result;
+		log.info("用户[{}]授权{}[{}]角色: {}", iamUser.getLoginName(), resourceLevel, sourceId, roles.stream().map(IamRoleDTO::getName).collect(Collectors.joining(",")));
+		List<IamMemberRole> incrementRoleMembers = roles.stream().map(t -> {
+			return IamMemberRole.builder()
+					.roleId(t.getId())
+					.memberId(iamUser.getId()).memberType(MemberType.USER.getValue())
+					.sourceId(sourceId).sourceType(resourceLevel.value())
+					.build();
+		}).collect(Collectors.toList());
+		this.saveBatch(incrementRoleMembers);
 	}
-
-
-
 }

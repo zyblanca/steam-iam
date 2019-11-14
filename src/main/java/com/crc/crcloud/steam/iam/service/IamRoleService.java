@@ -1,11 +1,13 @@
 package com.crc.crcloud.steam.iam.service;
 
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.crc.crcloud.steam.iam.model.vo.IamRoleVO;
+import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
+import io.choerodon.core.iam.ResourceLevel;
 
-
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @Author
@@ -13,46 +15,43 @@ import com.crc.crcloud.steam.iam.model.vo.IamRoleVO;
  * @Date 2019-11-12
  */
 public interface IamRoleService {
-
-
     /**
-     * 新增
-     * @param projectId  项目ID
-     * @param iamRole
-     * @return
+     * 获取用户角色
+     * @param userId 用户编号
+     * @param levels 级别,不传递查询所有
+     * @return 角色
      */
-    IamRoleVO insert(Long projectId, IamRoleVO iamRole);
+    @NotNull
+    List<IamRoleDTO> getUserRoles(@NotNull Long userId, ResourceLevel... levels);
 
     /**
-    * 删除
-    * @param projectId  项目ID
-    * @param id
-    */
-    void delete(Long projectId, Long id);
-
-    /**
-    * 更新
-    * @param projectId  项目ID
-    * @param iamRole
-    * @return
-    */
-    IamRoleVO  update(Long projectId, IamRoleVO iamRole);
-
-    /**
-     *
-     * 查询单个详情
-     * @param projectId  项目ID
-     * @param id
-     * @return
+     * 获取用户组织层角色
+     * @param userId 用户编号
+     * @return 角色
      */
-    IamRoleVO queryOne(Long projectId, Long id);
+    @NotNull
+    List<IamRoleDTO> getUserRolesByOrganization(@NotNull Long userId);
 
     /**
-     * 分页查询
-     * @param iamRole
-     * @param projectId  项目ID
-     * @param page  分页信息
-     * @return
+     * 获取角色
+     * @param levels 级别,不传递查询所有
+     * @return 角色
      */
-    IPage<IamRoleVO> queryPage(IamRoleVO iamRole, Long projectId, Page page);
+    @NotNull
+    List<IamRoleDTO> getRoles(ResourceLevel... levels);
+
+    /**
+     * 获取组织层角色
+     * @return 角色
+     */
+    @NotNull
+    List<IamRoleDTO> getRolesByOrganization();
+
+    /**
+     * 获取角色
+     * @param ids 角色编号
+     * @return 角色
+     */
+    @NotNull
+    List<IamRoleDTO> getRoles(@Nullable Set<Long> ids);
 }

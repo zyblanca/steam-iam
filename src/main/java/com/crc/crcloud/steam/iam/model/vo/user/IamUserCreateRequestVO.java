@@ -9,6 +9,9 @@ import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.util.Set;
 
 /**
  * 创建用户
@@ -40,6 +43,8 @@ public class IamUserCreateRequestVO {
     @ApiModelProperty("密码")
     private String password;
 
-    @ApiModelProperty("角色")
-    private String role;
+    @NotNull
+    @NotEmpty
+    @ApiModelProperty("角色编号")
+    private Set<Long> roleIds;
 }

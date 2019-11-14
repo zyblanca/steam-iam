@@ -1,11 +1,13 @@
 package com.crc.crcloud.steam.iam.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.entity.IamRole;
-import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import org.apache.ibatis.annotations.Param;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -15,6 +17,6 @@ import org.apache.ibatis.annotations.Param;
  */
 public interface IamRoleMapper extends BaseMapper<IamRole> {
 
-    IPage<IamRole> page(Page page, @Param("iamRole") IamRoleDTO iamRoleDTO);
-
+    @NotNull
+    List<IamRole> getUserRoles(@Param("userId") Long userId, @NotEmpty @Param("levels") Set<String> levels);
 }

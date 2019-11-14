@@ -1,7 +1,10 @@
 package com.crc.crcloud.steam.iam.service;
 
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
+import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
+import com.crc.crcloud.steam.iam.model.vo.user.IamOrganizationUserPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamUserCreateRequestVO;
 
 import javax.validation.Valid;
@@ -23,4 +26,15 @@ public interface IamUserService {
      */
     @NotNull
     IamUserDTO createUserByManual(@Valid IamUserCreateRequestVO vo, @NotEmpty Set<Long> organizationIds);
+
+    IamUserDTO getAndThrow(@NotNull Long userId);
+
+    /**
+     * 分页查询组织成员
+     * <p>复合条件用户都会查询出来，不区分是否禁用开启等情况</p>
+     * @param organizationId 组织ID
+     * @param vo 查询属性与分页参数
+     * @return 分页数据
+     */
+    IPage<IamUserVO> pageQueryOrganizationUser(@NotNull Long organizationId, @Valid IamOrganizationUserPageRequestVO vo);
 }

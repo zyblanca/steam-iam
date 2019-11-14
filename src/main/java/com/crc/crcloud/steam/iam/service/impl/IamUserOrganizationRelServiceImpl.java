@@ -1,121 +1,65 @@
 package com.crc.crcloud.steam.iam.service.impl;
 
 
-
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
+import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crc.crcloud.steam.iam.dao.IamUserOrganizationRelMapper;
 import com.crc.crcloud.steam.iam.entity.IamUserOrganizationRel;
+import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserOrganizationRelDTO;
-import com.crc.crcloud.steam.iam.model.vo.IamUserOrganizationRelVO;
 import com.crc.crcloud.steam.iam.service.IamUserOrganizationRelService;
+import com.crc.crcloud.steam.iam.service.IamUserService;
+import io.choerodon.core.convertor.ApplicationContextHelper;
 import io.choerodon.core.convertor.ConvertHelper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
  * @Author
- * @Description 
+ * @Description
  * @Date 2019-11-12
  */
+@Validated
+@Slf4j
 @Service
-public class IamUserOrganizationRelServiceImpl implements IamUserOrganizationRelService {
+public class IamUserOrganizationRelServiceImpl extends ServiceImpl<IamUserOrganizationRelMapper, IamUserOrganizationRel> implements IamUserOrganizationRelService {
 
 	@Autowired
 	private IamUserOrganizationRelMapper iamUserOrganizationRelMapper;
 
-	/**
-	 * 新增
-	 * @param projectId  项目ID
-	 * @param iamUserOrganizationRelVO
-	 * @return
-	 */
-	@Transactional(rollbackFor = Exception.class,isolation = Isolation.READ_COMMITTED)
+	@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
 	@Override
-	public IamUserOrganizationRelVO insert(Long projectId,IamUserOrganizationRelVO iamUserOrganizationRelVO){
-		IamUserOrganizationRelDTO iamUserOrganizationRelDTO = ConvertHelper.convert(iamUserOrganizationRelVO,IamUserOrganizationRelDTO.class);
-		IamUserOrganizationRel iamUserOrganizationRel = ConvertHelper.convert(iamUserOrganizationRelDTO,IamUserOrganizationRel.class);
-		iamUserOrganizationRelMapper.insert(iamUserOrganizationRel);
-		IamUserOrganizationRelDTO insertDTO = ConvertHelper.convert(iamUserOrganizationRel,IamUserOrganizationRelDTO.class);
-		return ConvertHelper.convert(insertDTO,IamUserOrganizationRelVO.class);
+	public void link(@NotNull Long userId, @NotEmpty Set<Long> organizationIds) {
+		IamUserService iamUserService = ApplicationContextHelper.getContext().getBean(IamUserService.class);
+		IamUserDTO iamUser = iamUserService.getAndThrow(userId);
+		//todo 校验组织
+		//已经关联的组织
+		@NotNull List<IamUserOrganizationRelDTO> relList = getByUserId(iamUser.getId());
+		//获取出不存在的组织编号，进行增量关联
+		Set<Long> collect = relList.stream().map(IamUserOrganizationRelDTO::getOrganizationId).collect(Collectors.toSet());
+		//需要增量的组织
+		List<IamUserOrganizationRel> incrementOrganizations = organizationIds.stream()
+				.filter(t -> !collect.contains(t))
+				.map(organizationId -> IamUserOrganizationRel.builder().organizationId(organizationId).userId(userId).build())
+				.collect(Collectors.toList());
+		saveBatch(incrementOrganizations);
+		log.info("用户[{}]新增所属组织[{}]", iamUser.getLoginName(), CollUtil.join(organizationIds, ","));
 	}
 
-	/**
-	 * 删除
-	 * @param projectId  项目ID
-	 * @param id
-	 */
-	@Transactional(rollbackFor = Exception.class,isolation = Isolation.READ_COMMITTED)
-	@Override
-	public void delete(Long projectId,Long id){
-		//如果表中含有projectId，请先查询数据，判断projectId是否一致 不一致抛异常，一致则进行删除
-		iamUserOrganizationRelMapper.deleteById(id);
+	@NotNull
+	public List<IamUserOrganizationRelDTO> getByUserId(@NotNull Long userId) {
+		List<IamUserOrganizationRel> relList = iamUserOrganizationRelMapper.selectList(Wrappers.<IamUserOrganizationRel>lambdaQuery().eq(IamUserOrganizationRel::getUserId, userId));
+		return ConvertHelper.convertList(relList, IamUserOrganizationRelDTO.class);
 	}
-
-	/**
-	 * 更新
-	 * @param projectId  项目ID
-	 * @param iamUserOrganizationRelVO
-	 * @return
-	 */
-	@Transactional(rollbackFor = Exception.class,isolation = Isolation.READ_COMMITTED)
-	@Override
-	public IamUserOrganizationRelVO  update(Long projectId,IamUserOrganizationRelVO iamUserOrganizationRelVO){
-		//最好使用自定义修改语句，修改条件包含项目ID
-		IamUserOrganizationRelDTO dataDTO =ConvertHelper.convert(iamUserOrganizationRelVO,IamUserOrganizationRelDTO.class);
-		iamUserOrganizationRelMapper.updateById(ConvertHelper.convert(dataDTO,IamUserOrganizationRel.class));
-			return queryOne(projectId ,iamUserOrganizationRelVO.getId());
-	}
-	/**
-	 *
-	 * 查询单个详情
-	 * @param projectId  项目ID
-	 * @param id
-	 * @return
-	 */
-	@Override
-	public IamUserOrganizationRelVO queryOne(Long projectId ,Long id){
-		//查询的数据 如果包含项目ID，校验项目ID是否一致，不一致抛异常
-		IamUserOrganizationRel data = iamUserOrganizationRelMapper.selectById(id);
-		if(Objects.isNull(data)){
-			throw new IamAppCommException("common.data.null.error");
-		}
-		IamUserOrganizationRelDTO dataDTO = ConvertHelper.convert(data,IamUserOrganizationRelDTO.class);
-		return ConvertHelper.convert(dataDTO, IamUserOrganizationRelVO.class);
-	}
-	/**
-	 * 分页查询
-	 * @param iamUserOrganizationRelVO
-	 * @param projectId  项目ID
-	 * @param page  分页信息
-	 * @return
-	 */
-	@Override
-	public IPage<IamUserOrganizationRelVO> queryPage(IamUserOrganizationRelVO iamUserOrganizationRelVO, Long projectId,Page page) {
-
-		IamUserOrganizationRelDTO iamUserOrganizationRelDTO =ConvertHelper.convert(iamUserOrganizationRelVO,IamUserOrganizationRelDTO.class);
-
-
-		//查询
-		IPage<IamUserOrganizationRel> pageResult = iamUserOrganizationRelMapper.page(page , iamUserOrganizationRelDTO);
-		IPage<IamUserOrganizationRelVO> result = new Page<>();
-		if (Objects.isNull(pageResult) || pageResult.getTotal() == 0) {
-			return result;
-		}
-
-		result.setSize(pageResult.getSize());
-		result.setTotal(pageResult.getTotal());
-		List<IamUserOrganizationRelDTO> recordsDTO = ConvertHelper.convertList(pageResult.getRecords(),IamUserOrganizationRelDTO.class);
-		List<IamUserOrganizationRelVO> recordsVO  = ConvertHelper.convertList(recordsDTO,IamUserOrganizationRelVO.class);
-		result.setRecords(recordsVO);
-		return result;
-	}
-
-
-
 }
