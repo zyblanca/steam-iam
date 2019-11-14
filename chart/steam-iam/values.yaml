@@ -1,0 +1,72 @@
+# Default values for manager-service.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: registry.steam.crcloud.com/crcsoft-devcloud/steam-iam
+  pullPolicy: Always
+
+deployment:
+  managementPort: 8093
+
+service:
+  enabled: false
+  type: ClusterIP
+  port: 8093
+
+preJob:
+  image: registry.steam.crcloud.com/choerodon-tools/dbtool:0.6.4
+  preConfig:
+    enable: false
+    configFile: application.yml
+    configType: k8s
+    registerHost: http://register-server.c7n-system:8000
+    datasource:
+      url: jdbc:mysql://localhost:3306/manager_service?useUnicode=true&characterEncoding=utf-8&useSSL=false
+      username: steam
+      password: 123456
+  preInitDB:
+    enable: false
+    datasource:
+      url: jdbc:mysql://localhost:3306/test_manager_service?useUnicode=true&characterEncoding=utf-8&useSSL=false
+      username: steam
+      password: 123456
+
+env:
+  open:
+    EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://register-server.steam-system:8000/eureka/
+    SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/steam_agile?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowMultiQueries=true
+    SPRING_DATASOURCE_USERNAME: username
+    SPRING_DATASOURCE_PASSWORD: password
+    SERVICES_ATTACHMENT_URL: http://minio.steamsit.crcloud.com/iam-service/
+    SPRING_REDIS_HOST: redis.tools.svc
+    SKYWALKING_OPTS: "-javaagent:/agent/skywalking-agent.jar"
+    SW_AGENT_NAME: steam-iam
+    SW_AGENT_COLLECTOR_BACKEND_SERVICES: 127.0.0.1:11800
+
+metrics:
+  path: /prometheus
+  group: spring-boot
+
+logs:
+  parser: spring-boot
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources,such as Minikube. If you dataobject want to specify resources,uncomment the following
+  # lines,adjust them as necessary,and remove the curly braces after 'resources:'.
+  limits:
+    # cpu: 100m
+    memory: 2Gi
+  requests:
+    # cpu: 100m
+    memory: 1Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
