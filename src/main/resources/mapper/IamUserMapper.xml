@@ -102,12 +102,51 @@
         WHERE imr.member_type = #{userSearch.memberType}
         AND imr.source_type = #{userSearch.memberSourceType}
         AND imr.source_id = #{userSearch.projectId}
-        <if test="userSearch.loginName != null and userSearch.loginName != '' " >
-            iu.login_name like concat('%',concat(userSearch.loginName,'%'))
+        <if test="userSearch.keyword != null and userSearch.keyword != '' " >
+            iu.login_name like concat('%',concat(userSearch.keyword,'%'))
+            or
+            iu.real_name like concat('%',concat(userSearch.keyword,'%'))
         </if>
-        <if test="userSearch.realName != null and userSearch.realName != '' " >
-            iu.real_name like concat('%',concat(userSearch.realName,'%'))
+
+    </select>
+    <select id="projectDropDownUser"  resultMap="BaseResultMap" >
+        SELECT
+        iu.id,
+        iu.login_name,
+        iu.real_name
+        FROM iam_member_role imr
+        INNER JOIN iam_user iu
+        ON imr.member_id = iu.id
+        WHERE imr.member_type = #{userSearch.memberType}
+        AND imr.source_type = #{userSearch.memberSourceType}
+        AND imr.source_id = #{userSearch.projectId}
+        <if test="userSearch.keyword != null and userSearch.keyword != '' " >
+            iu.login_name like concat('%',concat(userSearch.keyword,'%'))
+            or
+            iu.real_name like concat('%',concat(userSearch.keyword,'%'))
         </if>
+        order by CONVERT(real_name USING gbk)
+    </select>
+    <select id="projectUnselectUser" resultMap="BaseResultMap">
+            SELECT
+              iu.id,
+              iu.login_name,
+              iu.real_name
+            FROM iam_user_organization_rel iuor
+              INNER JOIN iam_user iu
+              LEFT JOIN (SELECT
+                  iu.id
+                FROM iam_member_role imr
+                  INNER JOIN iam_user iu
+                    ON imr.member_id = iu.id
+                WHERE imr.member_type = #{userSearch.memberType}
+                AND imr.source_type =  #{userSearch.memberSourceType}
+                AND imr.source_id = #{userSearch.projectId}) tmp
+                ON tmp.id = iu.id
+            WHERE iuor.organization_id =#{userSearch.organizationId}
+            AND tmp.id IS NULL
+             order by CONVERT(real_name USING gbk)
+
     </select>
 
 </mapper>

@@ -12,6 +12,7 @@ import org.apache.ibatis.annotations.Param;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.Set;
 
 
@@ -59,4 +60,19 @@ public interface IamUserMapper extends BaseMapper<IamUser> {
      * @return 用户信息
      */
     IPage<IamUser> pageByProject(PageUtil page, @Param("userSearch") UserSearchDTO userSearch);
+
+    /**
+     * 通过项目查询用户
+     * 不分页，结果集尽量少，下拉使用
+     * @param userSearch 用户查询条件
+     * @return 用户信息
+     */
+    List<IamUser> projectDropDownUser( @Param("userSearch")UserSearchDTO userSearch);
+    /**
+     * 查询组织下未被当前项目选择的人
+     * 不分页，结果集尽量少，下拉使用
+     * @param userSearch 用户查询条件
+     * @return 用户信息
+     */
+    List<IamUser> projectUnselectUser(@Param("userSearch")UserSearchDTO userSearch);
 }

@@ -15,7 +15,11 @@ import com.crc.crcloud.steam.iam.common.enums.MemberType;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
+import com.crc.crcloud.steam.iam.dao.IamOrganizationMapper;
+import com.crc.crcloud.steam.iam.dao.IamProjectMapper;
 import com.crc.crcloud.steam.iam.dao.IamUserMapper;
+import com.crc.crcloud.steam.iam.entity.IamOrganization;
+import com.crc.crcloud.steam.iam.entity.IamProject;
 import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
@@ -60,6 +64,8 @@ public class IamUserServiceImpl implements IamUserService {
     private IamUserOrganizationRelService iamUserOrganizationRelService;
     @Autowired
     private IamMemberRoleService memberRoleService;
+    @Autowired
+    private IamProjectMapper iamProjectMapper;
     /**
      * 线程安全
      */
@@ -176,8 +182,8 @@ public class IamUserServiceImpl implements IamUserService {
     }
 
     @Override
-    public IPage<IamUserVO> pageByProject(Long projectId, IamUserVO iamUserVO, PageUtil page) {
-        UserSearchDTO userSearchDTO = generateUserSearchDTO(iamUserVO);
+    public IPage<IamUserVO> pageByProject(Long projectId, UserSearchDTO userSearchDTO, PageUtil page) {
+
         userSearchDTO.setProjectId(projectId);
         userSearchDTO.setMemberSourceType(MemberRoleSourceTypeEnum.PROJECT.getSourceType());
         userSearchDTO.setMemberType(MemberType.USER.getValue());
@@ -191,10 +197,36 @@ public class IamUserServiceImpl implements IamUserService {
         return result;
     }
 
-    private UserSearchDTO generateUserSearchDTO(IamUserVO iamUserVO) {
-        UserSearchDTO userSearchDTO = new UserSearchDTO();
-        userSearchDTO.setLoginName(iamUserVO.getLoginName());
-        userSearchDTO.setRealName(iamUserVO.getRealName());
-        return userSearchDTO;
+    @Override
+    public List<IamUserVO> projectDropDownUser(Long projectId, UserSearchDTO userSearchDTO) {
+        userSearchDTO.setProjectId(projectId);
+        userSearchDTO.setMemberSourceType(MemberRoleSourceTypeEnum.PROJECT.getSourceType());
+        userSearchDTO.setMemberType(MemberType.USER.getValue());
+        //查询项目下的人
+        List<IamUser> users = iamUserMapper.projectDropDownUser(userSearchDTO);
+
+        return CopyUtil.copyList(users, IamUserVO.class);
     }
+
+    @Override
+    public List<IamUserVO> projectUnselectUser(Long projectId, UserSearchDTO userSearchDTO) {
+        IamProject project = getAndThrowProject(projectId);
+        userSearchDTO.setProjectId(projectId);
+        userSearchDTO.setMemberSourceType(MemberRoleSourceTypeEnum.PROJECT.getSourceType());
+        userSearchDTO.setMemberType(MemberType.USER.getValue());
+        userSearchDTO.setOrganizationId(project.getOrganizationId());
+        //查询组织下未被当前项目选择的人
+        List<IamUser> users = iamUserMapper.projectUnselectUser(userSearchDTO);
+
+        return CopyUtil.copyList(users, IamUserVO.class);
+    }
+
+    private IamProject getAndThrowProject(Long projectId) {
+        IamProject iamProject = iamProjectMapper.selectById(projectId);
+        if (Objects.isNull(iamProject))
+            throw new IamAppCommException("project.data.null");
+        return iamProject;
+    }
+
+
 }

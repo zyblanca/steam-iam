@@ -19,108 +19,107 @@ import java.util.Date;
 @AllArgsConstructor
 @Builder
 @ApiModel("")
-public class IamUserVO{
+public class IamUserVO {
 
 
-        @ApiModelProperty("")
-        private Long id;
+    @ApiModelProperty("")
+    private Long id;
 
 
-        @ApiModelProperty("用户名")
-        private String loginName;
+    @ApiModelProperty("用户名")
+    private String loginName;
 
 
-        @ApiModelProperty("电子邮箱地址")
-        private String email;
+    @ApiModelProperty("电子邮箱地址")
+    private String email;
 
 
-        @ApiModelProperty("用户当前使用的组织")
-        private Long currentOrganizationId;
+    @ApiModelProperty("用户当前使用的组织")
+    private Long currentOrganizationId;
 
 
-        @ApiModelProperty("hash后的用户密码")
-        private String hashPassword;
+    @ApiModelProperty("hash后的用户密码")
+    private String hashPassword;
 
 
-        @ApiModelProperty("用户真实姓名")
-        private String realName;
+    @ApiModelProperty("用户真实姓名")
+    private String realName;
 
 
-        @ApiModelProperty("手机号")
-        private String phone;
+    @ApiModelProperty("手机号")
+    private String phone;
 
 
-        @ApiModelProperty("国际电话区号。")
-        private String internationalTelCode;
+    @ApiModelProperty("国际电话区号。")
+    private String internationalTelCode;
 
 
-        @ApiModelProperty("用户头像地址")
-        private String imageUrl;
+    @ApiModelProperty("用户头像地址")
+    private String imageUrl;
 
 
-        @ApiModelProperty("用户二进制头像")
-        private String profilePhoto;
+    @ApiModelProperty("用户二进制头像")
+    private String profilePhoto;
 
 
-        @ApiModelProperty("语言")
-        private String language;
+    @ApiModelProperty("语言")
+    private String language;
 
 
-        @ApiModelProperty("时区")
-        private String timeZone;
+    @ApiModelProperty("时区")
+    private String timeZone;
 
 
-        @ApiModelProperty("上一次密码更新时间")
-        private Date lastPasswordUpdatedAt;
+    @ApiModelProperty("上一次密码更新时间")
+    private Date lastPasswordUpdatedAt;
 
 
-        @ApiModelProperty("上一次登陆时间")
-        private Date lastLoginAt;
+    @ApiModelProperty("上一次登陆时间")
+    private Date lastLoginAt;
 
 
-        @ApiModelProperty("用户是否启用。1启用，0未启用")
-        private Boolean isEnabled;
+    @ApiModelProperty("用户是否启用。1启用，0未启用")
+    private Boolean isEnabled;
 
 
-        @ApiModelProperty("是否锁定账户")
-        private Boolean isLocked;
+    @ApiModelProperty("是否锁定账户")
+    private Boolean isLocked;
 
 
-        @ApiModelProperty("是否是ldap来源。1是，0不是")
-        private Boolean isLdap;
+    @ApiModelProperty("是否是ldap来源。1是，0不是")
+    private Boolean isLdap;
 
 
-        @ApiModelProperty("是否为管理员用户。1表示是，0表示不是")
-        private Boolean isAdmin;
+    @ApiModelProperty("是否为管理员用户。1表示是，0表示不是")
+    private Boolean isAdmin;
 
 
-        @ApiModelProperty("锁定账户截止时间")
-        private Date lockedUntilAt;
+    @ApiModelProperty("锁定账户截止时间")
+    private Date lockedUntilAt;
 
 
-        @ApiModelProperty("密码输错累积次数")
-        private Integer passwordAttempt;
+    @ApiModelProperty("密码输错累积次数")
+    private Integer passwordAttempt;
 
 
-        @ApiModelProperty("")
-        private Long objectVersionNumber;
+    @ApiModelProperty("")
+    private Long objectVersionNumber;
 
 
-        @ApiModelProperty("")
-        private Long createdBy;
+    @ApiModelProperty("")
+    private Long createdBy;
 
 
-        @ApiModelProperty("")
-        private Date creationDate;
+    @ApiModelProperty("")
+    private Date creationDate;
 
 
-        @ApiModelProperty("")
-        private Long lastUpdatedBy;
+    @ApiModelProperty("")
+    private Long lastUpdatedBy;
 
 
-        @ApiModelProperty("")
-        private Date lastUpdateDate;
-
+    @ApiModelProperty("")
+    private Date lastUpdateDate;
 
 
 }
