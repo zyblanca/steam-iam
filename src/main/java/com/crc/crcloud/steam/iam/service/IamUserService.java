@@ -2,6 +2,8 @@ package com.crc.crcloud.steam.iam.service;
 
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.crc.crcloud.steam.iam.common.utils.PageUtil;
+import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamOrganizationUserPageRequestVO;
@@ -20,7 +22,8 @@ import java.util.Set;
 public interface IamUserService {
     /**
      * 手动添加组织成员
-     * @param vo 用户信息
+     *
+     * @param vo              用户信息
      * @param organizationIds 所在组织
      * @return 用户
      */
@@ -32,9 +35,20 @@ public interface IamUserService {
     /**
      * 分页查询组织成员
      * <p>复合条件用户都会查询出来，不区分是否禁用开启等情况</p>
+     *
      * @param organizationId 组织ID
-     * @param vo 查询属性与分页参数
+     * @param vo             查询属性与分页参数
      * @return 分页数据
      */
     IPage<IamUserVO> pageQueryOrganizationUser(@NotNull Long organizationId, @Valid IamOrganizationUserPageRequestVO vo);
+
+    /**
+     * 分页查询指定项目下的成员信息
+     *
+     * @param projectId 项目id
+     * @param iamUserVO 人员查询参数
+     * @param page      分页信息
+     * @return 人员信息
+     */
+    IPage<IamUserVO> pageByProject(Long projectId, IamUserVO iamUserVO, PageUtil page);
 }

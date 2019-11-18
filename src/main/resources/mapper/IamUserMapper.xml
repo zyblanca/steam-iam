@@ -3,38 +3,38 @@
 <mapper namespace="com.crc.crcloud.steam.iam.dao.IamUserMapper">
 
 
-        <!-- 通用查询映射结果 -->
-        <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamUser">
-                    <id column="id" property="id" />
-                    <result column="login_name" property="loginName" />
-                    <result column="email" property="email" />
-                    <result column="current_organization_id" property="currentOrganizationId" />
-                    <result column="hash_password" property="hashPassword" />
-                    <result column="real_name" property="realName" />
-                    <result column="phone" property="phone" />
-                    <result column="international_tel_code" property="internationalTelCode" />
-                    <result column="image_url" property="imageUrl" />
-                    <result column="profile_photo" property="profilePhoto" />
-                    <result column="language" property="language" />
-                    <result column="time_zone" property="timeZone" />
-                    <result column="last_password_updated_at" property="lastPasswordUpdatedAt" />
-                    <result column="last_login_at" property="lastLoginAt" />
-                    <result column="is_enabled" property="isEnabled" />
-                    <result column="is_locked" property="isLocked" />
-                    <result column="is_ldap" property="isLdap" />
-                    <result column="is_admin" property="isAdmin" />
-                    <result column="locked_until_at" property="lockedUntilAt" />
-                    <result column="password_attempt" property="passwordAttempt" />
-                    <result column="object_version_number" property="objectVersionNumber" />
-                    <result column="created_by" property="createdBy" />
-                    <result column="creation_date" property="creationDate" />
-                    <result column="last_updated_by" property="lastUpdatedBy" />
-                    <result column="last_update_date" property="lastUpdateDate" />
-        </resultMap>
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamUser">
+        <id column="id" property="id"/>
+        <result column="login_name" property="loginName"/>
+        <result column="email" property="email"/>
+        <result column="current_organization_id" property="currentOrganizationId"/>
+        <result column="hash_password" property="hashPassword"/>
+        <result column="real_name" property="realName"/>
+        <result column="phone" property="phone"/>
+        <result column="international_tel_code" property="internationalTelCode"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="profile_photo" property="profilePhoto"/>
+        <result column="language" property="language"/>
+        <result column="time_zone" property="timeZone"/>
+        <result column="last_password_updated_at" property="lastPasswordUpdatedAt"/>
+        <result column="last_login_at" property="lastLoginAt"/>
+        <result column="is_enabled" property="isEnabled"/>
+        <result column="is_locked" property="isLocked"/>
+        <result column="is_ldap" property="isLdap"/>
+        <result column="is_admin" property="isAdmin"/>
+        <result column="locked_until_at" property="lockedUntilAt"/>
+        <result column="password_attempt" property="passwordAttempt"/>
+        <result column="object_version_number" property="objectVersionNumber"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="creation_date" property="creationDate"/>
+        <result column="last_updated_by" property="lastUpdatedBy"/>
+        <result column="last_update_date" property="lastUpdateDate"/>
+    </resultMap>
 
 
-        <!-- 通用查询结果列 -->
-        <sql id="Base_Column_List">
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
                      id,
                      login_name,
                      email,
@@ -69,8 +69,8 @@
     </select>
     <select id="pageQueryOrganizationUser" resultMap="BaseResultMap">
         select
-            iam_user.*
-        from iam_user as  iam_user inner join iam_user_organization_rel iuor on iam_user.id = iuor.user_id
+        iam_user.*
+        from iam_user as iam_user inner join iam_user_organization_rel iuor on iam_user.id = iuor.user_id
         left join iam_member_role role on iam_user.id = role.member_id and role.member_type='user'
         where
         iuor.organization_id in
@@ -80,7 +80,8 @@
         <if test="searchDTO.keywords!=null and searchDTO.keywords.size>0">
             and
             <foreach collection="searchDTO.keywords" item="keyword" open="(" close=")" separator=" OR ">
-                iam_user.real_name like concat('%',#{keyword},'%') or iam_user.login_name like concat('%',#{keyword},'%')
+                iam_user.real_name like concat('%',#{keyword},'%') or iam_user.login_name like
+                concat('%',#{keyword},'%')
             </foreach>
         </if>
         <if test="searchDTO.roleIds!=null and searchDTO.roleIds.size>0">
@@ -88,6 +89,24 @@
             <foreach collection="searchDTO.roleIds" item="roleId" open="(" close=")" separator=",">
                 ${roleId}
             </foreach>
+        </if>
+    </select>
+    <select id="pageByProject" resultMap="BaseResultMap">
+        SELECT
+          iu.id,
+          iu.login_name,
+          iu.real_name
+        FROM iam_member_role imr
+          INNER JOIN iam_user iu
+            ON imr.member_id = iu.id
+        WHERE imr.member_type = #{userSearch.memberType}
+        AND imr.source_type = #{userSearch.memberSourceType}
+        AND imr.source_id = #{userSearch.projectId}
+        <if test="userSearch.loginName != null and userSearch.loginName != '' " >
+            iu.login_name like concat('%',concat(userSearch.loginName,'%'))
+        </if>
+        <if test="userSearch.realName != null and userSearch.realName != '' " >
+            iu.real_name like concat('%',concat(userSearch.realName,'%'))
         </if>
     </select>
 
