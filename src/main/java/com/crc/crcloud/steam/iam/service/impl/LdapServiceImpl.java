@@ -1,7 +1,6 @@
 package com.crc.crcloud.steam.iam.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.crc.crcloud.steam.iam.common.enums.LdapTypeEnum;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.LdapUtil;
 import com.crc.crcloud.steam.iam.dao.OauthLdapMapper;
@@ -19,15 +18,16 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.AbstractContextMapper;
 import org.springframework.ldap.filter.AndFilter;
 import org.springframework.ldap.filter.EqualsFilter;
-import org.springframework.ldap.filter.Filter;
 import org.springframework.ldap.query.SearchScope;
 import org.springframework.stereotype.Service;
 
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.springframework.ldap.query.LdapQueryBuilder.query;
 
@@ -116,10 +116,37 @@ public class LdapServiceImpl implements LdapService {
         }
         return ldapConnectionDTO;
     }
+
     //对比属性
-    private void matchAttributes(OauthLdapDTO oauthLdapDTO, LdapConnectionDTO ldapConnectionDTO, List<Attributes> attributes) {
+    private void matchAttributes(OauthLdapDTO oauthLdapDTO, LdapConnectionDTO ldapConnectionDTO, List<Attributes> attributesList) {
+        Set<String> key = new HashSet<>();
+        //抽样的所有属性字段
+        for (Attributes attributes : attributesList) {
+            NamingEnumeration<String> attributesIDs = attributes.getIDs();
+            while (attributesIDs != null && attributesIDs.hasMoreElements()) {
+                key.add(attributesIDs.nextElement());
+            }
+        }
+        //不做枚举，变动性不可测
+        ldapConnectionDTO.setUuidField(matchs(key, oauthLdapDTO.getUuidField(), ldapConnectionDTO));
+        ldapConnectionDTO.setUuidField(matchs(key, oauthLdapDTO.getEmailField(), ldapConnectionDTO));
+        ldapConnectionDTO.setUuidField(matchs(key, oauthLdapDTO.getLoginNameField(), ldapConnectionDTO));
+        ldapConnectionDTO.setUuidField(matchs(key, oauthLdapDTO.getRealNameField(), ldapConnectionDTO));
+        ldapConnectionDTO.setUuidField(matchs(key, oauthLdapDTO.getPhoneField(), ldapConnectionDTO));
+
 
     }
+
+    //匹配属性
+    private Boolean matchs(Set<String> key, String uuidField, LdapConnectionDTO ldapConnectionDTO) {
+        //属性不存在，不匹配
+        if (Objects.isNull(uuidField)) return null;
+        Boolean b = key.contains(uuidField);
+        //只要有一个属性不存在，则匹配失败
+        if (!b) ldapConnectionDTO.setMatchAttribute(Boolean.FALSE);
+        return b;
+    }
+
 
     //设置用户对象过滤条件
     private AndFilter getAndFilterByObjectClass(OauthLdapDTO oauthLdapDTO) {
