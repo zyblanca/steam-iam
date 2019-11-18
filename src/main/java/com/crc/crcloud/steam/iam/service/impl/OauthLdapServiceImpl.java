@@ -5,11 +5,15 @@ import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.UserDetail;
 import com.crc.crcloud.steam.iam.dao.IamOrganizationMapper;
+import com.crc.crcloud.steam.iam.dao.OauthLdapHistoryMapper;
 import com.crc.crcloud.steam.iam.dao.OauthLdapMapper;
 import com.crc.crcloud.steam.iam.entity.IamOrganization;
 import com.crc.crcloud.steam.iam.entity.OauthLdap;
+import com.crc.crcloud.steam.iam.entity.OauthLdapHistory;
 import com.crc.crcloud.steam.iam.model.dto.LdapConnectionDTO;
+import com.crc.crcloud.steam.iam.model.dto.OauthLdapDTO;
 import com.crc.crcloud.steam.iam.model.vo.OauthLdapVO;
+import com.crc.crcloud.steam.iam.service.LdapService;
 import com.crc.crcloud.steam.iam.service.OauthLdapService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +37,10 @@ public class OauthLdapServiceImpl implements OauthLdapService {
     private OauthLdapMapper oauthLdapMapper;
     @Autowired
     private IamOrganizationMapper iamOrganizationMapper;
+    @Autowired
+    private LdapService ldapService;
+    @Autowired
+    private OauthLdapHistoryMapper oauthLdapHistoryMapper;
 
     /**
      * 新增ldap配置
@@ -119,9 +127,40 @@ public class OauthLdapServiceImpl implements OauthLdapService {
 
     @Override
     public LdapConnectionDTO testConnetion(OauthLdapVO oauthLdapVO) {
+        if (Objects.isNull(oauthLdapVO.getAccount()) || Objects.isNull(oauthLdapVO.getLdapPassword())) {
+            throw new IamAppCommException("comm.param.error");
+        }
         //验证信息
-        queryOne(oauthLdapVO.getOrganizationId(),oauthLdapVO.getId());
-        return null;
+        OauthLdapVO oauthLdap = queryOne(oauthLdapVO.getOrganizationId(), oauthLdapVO.getId());
+        oauthLdap.setAccount(oauthLdapVO.getAccount());
+        oauthLdap.setLdapPassword(oauthLdapVO.getLdapPassword());
+        return ldapService.validAccount(CopyUtil.copy(oauthLdap, OauthLdapDTO.class));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
+    public Long syncLdapUser(Long organizationId, Long id) {
+        OauthLdapDTO oauthLdapDTO = CopyUtil.copy(queryOne(organizationId, id), OauthLdapDTO.class);
+        //先测试连接
+        LdapConnectionDTO ldapConnectionDTO = ldapService.testConnection(oauthLdapDTO);
+        //连接不通
+        if (!ldapConnectionDTO.getCanConnectServer()) {
+            throw new IamAppCommException("ldap.connection.false");
+        }
+        if (!ldapConnectionDTO.getCanLogin()) {
+            throw new IamAppCommException("ldap.login.false");
+        }
+        if (!ldapConnectionDTO.getMatchAttribute()) {
+            throw new IamAppCommException("ldap.attribute.false");
+        }
+        //记录操作信息
+        OauthLdapHistory oauthLdapHistory = new OauthLdapHistory();
+        oauthLdapHistory.setLdapId(id);
+        oauthLdapHistory.setSyncBeginTime(new Date());
+        oauthLdapHistoryMapper.insert(oauthLdapHistory);
+        //调用同步操作
+        ldapService.syncLdapUser(oauthLdapDTO, oauthLdapHistory);
+        return oauthLdapHistory.getId();
     }
 
     //获取组织信息，校验组织是否存在

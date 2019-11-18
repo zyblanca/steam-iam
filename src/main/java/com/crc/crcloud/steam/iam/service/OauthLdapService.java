@@ -51,8 +51,18 @@ public interface OauthLdapService {
 
     /**
      * 测试ldap连接
+     *
      * @param oauthLdapVO ldap配置
      * @return 测试结果
      */
     LdapConnectionDTO testConnetion(OauthLdapVO oauthLdapVO);
+
+    /**
+     * 同步用户信息
+     *
+     * @param organizationId 组织id
+     * @param id             ldap配置id
+     * @return 同步记录id
+     */
+    Long syncLdapUser(Long organizationId, Long id);
 }

@@ -13,6 +13,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -115,11 +116,27 @@ public class OauthLdapController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @ApiOperation(value = "测试ldap连接", response = LdapConnectionDTO.class)
     @PostMapping("/organizations/{organization_id}/ldaps/{id}/test_connect")
-    public ResponseEntity<LdapConnectionDTO> testConnect(@PathVariable("organization_id") Long organizationId,
+    public ResponseEntity<LdapConnectionDTO> testConnect(@ApiParam(value = "组织id", required = true)
+                                                         @PathVariable("organization_id") Long organizationId,
+                                                         @ApiParam(value = "ldap id", required = true)
                                                          @PathVariable("id") Long id,
                                                          @RequestBody OauthLdapVO oauthLdapVO) {
         oauthLdapVO.setOrganizationId(organizationId);
         oauthLdapVO.setId(id);
         return new ResponseEntity<>(oauthLdapService.testConnetion(oauthLdapVO));
+    }
+
+    /**
+     * 同步ldap用户
+     */
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @ApiOperation(value = "同步ldap用户")
+    @PostMapping("/organizations/{organization_id}/ldaps/{id}/sync_users")
+    public ResponseEntity<Long> syncUsers(@ApiParam(value = "组织id", required = true)
+                                          @PathVariable("organization_id") Long organizationId,
+                                          @ApiParam(value = "ldap id", required = true)
+                                          @PathVariable Long id) {
+
+        return new ResponseEntity<>(oauthLdapService.syncLdapUser(organizationId, id));
     }
 }

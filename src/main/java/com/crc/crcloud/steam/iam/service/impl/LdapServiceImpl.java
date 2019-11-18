@@ -5,6 +5,9 @@ import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.LdapUtil;
 import com.crc.crcloud.steam.iam.dao.OauthLdapMapper;
 import com.crc.crcloud.steam.iam.entity.OauthLdap;
+import com.crc.crcloud.steam.iam.entity.OauthLdapErrorUser;
+import com.crc.crcloud.steam.iam.entity.OauthLdapHistory;
+import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.LdapConnectionDTO;
 import com.crc.crcloud.steam.iam.model.dto.OauthLdapDTO;
 import com.crc.crcloud.steam.iam.service.LdapService;
@@ -12,22 +15,27 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.AuthenticationException;
 import org.springframework.ldap.InvalidNameException;
+import org.springframework.ldap.control.PagedResultsDirContextProcessor;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.DirContextOperations;
+import org.springframework.ldap.core.LdapOperations;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.AbstractContextMapper;
+import org.springframework.ldap.core.support.LdapOperationsCallback;
+import org.springframework.ldap.core.support.SingleContextSource;
 import org.springframework.ldap.filter.AndFilter;
 import org.springframework.ldap.filter.EqualsFilter;
+import org.springframework.ldap.filter.HardcodedFilter;
 import org.springframework.ldap.query.SearchScope;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import javax.naming.directory.SearchControls;
+import java.util.*;
 
 import static org.springframework.ldap.query.LdapQueryBuilder.query;
 
@@ -117,6 +125,68 @@ public class LdapServiceImpl implements LdapService {
         return ldapConnectionDTO;
     }
 
+    @Override
+    @Async("ldap-executor")
+    public void syncLdapUser(OauthLdapDTO oauthLdapDTO, OauthLdapHistory oauthLdapHistory) {
+        AndFilter andFilter = getAndFilterByObjectClass(oauthLdapDTO);
+        //存在过滤条件则使用
+        if (StringUtils.hasText(oauthLdapDTO.getCustomFilter())) {
+            andFilter.and(new HardcodedFilter(oauthLdapDTO.getCustomFilter()));
+        }
+        LdapTemplate ldapTemplate = LdapUtil.getLdapTemplate(oauthLdapDTO, Boolean.FALSE);
+        //分页
+        PagedResultsDirContextProcessor processor = new PagedResultsDirContextProcessor(oauthLdapDTO.getSagaBatchSize());
+        //查找域
+        SearchControls searchControls = new SearchControls();
+        searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+        SingleContextSource.doWithSingleContext(
+                ldapTemplate.getContextSource(), new LdapOperationsCallback<List<IamUserDTO>>() {
+
+                    @Override
+                    public List<IamUserDTO> doWithLdapOperations(LdapOperations operations) {
+                        int page = 1;//记录操作信息
+                        AttributesMapper attributeMapper = new AttributesMapper() {
+                            @Override
+                            public Object mapFromAttributes(Attributes attributes) throws NamingException {
+                                return attributes;
+                            }
+                        };
+                        do {
+                            List<Attributes> attributesList = operations.search("", andFilter.toString(), searchControls, attributeMapper, processor);
+                            log.info("ldap同步用户，ldap id{},当前页{},每页{},当前查询数量{}", oauthLdapDTO.getId(), page, oauthLdapDTO.getSagaBatchSize(), attributesList.size());
+                            if (attributesList.isEmpty()) break;
+                            //普通用户，第一步的时候只能代表属性正确，不代表完整性正确
+                            List<IamUserDTO> normalUser = new ArrayList<>();
+                            //错误的用户
+                            List<OauthLdapErrorUser> errorUsers = new ArrayList<>();
+                            //属性转对象
+                            transformationToUser(oauthLdapHistory.getId(), attributesList, normalUser, errorUsers, oauthLdapDTO);
+
+
+                        } while (processor.hasMore());
+                        return null;
+                    }
+                }
+
+        );
+    }
+
+    /**
+     * LDAP 属性转用户对象
+     *
+     * @param historyId      历史记录id
+     * @param attributesList ldap属性
+     * @param normalUser     正常用户信息
+     * @param errorUsers     异常用户信息
+     * @param oauthLdapDTO   ldap 配置信息
+     */
+    private void transformationToUser(Long historyId, List<Attributes> attributesList, List<IamUserDTO> normalUser, List<OauthLdapErrorUser> errorUsers, OauthLdapDTO oauthLdapDTO) {
+        Long orgId = oauthLdapDTO.getId();
+        //TODO liuchun
+
+    }
+
+
     //对比属性
     private void matchAttributes(OauthLdapDTO oauthLdapDTO, LdapConnectionDTO ldapConnectionDTO, List<Attributes> attributesList) {
         Set<String> key = new HashSet<>();
@@ -133,7 +203,6 @@ public class LdapServiceImpl implements LdapService {
         ldapConnectionDTO.setUuidField(matchs(key, oauthLdapDTO.getLoginNameField(), ldapConnectionDTO));
         ldapConnectionDTO.setUuidField(matchs(key, oauthLdapDTO.getRealNameField(), ldapConnectionDTO));
         ldapConnectionDTO.setUuidField(matchs(key, oauthLdapDTO.getPhoneField(), ldapConnectionDTO));
-
 
     }
 

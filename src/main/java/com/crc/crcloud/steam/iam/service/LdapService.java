@@ -1,6 +1,7 @@
 package com.crc.crcloud.steam.iam.service;
 
 import com.crc.crcloud.steam.iam.entity.OauthLdap;
+import com.crc.crcloud.steam.iam.entity.OauthLdapHistory;
 import com.crc.crcloud.steam.iam.model.dto.LdapConnectionDTO;
 import com.crc.crcloud.steam.iam.model.dto.OauthLdapDTO;
 import com.crc.crcloud.steam.iam.model.vo.OauthLdapVO;
@@ -36,4 +37,11 @@ public interface LdapService {
      * @return 验证结果
      */
     LdapConnectionDTO testConnection(@NotNull OauthLdapDTO oauthLdapDTO);
+
+    /**
+     * 同步ldap用户信息
+     * @param oauthLdapDTO
+     * @param oauthLdapHistory
+     */
+    void syncLdapUser(OauthLdapDTO oauthLdapDTO, OauthLdapHistory oauthLdapHistory);
 }
