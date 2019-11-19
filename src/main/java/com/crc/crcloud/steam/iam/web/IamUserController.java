@@ -4,12 +4,8 @@ package com.crc.crcloud.steam.iam.web;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
-import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
-import cn.hutool.core.map.MapUtil;
-import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
-import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.service.IamUserService;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.swagger.annotation.Permission;
@@ -19,16 +15,6 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 
 /**
@@ -124,16 +110,6 @@ public class IamUserController {
                                                    List<Long> userIds) {
         iamUserService.projectBindUsers(projectId, userIds);
         return ResponseEntity.ok();
-    }
-
-    @Permission(level = ResourceLevel.SITE, permissionLogin = true)
-    @ApiOperation("获取用户来源列表-静态列表")
-    @GetMapping("origin")
-    public ResponseEntity<List<Map<String, String>>> getUserOrigins() {
-        List<Map<String, String>> collect = Arrays.stream(UserOriginEnum.values()).map(t -> {
-            return MapUtil.<String, String>builder().put("value", t.getValue()).put("desc", t.getDesc()).build();
-        }).collect(Collectors.toList());
-        return new ResponseEntity<>(collect);
     }
 
 
