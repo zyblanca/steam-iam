@@ -13,10 +13,7 @@ import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -39,7 +36,8 @@ public class IamUserController {
 
     /**
      * 分页查询指定项目下的成员信息
-     *当前只有id loginName realName 三个属性 后续可以根据需要添加
+     * 当前只有id loginName realName 三个属性 后续可以根据需要添加
+     *
      * @param projectId     项目id
      * @param userSearchDTO 人员查询参数
      * @param page          分页信息
@@ -96,4 +94,25 @@ public class IamUserController {
                                                                        UserSearchDTO userSearchDTO) {
         return new ResponseEntity<>(iamUserService.projectUnselectUser(projectId, userSearchDTO));
     }
+
+    /**
+     * 项目绑定用户
+     *
+     * @param projectId 项目id
+     * @param userIds   用户id
+     * @return 绑定结果
+     */
+    //简易权限，后续需要根据实际情况做校验
+    @Permission(level = ResourceLevel.PROJECT)
+    @ApiOperation(value = "项目绑定用户", notes = "项目绑定用户")
+    @PostMapping("/bind/users")
+    public ResponseEntity projectBindUsers(@ApiParam(value = "项目ID", required = true)
+                                           @PathVariable(name = "project_id") Long projectId,
+                                           @ApiParam(value = "人员信息数组id")
+                                                   List<Long> userIds) {
+        iamUserService.projectBindUsers(projectId, userIds);
+        return ResponseEntity.ok();
+    }
+
+
 }

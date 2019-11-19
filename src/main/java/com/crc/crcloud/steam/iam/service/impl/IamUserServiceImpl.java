@@ -8,16 +8,21 @@ import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.crc.crcloud.steam.iam.common.enums.MemberRoleEnum;
+import com.crc.crcloud.steam.iam.common.enums.MemberRoleIdEnum;
 import com.crc.crcloud.steam.iam.common.enums.MemberRoleSourceTypeEnum;
 import com.crc.crcloud.steam.iam.common.enums.MemberType;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
+import com.crc.crcloud.steam.iam.dao.IamMemberRoleMapper;
 import com.crc.crcloud.steam.iam.dao.IamOrganizationMapper;
 import com.crc.crcloud.steam.iam.dao.IamProjectMapper;
 import com.crc.crcloud.steam.iam.dao.IamUserMapper;
+import com.crc.crcloud.steam.iam.entity.IamMemberRole;
 import com.crc.crcloud.steam.iam.entity.IamOrganization;
 import com.crc.crcloud.steam.iam.entity.IamProject;
 import com.crc.crcloud.steam.iam.entity.IamUser;
@@ -66,6 +71,8 @@ public class IamUserServiceImpl implements IamUserService {
     private IamMemberRoleService memberRoleService;
     @Autowired
     private IamProjectMapper iamProjectMapper;
+    @Autowired
+    private IamMemberRoleMapper iamMemberRoleMapper;
     /**
      * 线程安全
      */
@@ -219,6 +226,21 @@ public class IamUserServiceImpl implements IamUserService {
         List<IamUser> users = iamUserMapper.projectUnselectUser(userSearchDTO);
 
         return CopyUtil.copyList(users, IamUserVO.class);
+    }
+
+    @Override
+    public void projectBindUsers(Long projectId, List<Long> userIds) {
+        if (CollectionUtils.isEmpty(userIds)) return;
+        //当前写死项目拥有者权限
+        IamMemberRole iamMemberRole = new IamMemberRole();
+        iamMemberRole.setMemberType(MemberType.USER.getValue());
+        iamMemberRole.setRoleId(MemberRoleEnum.PROJECT_OWNER.getRoleId());
+        iamMemberRole.setSourceId(projectId);
+        iamMemberRole.setSourceType(MemberRoleSourceTypeEnum.PROJECT.getSourceType());
+        for (Long userId : userIds) {
+            iamMemberRole.setMemberId(userId);
+            iamMemberRoleMapper.insert(iamMemberRole);
+        }
     }
 
     private IamProject getAndThrowProject(Long projectId) {

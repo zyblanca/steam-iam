@@ -65,9 +65,18 @@ public interface IamUserService {
 
     /**
      * 获取当前项目属于组织下未被规划的人员
-     * @param projectId 项目id
+     *
+     * @param projectId     项目id
      * @param userSearchDTO 查询条件
      * @return 人员信息
      */
     List<IamUserVO> projectUnselectUser(Long projectId, UserSearchDTO userSearchDTO);
+
+    /**
+     * 项目绑定用户
+     *
+     * @param projectId 项目id
+     * @param userIds   用户id
+     */
+    void projectBindUsers(Long projectId, List<Long> userIds);
 }
