@@ -74,4 +74,12 @@ public class IamMemberRoleServiceImpl extends ServiceImpl<IamMemberRoleMapper, I
 		}).collect(Collectors.toList());
 		this.saveBatch(incrementRoleMembers);
 	}
+
+	@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
+	@Override
+	public void grantUserRole(@NotNull Set<Long> userIds, @NotEmpty Set<Long> roleIds, @NotNull Long sourceId, @NotNull ResourceLevel resourceLevel) {
+		for (Long userId : userIds) {
+			grantUserRole(userId, roleIds, sourceId, resourceLevel);
+		}
+	}
 }

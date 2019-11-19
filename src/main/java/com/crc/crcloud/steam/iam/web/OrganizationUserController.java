@@ -8,10 +8,8 @@ import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
-import com.crc.crcloud.steam.iam.model.vo.user.IamOrganizationUserPageRequestVO;
-import com.crc.crcloud.steam.iam.model.vo.user.IamOrganizationUserPageResponseVO;
-import com.crc.crcloud.steam.iam.model.vo.user.IamUserCreateRequestVO;
-import com.crc.crcloud.steam.iam.model.vo.user.IamUserSafeVO;
+import com.crc.crcloud.steam.iam.model.vo.user.*;
+import com.crc.crcloud.steam.iam.service.IamMemberRoleService;
 import com.crc.crcloud.steam.iam.service.IamRoleService;
 import com.crc.crcloud.steam.iam.service.IamUserService;
 import io.choerodon.core.iam.InitRoleCode;
@@ -40,6 +38,9 @@ public class OrganizationUserController {
     private IamUserService iamUserService;
     @Autowired
     private IamRoleService iamRoleService;
+    @Autowired
+    private IamMemberRoleService memberRoleService;
+
 
     @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR, InitRoleCode.ORGANIZATION_MEMBER})
     @ApiOperation(value = "组织成员列表", notes = "分页", response = IamOrganizationUserPageResponseVO.class)
@@ -85,6 +86,14 @@ public class OrganizationUserController {
             orgUsers.addAll(pageResult.getRecords());
         } while (pageResult.getCurrent() < pageResult.getPages());
         return new ResponseEntity<>(orgUsers);
+    }
+
+    @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
+    @ApiOperation("给用户授权角色")
+    @PutMapping("grant/role")
+    public ResponseEntity grantUserRole(@PathVariable("organization_id") Long organizationId, @RequestBody @Valid GrantUserRoleRequestVO vo) {
+        memberRoleService.grantUserRole(vo.getUserIds(), CollUtil.newHashSet(vo.getRoleId()), organizationId, ResourceLevel.ORGANIZATION);
+        return new ResponseEntity();
     }
 
 }

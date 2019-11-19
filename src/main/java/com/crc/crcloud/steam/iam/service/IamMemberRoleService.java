@@ -26,4 +26,14 @@ public interface IamMemberRoleService {
      * @param resourceLevel 资源类型
      */
     void grantUserRole(@NotNull Long userId, @NotEmpty Set<Long> roleIds, @NotNull Long sourceId, @NotNull ResourceLevel resourceLevel);
+
+    /**
+     * 授权用户角色到目标资源；（给用户授权在某组织下角色）
+     * @param userIds 用户编号
+     * @param roleIds 角色ID
+     * @param sourceId 关联资源
+     * @param resourceLevel 资源类型
+     * @see this#grantUserRole(Long, Set, Long, ResourceLevel)
+     */
+    void grantUserRole(@NotNull Set<Long> userIds, @NotEmpty Set<Long> roleIds, @NotNull Long sourceId, @NotNull ResourceLevel resourceLevel);
 }
