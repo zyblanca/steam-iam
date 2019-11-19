@@ -5,10 +5,12 @@ import lombok.Getter;
 
 /**
  * ldap类型
+ * @author LiuChun
  */
+@SuppressWarnings("AlibabaEnumConstantsMustHaveComment")
 @AllArgsConstructor
 @Getter
-public enum LdapTypeEnum {
+public enum LdapTypeEnum implements IBaseEnum<String> {
     OPEN_LDAP("OpenLDAP"),
 
     MICROSOFT_ACTIVE_DIRECTORY("Microsoft Active Directory");
@@ -16,4 +18,8 @@ public enum LdapTypeEnum {
     private final String value;
 
 
+    @Override
+    public String getDesc() {
+        return this.name();
+    }
 }

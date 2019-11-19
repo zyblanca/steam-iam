@@ -77,18 +77,25 @@
         <foreach collection="organizationIds" item="organizationId" open="(" close=")" separator=",">
             ${organizationId}
         </foreach>
-        <if test="searchDTO.keywords!=null and searchDTO.keywords.size>0">
-            and
-            <foreach collection="searchDTO.keywords" item="keyword" open="(" close=")" separator=" OR ">
-                iam_user.real_name like concat('%',#{keyword},'%') or iam_user.login_name like concat('%',#{keyword},'%')
-            </foreach>
-        </if>
         <if test="searchDTO.roleIds!=null and searchDTO.roleIds.size>0">
             and role.role_id in
             <foreach collection="searchDTO.roleIds" item="roleId" open="(" close=")" separator=",">
                 ${roleId}
             </foreach>
         </if>
+        and (
+            1=1
+            <if test="searchDTO.loginName!=null and searchDTO.loginName != ''">
+                or iam_user.login_name like concat('%',#{searchDTO.loginName},'%')
+            </if>
+            <if test="searchDTO.realName!=null and searchDTO.realName != ''">
+                or iam_user.real_name like concat('%',#{searchDTO.realName},'%')
+            </if>
+        )
+        <if test="searchDTO.isLdap!=null">
+            and iam_user.is_ldap = ${searchDTO.isLdap}
+        </if>
+
     </select>
 
 </mapper>

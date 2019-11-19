@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.dao.IamUserMapper;
@@ -39,6 +40,7 @@ import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @Author
@@ -156,13 +158,24 @@ public class IamUserServiceImpl implements IamUserService {
 	}
 
 	@Override
-	public IPage<IamUserVO> pageQueryOrganizationUser(@NotNull Long
-															  organizationId, @Valid IamOrganizationUserPageRequestVO vo) {
-		List<String> keywords = StrUtil.splitTrim(vo.getKeywords(), ",");
-		if (StrUtil.isNotBlank(vo.getKeywords())) {
-			keywords.add(vo.getKeywords());
+	public IPage<IamUserVO> pageQueryOrganizationUser(@NotNull Long organizationId, @Valid IamOrganizationUserPageRequestVO vo) {
+		SearchDTO searchDTO = new SearchDTO();
+		BeanUtil.copyProperties(vo, searchDTO);
+		// 来源筛选
+		if (Objects.nonNull(vo.getOrigins()) && CollUtil.isNotEmpty(vo.getOrigins())) {
+			Set<UserOriginEnum> collect = Arrays.stream(UserOriginEnum.values()).filter(t -> vo.getOrigins().contains(t.getValue())).collect(Collectors.toSet());
+			if (collect.size() == 1) {
+				switch (CollUtil.getFirst(collect)) {
+					case LDAP:
+						searchDTO.setIsLdap(Boolean.TRUE);
+						break;
+					case MANUAL:
+						searchDTO.setIsLdap(Boolean.FALSE);
+						break;
+					default:
+				}
+			}
 		}
-		SearchDTO searchDTO = SearchDTO.builder().roleIds(vo.getRoleIds()).keywords(CollUtil.newHashSet(keywords)).build();
 		IPage<IamUser> pageResult = iamUserMapper.pageQueryOrganizationUser(new Page<>(vo.getPage(), vo.getPageSize()), CollUtil.newHashSet(organizationId), searchDTO);
 		return pageResult.convert(t -> CopyUtil.copy(t, IamUserVO.class));
 	}

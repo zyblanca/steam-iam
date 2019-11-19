@@ -15,10 +15,17 @@ import java.util.Set;
 @AllArgsConstructor
 public class SearchDTO {
     @Nullable
-    @ApiModelProperty("搜索")
-    private Set<String> keywords;
+    @ApiModelProperty("登录名搜索")
+    private String loginName;
+    @Nullable
+    @ApiModelProperty("用户名搜索")
+    private String realName;
 
     @Nullable
     @ApiModelProperty("角色")
     private Set<Long> roleIds;
+
+    @Nullable
+    @ApiModelProperty("是否LDAP用户")
+    private Boolean isLdap;
 }
