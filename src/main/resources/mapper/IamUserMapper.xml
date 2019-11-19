@@ -96,12 +96,14 @@
           iu.id,
           iu.login_name,
           iu.real_name
+        FROM (select DISTINCT imr.member_id
         FROM iam_member_role imr
-          INNER JOIN iam_user iu
-            ON imr.member_id = iu.id
         WHERE imr.member_type = #{userSearch.memberType}
         AND imr.source_type = #{userSearch.memberSourceType}
-        AND imr.source_id = #{userSearch.projectId}
+        AND imr.source_id = #{userSearch.projectId})tmp
+          INNER JOIN iam_user iu
+            ON tmp.member_id = iu.id
+
         <if test="userSearch.keyword != null and userSearch.keyword != '' " >
             iu.login_name like concat('%',concat(userSearch.keyword,'%'))
             or
@@ -114,17 +116,19 @@
         iu.id,
         iu.login_name,
         iu.real_name
+        FROM (select DISTINCT imr.member_id
         FROM iam_member_role imr
-        INNER JOIN iam_user iu
-        ON imr.member_id = iu.id
         WHERE imr.member_type = #{userSearch.memberType}
         AND imr.source_type = #{userSearch.memberSourceType}
-        AND imr.source_id = #{userSearch.projectId}
+        AND imr.source_id = #{userSearch.projectId})tmp
+        INNER JOIN iam_user iu
+        ON tmp.member_id = iu.id
         <if test="userSearch.keyword != null and userSearch.keyword != '' " >
             iu.login_name like concat('%',concat(userSearch.keyword,'%'))
             or
             iu.real_name like concat('%',concat(userSearch.keyword,'%'))
         </if>
+
         order by CONVERT(real_name USING gbk)
     </select>
     <select id="projectUnselectUser" resultMap="BaseResultMap">
@@ -134,17 +138,16 @@
               iu.real_name
             FROM iam_user_organization_rel iuor
               INNER JOIN iam_user iu
+              ON iu.id=iuor.user_id
               LEFT JOIN (SELECT
-                  iu.id
+                DISTINCT  imr.member_id
                 FROM iam_member_role imr
-                  INNER JOIN iam_user iu
-                    ON imr.member_id = iu.id
                 WHERE imr.member_type = #{userSearch.memberType}
                 AND imr.source_type =  #{userSearch.memberSourceType}
                 AND imr.source_id = #{userSearch.projectId}) tmp
-                ON tmp.id = iu.id
+                ON tmp.member_id = iu.id
             WHERE iuor.organization_id =#{userSearch.organizationId}
-            AND tmp.id IS NULL
+            AND tmp.member_id IS NULL
              order by CONVERT(real_name USING gbk)
 
     </select>
