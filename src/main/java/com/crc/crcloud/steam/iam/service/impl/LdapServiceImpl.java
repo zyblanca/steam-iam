@@ -182,8 +182,28 @@ public class LdapServiceImpl implements LdapService {
      */
     private void transformationToUser(Long historyId, List<Attributes> attributesList, List<IamUserDTO> normalUser, List<OauthLdapErrorUser> errorUsers, OauthLdapDTO oauthLdapDTO) {
         Long orgId = oauthLdapDTO.getId();
-        //TODO liuchun
+        //属性定义
+        Attributes uuidAttributes;
+        Attributes loginNameAttributes;
+        Attributes realNameAttributes;
+        Attributes emailAttributes;
+        Attributes phoneAttributes;
+        //字段对照
+        String uuidField = oauthLdapDTO.getUuidField();
+        String loginNameField = oauthLdapDTO.getLoginNameField();
+        String realNameField = oauthLdapDTO.getRealNameField();
+        String emailField = oauthLdapDTO.getEmailField();
+        String phoneField = oauthLdapDTO.getPhoneField();
+        boolean phoneExist = Objects.nonNull(phoneField);
+        for (Attributes attributes : attributesList) {
+            String uuid = null;
+            String loginName = null;
+            String realName = null;
+            String email = null;
+            String phone = null;
 
+
+        }
     }
 
 

@@ -10,7 +10,10 @@ import lombok.Setter;
 @Setter
 public class UserSearchDTO {
 
-    private String keyword;
+
+    private String loginName;
+
+    private String realName;
 
     private Long projectId;
 
