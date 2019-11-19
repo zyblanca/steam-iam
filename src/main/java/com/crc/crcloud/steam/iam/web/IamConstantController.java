@@ -3,7 +3,6 @@ package com.crc.crcloud.steam.iam.web;
 import cn.hutool.core.map.MapUtil;
 import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
-import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -27,7 +26,7 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/v1/constant")
 public class IamConstantController {
 
-    @Permission(level = ResourceLevel.SITE, permissionLogin = true)
+    @Permission(permissionLogin = true)
     @ApiOperation("获取用户来源列表-静态列表")
     @GetMapping("/user/origin")
     public ResponseEntity<List<Map<String, String>>> getUserOrigins() {
