@@ -3,6 +3,7 @@ package com.crc.crcloud.steam.iam.web;
 
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
+import com.crc.crcloud.steam.iam.model.dto.LdapConnectionDTO;
 import com.crc.crcloud.steam.iam.model.vo.OauthLdapVO;
 import com.crc.crcloud.steam.iam.service.OauthLdapService;
 import io.choerodon.core.iam.InitRoleCode;
@@ -12,6 +13,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -92,7 +94,7 @@ public class OauthLdapController {
      * ldap详情
      *
      * @param organizationId 组织id
-     * @param id ldap id
+     * @param id             ldap id
      * @return ldap配置信息
      */
     @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
@@ -106,5 +108,35 @@ public class OauthLdapController {
                 .orElseThrow(() -> new IamAppCommException("common.data.null.error"));
     }
 
+    /**
+     * 测试ldap连接
+     *
+     * @return 是否连接成功
+     */
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @ApiOperation(value = "测试ldap连接", response = LdapConnectionDTO.class)
+    @PostMapping("/organizations/{organization_id}/ldaps/{id}/test_connect")
+    public ResponseEntity<LdapConnectionDTO> testConnect(@ApiParam(value = "组织id", required = true)
+                                                         @PathVariable("organization_id") Long organizationId,
+                                                         @ApiParam(value = "ldap id", required = true)
+                                                         @PathVariable("id") Long id,
+                                                         @RequestBody OauthLdapVO oauthLdapVO) {
+        oauthLdapVO.setOrganizationId(organizationId);
+        oauthLdapVO.setId(id);
+        return new ResponseEntity<>(oauthLdapService.testConnetion(oauthLdapVO));
+    }
 
+    /**
+     * 同步ldap用户
+     */
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @ApiOperation(value = "同步ldap用户")
+    @PostMapping("/organizations/{organization_id}/ldaps/{id}/sync_users")
+    public ResponseEntity<Long> syncUsers(@ApiParam(value = "组织id", required = true)
+                                          @PathVariable("organization_id") Long organizationId,
+                                          @ApiParam(value = "ldap id", required = true)
+                                          @PathVariable Long id) {
+
+        return new ResponseEntity<>(oauthLdapService.syncLdapUser(organizationId, id));
+    }
 }

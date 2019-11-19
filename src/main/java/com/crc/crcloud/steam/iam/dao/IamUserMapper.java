@@ -3,17 +3,23 @@ package com.crc.crcloud.steam.iam.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.entity.IamUser;
+import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.user.SearchDTO;
 import org.apache.ibatis.annotations.Param;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.Set;
 
 
 /**
+ * 涉及人员信息，取值的时候尽量取够用
+ * 涉及机密的信息，该加密的加密
+ *
  * @Author:
  * @Date: 2019-11-12
  * @Description:
@@ -21,7 +27,8 @@ import java.util.Set;
 public interface IamUserMapper extends BaseMapper<IamUser> {
     /**
      * 填充密码到用户上
-     * @param userId 用户编号
+     *
+     * @param userId       用户编号
      * @param hashPassword 密码
      * @return 影响条数
      */
@@ -29,6 +36,7 @@ public interface IamUserMapper extends BaseMapper<IamUser> {
 
     /**
      * 获取用户的密码
+     *
      * @param userId 用户编号
      * @return 密码，可能没有
      */
@@ -37,9 +45,34 @@ public interface IamUserMapper extends BaseMapper<IamUser> {
 
     /**
      * 查询组织用户
+     *
      * @param page
      * @param searchDTO
      * @return
      */
     IPage<IamUser> pageQueryOrganizationUser(@Param("page") Page<IamUser> page, @Param("organizationIds") Set<Long> organizationIds, @Param("searchDTO") SearchDTO searchDTO);
+
+    /**
+     * 通过项目查询用户
+     *
+     * @param page       分页信息
+     * @param userSearch 用户查询条件
+     * @return 用户信息
+     */
+    IPage<IamUser> pageByProject(PageUtil page, @Param("userSearch") UserSearchDTO userSearch);
+
+    /**
+     * 通过项目查询用户
+     * 不分页，结果集尽量少，下拉使用
+     * @param userSearch 用户查询条件
+     * @return 用户信息
+     */
+    List<IamUser> projectDropDownUser( @Param("userSearch")UserSearchDTO userSearch);
+    /**
+     * 查询组织下未被当前项目选择的人
+     * 不分页，结果集尽量少，下拉使用
+     * @param userSearch 用户查询条件
+     * @return 用户信息
+     */
+    List<IamUser> projectUnselectUser(@Param("userSearch")UserSearchDTO userSearch);
 }

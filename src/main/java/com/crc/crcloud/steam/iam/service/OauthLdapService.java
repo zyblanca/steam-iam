@@ -3,6 +3,7 @@ package com.crc.crcloud.steam.iam.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.crc.crcloud.steam.iam.model.dto.LdapConnectionDTO;
 import com.crc.crcloud.steam.iam.model.vo.OauthLdapVO;
 
 
@@ -48,5 +49,20 @@ public interface OauthLdapService {
      */
     OauthLdapVO queryOne(Long organizationId, Long id);
 
+    /**
+     * 测试ldap连接
+     *
+     * @param oauthLdapVO ldap配置
+     * @return 测试结果
+     */
+    LdapConnectionDTO testConnetion(OauthLdapVO oauthLdapVO);
 
+    /**
+     * 同步用户信息
+     *
+     * @param organizationId 组织id
+     * @param id             ldap配置id
+     * @return 同步记录id
+     */
+    Long syncLdapUser(Long organizationId, Long id);
 }
