@@ -94,6 +94,19 @@
             where id = #{oauthLdap.id}
 
     </update>
+    <select id="matchLdapByUserIdAndLdap" resultType="java.lang.Long">
+        SELECT DISTINCT
+        iuor.user_id
+        FROM iam_user_organization_rel iuor
+        LEFT JOIN oauth_ldap ol
+        ON ol.organization_id = iuor.organization_id
+        WHERE iuor.user_id IN
+        <foreach collection="ids" separator="," open="(" item="item" close=")">#{item}</foreach>
+        AND ol.server_address = #{oauthLdap.serverAddress}
+        AND ol.port = #{oauthLdap.port}
+        AND ol.base_dn = #{oauthLdap.baseDn}
+
+    </select>
 
 
 </mapper>

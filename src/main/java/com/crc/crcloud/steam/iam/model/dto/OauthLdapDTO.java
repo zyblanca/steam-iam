@@ -27,6 +27,8 @@ public class OauthLdapDTO {
     */
     private Long id;
 
+    private Long userId;
+
     /**
     * ldap的名称
     */

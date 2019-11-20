@@ -161,5 +161,32 @@
              order by CONVERT(real_name USING gbk)
 
     </select>
+    <select id="selectUserMatchLdapByLoginName"
+            resultType="com.crc.crcloud.steam.iam.model.dto.UserMatchLdapDTO">
+        SELECT iu.id,iu.login_name,iu.is_ldap,GROUP_CONCAT(iuor.organization_id)
+        FROM iam_user iu
+        LEFT JOIN iam_user_organization_rel iuor
+        ON iuor.user_id=iu.id
+        WHERE iu.login_name IN
+        <foreach collection="loginNames" separator="," open="(" item="item" close=")">#{item}</foreach>
+        GROUP BY iu.id,iu.login_name,iu.is_ldap
 
+
+    </select>
+    <select id="selectEmailUserByEmail" resultType="com.crc.crcloud.steam.iam.model.dto.UserMatchLdapDTO">
+        SELECT iu.login_name,iu.email FROM iam_user iu
+        WHERE iu.email IN
+        <foreach collection="emails" close=")" item="item" open="(" separator=",">#{item}</foreach>
+    </select>
+
+
+
+    <update id="updateLdapUser">
+        update iam_user
+        set email = #{iamUser.email},
+        real_name = #{iamUser.realName},
+        phone = #{iamUser.phone},
+        last_update_date=now()
+        where id = #{iamUser.id}
+    </update>
 </mapper>

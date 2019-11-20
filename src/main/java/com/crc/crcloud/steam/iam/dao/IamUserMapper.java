@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.entity.IamUser;
+import com.crc.crcloud.steam.iam.model.dto.UserMatchLdapDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.user.SearchDTO;
 import org.apache.ibatis.annotations.Param;
@@ -12,6 +13,7 @@ import org.apache.ibatis.annotations.Param;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -75,4 +77,26 @@ public interface IamUserMapper extends BaseMapper<IamUser> {
      * @return 用户信息
      */
     List<IamUser> projectUnselectUser(@Param("userSearch")UserSearchDTO userSearch);
+
+    /**
+     * 查询用户的ldap比对信息
+     * 包含登入名 是否ldap账户，所属机构信息
+     * @param loginNames 登入名集合
+     * @return 用户信息
+     */
+    List<UserMatchLdapDTO> selectUserMatchLdapByLoginName(@Param("loginNames") Collection<String> loginNames);
+    /**
+     * 查询用户的ldap比对信息
+     * 包含登入名 邮箱信息
+     * @param emails 邮箱集合
+     * @return 用户信息
+     */
+    List<UserMatchLdapDTO> selectEmailUserByEmail(@Param("emails")Set<String> emails);
+
+    /**
+     * 通过ldap修改用户信息
+     * @param iamUser
+     * @return
+     */
+    int updateLdapUser(@Param("iamUser") IamUser iamUser);
 }

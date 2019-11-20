@@ -19,7 +19,7 @@ public class LdapThreadPoolConfig {
         executor.setCorePoolSize(3);
         //最大队列
         executor.setQueueCapacity(1000);
-        return executor;
+         return executor;
     }
 
 }
