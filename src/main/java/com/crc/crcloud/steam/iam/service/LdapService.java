@@ -33,6 +33,7 @@ public interface LdapService {
     /**
      * 验证账户是否可以连接
      * 属性是否匹配
+     *
      * @param oauthLdapDTO ldap配置
      * @return 验证结果
      */
@@ -40,8 +41,20 @@ public interface LdapService {
 
     /**
      * 同步ldap用户信息
+     *
      * @param oauthLdapDTO
      * @param oauthLdapHistory
      */
     void syncLdapUser(OauthLdapDTO oauthLdapDTO, OauthLdapHistory oauthLdapHistory);
+
+    /**
+     * 检验ldap是否可以运行同步
+     * 历史记录不存在，或者最后一条记录已经完成 可以运行同步
+     * 最后一条记录未执行完毕，但是时间超过一个小时 ，可以运行同步
+     * 最后一条记录未执行完毕，时间未超过一个小时，不允许重开一个同步
+     *
+     * @param ldapId
+     * @return
+     */
+    Long checkLast(Long ldapId);
 }
