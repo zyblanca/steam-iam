@@ -43,11 +43,11 @@ public interface OauthLdapHistoryService {
     /**
      * 查询单个详情
      *
-     * @param projectId 项目ID
+     * @param organizationId 组织
      * @param id
      * @return
      */
-    OauthLdapHistoryVO queryOne(Long projectId, Long id);
+    OauthLdapHistoryVO queryOne(Long organizationId, Long id);
 
     /**
      * 分页查询

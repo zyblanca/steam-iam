@@ -74,12 +74,12 @@ public class OauthLdapHistoryServiceImpl implements OauthLdapHistoryService {
 	/**
 	 *
 	 * 查询单个详情
-	 * @param projectId  项目ID
+	 * @param organizationId  项目ID
 	 * @param id
 	 * @return
 	 */
 	@Override
-	public OauthLdapHistoryVO queryOne(Long projectId ,Long id){
+	public OauthLdapHistoryVO queryOne(Long organizationId ,Long id){
 		//查询的数据 如果包含项目ID，校验项目ID是否一致，不一致抛异常
 		OauthLdapHistory data = oauthLdapHistoryMapper.selectById(id);
 		if(Objects.isNull(data)){
