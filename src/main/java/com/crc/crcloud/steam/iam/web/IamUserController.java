@@ -19,11 +19,12 @@ import java.util.List;
 
 /**
  * 用户相关
+ *
  * @author hand-196
  */
 @Api("")
 @RestController
-@RequestMapping(value = "/v1/projects/{project_id}/iam_user")
+@RequestMapping(value = "/v1")
 public class IamUserController {
 
     private final IamUserService iamUserService;
@@ -44,7 +45,7 @@ public class IamUserController {
     //简易权限，后续需要根据实际情况做校验
     @Permission(level = ResourceLevel.PROJECT)
     @ApiOperation(value = "项目人员列表", notes = "项目人员列表", response = IamUserVO.class)
-    @GetMapping
+    @GetMapping("/projects/{project_id}/iam_user")
     public ResponseEntity<IPage<IamUserVO>> pageProjectUser(@ApiParam(value = "项目ID", required = true)
                                                             @PathVariable(name = "project_id") Long projectId,
                                                             @ApiParam(value = "人员信息")
@@ -66,7 +67,7 @@ public class IamUserController {
     //简易权限，后续需要根据实际情况做校验
     @Permission(level = ResourceLevel.PROJECT)
     @ApiOperation(value = "项目人员下拉列表", notes = "项目人员下拉列表", response = IamUserVO.class)
-    @GetMapping("drop/down")
+    @GetMapping("/projects/{project_id}/iam_user/drop/down")
     public ResponseEntity<List<IamUserVO>> projectDropDownUser(@ApiParam(value = "项目ID", required = true)
                                                                @PathVariable(name = "project_id") Long projectId,
                                                                @ApiParam(value = "人员信息")
@@ -85,7 +86,7 @@ public class IamUserController {
     //简易权限，后续需要根据实际情况做校验
     @Permission(level = ResourceLevel.PROJECT)
     @ApiOperation(value = "组织下面未被项目选择的人员下拉", notes = "组织下面未被项目选择的人员下拉", response = IamUserVO.class)
-    @GetMapping("/unselect")
+    @GetMapping("/projects/{project_id}/iam_user/unselect")
     public ResponseEntity<List<IamUserVO>> projectUnselectUser(@ApiParam(value = "项目ID", required = true)
                                                                @PathVariable(name = "project_id") Long projectId,
                                                                @ApiParam(value = "人员信息")
@@ -103,13 +104,30 @@ public class IamUserController {
     //简易权限，后续需要根据实际情况做校验
     @Permission(level = ResourceLevel.PROJECT)
     @ApiOperation(value = "项目绑定用户", notes = "项目绑定用户")
-    @PostMapping("/bind/users")
+    @PostMapping("/projects/{project_id}/iam_user/bind/users")
     public ResponseEntity projectBindUsers(@ApiParam(value = "项目ID", required = true)
                                            @PathVariable(name = "project_id") Long projectId,
                                            @ApiParam(value = "人员信息数组id")
                                                    List<Long> userIds) {
         iamUserService.projectBindUsers(projectId, userIds);
         return ResponseEntity.ok();
+    }
+
+    /**
+     * 内部端口，不对外使用
+     * 通过用户id集合，查询用户信息
+     * 包含用户id loginName email realName四个属性
+     *
+     * @param ids         用户id集合
+     * @param onlyEnabled 是否排除无效用户
+     * @return 用户信息
+     */
+    @ApiOperation(value = "通过给定的id数组获取用户信息")
+    @PostMapping("/users/ids")
+    @Permission(permissionWithin = true)
+    public ResponseEntity<List<IamUserVO>> listUserByIds(@RequestBody List<Long> ids,
+                                                         @RequestParam(value = "only_enabled", defaultValue = "true", required = false) Boolean onlyEnabled) {
+        return new ResponseEntity<>(iamUserService.listUserByIds(ids, onlyEnabled));
     }
 
 

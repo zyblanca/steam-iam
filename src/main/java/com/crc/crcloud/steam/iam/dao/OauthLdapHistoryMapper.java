@@ -17,4 +17,10 @@ public interface OauthLdapHistoryMapper extends BaseMapper<OauthLdapHistory> {
 
     IPage<OauthLdapHistory> page(Page page, @Param("oauthLdapHistory") OauthLdapHistoryDTO oauthLdapHistoryDTO);
 
+    /**
+     * 查询最后一条执行记录
+     * @param ldapId
+     * @return
+     */
+    OauthLdapHistory selectLastByLdapId(@Param("ldapId") Long ldapId);
 }

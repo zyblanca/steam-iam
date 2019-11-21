@@ -143,6 +143,9 @@ public class OauthLdapServiceImpl implements OauthLdapService {
     @Override
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     public Long syncLdapUser(Long organizationId, Long id) {
+        //检验最后一次执行时间
+        Long historyId = ldapService.checkLast(id);
+        if (Objects.nonNull(historyId)) return historyId;
         OauthLdapDTO oauthLdapDTO = CopyUtil.copy(queryOne(organizationId, id), OauthLdapDTO.class);
         //先测试连接
         LdapConnectionDTO ldapConnectionDTO = ldapService.testConnection(oauthLdapDTO);
@@ -165,6 +168,7 @@ public class OauthLdapServiceImpl implements OauthLdapService {
         ldapService.syncLdapUser(oauthLdapDTO, oauthLdapHistory);
         return oauthLdapHistory.getId();
     }
+
 
     @Override
     public OauthLdapVO queryOneByOrganizationId(Long organizationId) {

@@ -41,7 +41,13 @@
         from oauth_ldap_history
 
     </select>
-
+    <select id="selectLastByLdapId" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/>;
+        from oauth_ldap_history
+        where ldap_id=#{ldapId}
+        order by sync_begin_time desc
+        limit 1
+    </select>
 
 
 </mapper>

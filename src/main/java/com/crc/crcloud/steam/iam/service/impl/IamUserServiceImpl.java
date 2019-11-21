@@ -8,13 +8,12 @@ import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
 import com.crc.crcloud.steam.iam.common.enums.MemberRoleEnum;
 import com.crc.crcloud.steam.iam.common.enums.MemberRoleSourceTypeEnum;
 import com.crc.crcloud.steam.iam.common.enums.MemberType;
+import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
@@ -41,6 +40,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
@@ -176,13 +176,17 @@ public class IamUserServiceImpl implements IamUserService {
     }
 
     @Override
-    public IPage<IamUserVO> pageQueryOrganizationUser(@NotNull Long
-                                                              organizationId, @Valid IamOrganizationUserPageRequestVO vo) {
+    public IPage<IamUserVO> pageQueryOrganizationUser(@NotNull Long organizationId, @Valid IamOrganizationUserPageRequestVO vo) {
         SearchDTO searchDTO = new SearchDTO();
         BeanUtil.copyProperties(vo, searchDTO);
         // 来源筛选
         if (Objects.nonNull(vo.getOrigins()) && CollUtil.isNotEmpty(vo.getOrigins())) {
-            Set<UserOriginEnum> collect = Arrays.stream(UserOriginEnum.values()).filter(t -> vo.getOrigins().contains(t.getValue())).collect(Collectors.toSet());
+            UserOriginEnum[] userOriginEnums = UserOriginEnum.values();
+            if (vo.getOrigins().stream().noneMatch(t -> Arrays.stream(userOriginEnums).anyMatch(origin -> origin.equalsValue(t)))) {
+                log.warn("来源参数都不符合;[{}]", CollUtil.join(vo.getOrigins(), ""));
+                return new Page<>(vo.getPage(), vo.getPageSize());
+            }
+            Set<UserOriginEnum> collect = Arrays.stream(userOriginEnums).filter(t -> vo.getOrigins().contains(t.getValue())).collect(Collectors.toSet());
             if (collect.size() == 1) {
                 switch (CollUtil.getFirst(collect)) {
                     case LDAP:
@@ -252,6 +256,20 @@ public class IamUserServiceImpl implements IamUserService {
             iamMemberRole.setMemberId(userId);
             iamMemberRoleMapper.insert(iamMemberRole);
         }
+    }
+
+    @Override
+    public List<IamUserVO> listUserByIds(List<Long> ids, Boolean onlyEnabled) {
+        if (CollectionUtils.isEmpty(ids)) return new ArrayList<>();
+        LambdaQueryWrapper<IamUser> query = Wrappers.<IamUser>lambdaQuery().in(IamUser::getId, ids);
+        if (onlyEnabled) {
+            query.eq(IamUser::getIsEnabled, onlyEnabled);
+        }
+        List<IamUser> iamUsers = iamUserMapper.selectList(query);
+        if (CollectionUtils.isEmpty(iamUsers)) return new ArrayList<>();
+        //刚需原则，当前仅提供 id 登入名  用户名 邮箱
+        return iamUsers.stream().map(v -> IamUserVO.builder().id(v.getId())
+                .loginName(v.getLoginName()).realName(v.getRealName()).email(v.getEmail()).build()).collect(Collectors.toList());
     }
 
     private IamProject getAndThrowProject(Long projectId) {

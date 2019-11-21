@@ -79,4 +79,14 @@ public interface IamUserService {
      * @param userIds   用户id
      */
     void projectBindUsers(Long projectId, List<Long> userIds);
+    /**
+     * 内部端口，不对外使用
+     * 通过用户id集合，查询用户信息
+     * 包含用户id loginName email realName四个属性
+     *
+     * @param ids         用户id集合
+     * @param onlyEnabled 是否排除无效用户
+     * @return 用户信息
+     */
+    List<IamUserVO> listUserByIds(List<Long> ids, Boolean onlyEnabled);
 }

@@ -197,6 +197,27 @@ public class LdapServiceImpl implements LdapService {
 
     }
 
+    @Override
+    public Long checkLast(Long ldapId) {
+
+        OauthLdapHistory oauthLdapHistory = oauthLdapHistoryMapper.selectLastByLdapId(ldapId);
+        if (Objects.isNull(oauthLdapHistory) || Objects.nonNull(oauthLdapHistory.getSyncEndTime())) return null;
+        if (Objects.isNull(oauthLdapHistory.getSyncBeginTime())) {
+            oauthLdapHistory.setSyncBeginTime(new Date());
+            oauthLdapHistory.setSyncEndTime(new Date());
+            oauthLdapHistoryMapper.updateById(oauthLdapHistory);
+            return null;
+        }
+        //如果当前时间-开始时间大于一个小时，重新触发执行
+        if (System.currentTimeMillis() - oauthLdapHistory.getSyncBeginTime().getTime() > 60 * 60 * 1000) {
+            oauthLdapHistory.setSyncEndTime(new Date());
+            oauthLdapHistoryMapper.updateById(oauthLdapHistory);
+            return null;
+        }
+        return oauthLdapHistory.getId();
+    }
+
+
     /**
      * 比对人员信息
      * 1.ldap邮箱数据库中存在，并且ldap邮箱所属的用户名与数据库中该邮箱的用户名不一致，属于异常用户
