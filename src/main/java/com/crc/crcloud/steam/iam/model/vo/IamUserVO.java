@@ -18,7 +18,6 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ApiModel("")
 public class IamUserVO {
 
 

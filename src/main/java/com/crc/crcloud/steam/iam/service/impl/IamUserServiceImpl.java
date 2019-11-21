@@ -8,7 +8,6 @@ import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
@@ -41,6 +40,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
@@ -252,6 +252,20 @@ public class IamUserServiceImpl implements IamUserService {
             iamMemberRole.setMemberId(userId);
             iamMemberRoleMapper.insert(iamMemberRole);
         }
+    }
+
+    @Override
+    public List<IamUserVO> listUserByIds(List<Long> ids, Boolean onlyEnabled) {
+        if (CollectionUtils.isEmpty(ids)) return new ArrayList<>();
+        LambdaQueryWrapper<IamUser> query = Wrappers.<IamUser>lambdaQuery().in(IamUser::getId, ids);
+        if (onlyEnabled) {
+            query.eq(IamUser::getIsEnabled, onlyEnabled);
+        }
+        List<IamUser> iamUsers = iamUserMapper.selectList(query);
+        if (CollectionUtils.isEmpty(iamUsers)) return new ArrayList<>();
+        //刚需原则，当前仅提供 id 登入名  用户名 邮箱
+        return iamUsers.stream().map(v -> IamUserVO.builder().id(v.getId())
+                .loginName(v.getLoginName()).realName(v.getRealName()).email(v.getEmail()).build()).collect(Collectors.toList());
     }
 
     private IamProject getAndThrowProject(Long projectId) {
