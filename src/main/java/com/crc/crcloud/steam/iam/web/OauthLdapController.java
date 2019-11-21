@@ -109,6 +109,22 @@ public class OauthLdapController {
     }
 
     /**
+     * ldap详情
+     * 通过组织查询ldap
+     *
+     * @param organizationId 组织id
+     * @return ldap配置信息
+     */
+    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
+    @ApiOperation(value = "通过组织查询ldap", notes = "通过组织查询ldap", response = OauthLdapVO.class)
+    @GetMapping("/organizations/{organization_id}")
+    public ResponseEntity<OauthLdapVO> loadByOrg(@ApiParam(value = "组织id", required = true)
+                                                 @PathVariable(name = "organization_id") Long organizationId) {
+        return new ResponseEntity<>(oauthLdapService.queryOneByOrganizationId(organizationId));
+    }
+
+
+    /**
      * 测试ldap连接
      *
      * @return 是否连接成功

@@ -1,6 +1,7 @@
 package com.crc.crcloud.steam.iam.service.impl;
 
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.UserDetail;
@@ -51,7 +52,9 @@ public class OauthLdapServiceImpl implements OauthLdapService {
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     @Override
     public OauthLdapVO insert(OauthLdapVO oauthLdapVO) {
-
+        if (Objects.nonNull(queryOneByOrganizationId(oauthLdapVO.getOrganizationId()))) {
+            throw new IamAppCommException("ldap.data.exist");
+        }
         initLdapData(oauthLdapVO);
         //保存
         OauthLdap oauthLdap = CopyUtil.copy(oauthLdapVO, OauthLdap.class);
@@ -161,6 +164,13 @@ public class OauthLdapServiceImpl implements OauthLdapService {
         //调用同步操作
         ldapService.syncLdapUser(oauthLdapDTO, oauthLdapHistory);
         return oauthLdapHistory.getId();
+    }
+
+    @Override
+    public OauthLdapVO queryOneByOrganizationId(Long organizationId) {
+        OauthLdap oauthLdap = oauthLdapMapper.selectOne(Wrappers.<OauthLdap>lambdaQuery().eq(OauthLdap::getOrganizationId, organizationId));
+        if (Objects.isNull(oauthLdap)) return null;
+        return CopyUtil.copy(oauthLdap, OauthLdapVO.class);
     }
 
     //获取组织信息，校验组织是否存在
