@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.crc.crcloud.steam.iam.dao.IamOrganizationMapper">
+
+
+        <!-- 通用查询映射结果 -->
+        <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamOrganization">
+                    <id column="id" property="id" />
+                    <result column="name" property="name" />
+                    <result column="code" property="code" />
+                    <result column="description" property="description" />
+                    <result column="is_enabled" property="isEnabled" />
+                    <result column="is_register" property="isRegister" />
+                    <result column="user_id" property="userId" />
+                    <result column="address" property="address" />
+                    <result column="image_url" property="imageUrl" />
+                    <result column="scale" property="scale" />
+                    <result column="object_version_number" property="objectVersionNumber" />
+                    <result column="created_by" property="createdBy" />
+                    <result column="creation_date" property="creationDate" />
+                    <result column="last_updated_by" property="lastUpdatedBy" />
+                    <result column="last_update_date" property="lastUpdateDate" />
+        </resultMap>
+
+
+        <!-- 通用查询结果列 -->
+        <sql id="Base_Column_List">
+                     id,
+                     name,
+                     code,
+                     description,
+                     is_enabled,
+                     is_register,
+                     user_id,
+                     address,
+                     image_url,
+                     scale,
+                     object_version_number,
+                     created_by,
+                     creation_date,
+                     last_updated_by,
+                     last_update_date
+        </sql>
+
+    <select id="page" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/>
+        from iam_organization
+
+    </select>
+
+
+
+</mapper>

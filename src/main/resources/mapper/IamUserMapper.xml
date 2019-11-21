@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.crc.crcloud.steam.iam.dao.IamUserMapper">
+
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamUser">
+        <id column="id" property="id"/>
+        <result column="login_name" property="loginName"/>
+        <result column="email" property="email"/>
+        <result column="current_organization_id" property="currentOrganizationId"/>
+        <result column="hash_password" property="hashPassword"/>
+        <result column="real_name" property="realName"/>
+        <result column="phone" property="phone"/>
+        <result column="international_tel_code" property="internationalTelCode"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="profile_photo" property="profilePhoto"/>
+        <result column="language" property="language"/>
+        <result column="time_zone" property="timeZone"/>
+        <result column="last_password_updated_at" property="lastPasswordUpdatedAt"/>
+        <result column="last_login_at" property="lastLoginAt"/>
+        <result column="is_enabled" property="isEnabled"/>
+        <result column="is_locked" property="isLocked"/>
+        <result column="is_ldap" property="isLdap"/>
+        <result column="is_admin" property="isAdmin"/>
+        <result column="locked_until_at" property="lockedUntilAt"/>
+        <result column="password_attempt" property="passwordAttempt"/>
+        <result column="object_version_number" property="objectVersionNumber"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="creation_date" property="creationDate"/>
+        <result column="last_updated_by" property="lastUpdatedBy"/>
+        <result column="last_update_date" property="lastUpdateDate"/>
+    </resultMap>
+
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+                     id,
+                     login_name,
+                     email,
+                     current_organization_id,
+                     hash_password,
+                     real_name,
+                     phone,
+                     international_tel_code,
+                     image_url,
+                     profile_photo,
+                     language,
+                     time_zone,
+                     last_password_updated_at,
+                     last_login_at,
+                     is_enabled,
+                     is_locked,
+                     is_ldap,
+                     is_admin,
+                     locked_until_at,
+                     password_attempt,
+                     object_version_number,
+                     created_by,
+                     creation_date,
+                     last_updated_by,
+                     last_update_date
+        </sql>
+    <update id="fillHashPassword">
+        update iam_user set hash_password = #{hashPassword},last_password_updated_at = now()  where  id = ${userId}
+    </update>
+    <select id="getHashPassword" resultType="java.lang.String">
+        select hash_password from iam_user where id = ${userId}
+    </select>
+    <select id="pageQueryOrganizationUser" resultMap="BaseResultMap">
+        select
+        iam_user.*
+        from iam_user as  iam_user inner join iam_user_organization_rel iuor on iam_user.id = iuor.user_id
+        left join iam_member_role role on iam_user.id = role.member_id and role.member_type='user'
+        where
+        iuor.organization_id in
+        <foreach collection="organizationIds" item="organizationId" open="(" close=")" separator=",">
+            ${organizationId}
+        </foreach>
+        <if test="searchDTO.roleIds!=null and searchDTO.roleIds.size>0">
+            and role.role_id in
+            <foreach collection="searchDTO.roleIds" item="roleId" open="(" close=")" separator=",">
+                ${roleId}
+            </foreach>
+        </if>
+        and (
+        1=1
+        <if test="searchDTO.loginName!=null and searchDTO.loginName != ''">
+            or iam_user.login_name like concat('%',#{searchDTO.loginName},'%')
+        </if>
+        <if test="searchDTO.realName!=null and searchDTO.realName != ''">
+            or iam_user.real_name like concat('%',#{searchDTO.realName},'%')
+        </if>
+        )
+        <if test="searchDTO.isLdap!=null">
+            and iam_user.is_ldap = ${searchDTO.isLdap}
+        </if>
+
+    </select>
+    <select id="pageByProject" resultMap="BaseResultMap">
+        SELECT
+        iu.id,
+        iu.login_name,
+        iu.real_name
+        FROM (select DISTINCT imr.member_id
+        FROM iam_member_role imr
+        WHERE imr.member_type = #{userSearch.memberType}
+        AND imr.source_type = #{userSearch.memberSourceType}
+        AND imr.source_id = #{userSearch.projectId})tmp
+        INNER JOIN iam_user iu
+        ON tmp.member_id = iu.id
+
+        <if test="userSearch.realName != null and userSearch.realName != '' ">
+
+            iu.real_name like concat('%',concat(userSearch.realName,'%'))
+        </if>
+        <if test="userSearch.loginName != null and userSearch.loginName != '' ">
+            iu.login_name like concat('%',concat(userSearch.loginName,'%'))
+        </if>
+
+    </select>
+    <select id="projectDropDownUser" resultMap="BaseResultMap">
+        SELECT
+        iu.id,
+        iu.login_name,
+        iu.real_name
+        FROM (select DISTINCT imr.member_id
+        FROM iam_member_role imr
+        WHERE imr.member_type = #{userSearch.memberType}
+        AND imr.source_type = #{userSearch.memberSourceType}
+        AND imr.source_id = #{userSearch.projectId})tmp
+        INNER JOIN iam_user iu
+        ON tmp.member_id = iu.id
+        <if test="userSearch.realName != null and userSearch.realName != '' ">
+
+            iu.real_name like concat('%',concat(userSearch.realName,'%'))
+        </if>
+        <if test="userSearch.loginName != null and userSearch.loginName != '' ">
+            iu.login_name like concat('%',concat(userSearch.loginName,'%'))
+        </if>
+
+        order by CONVERT(real_name USING gbk)
+    </select>
+    <select id="projectUnselectUser" resultMap="BaseResultMap">
+            SELECT
+              iu.id,
+              iu.login_name,
+              iu.real_name
+            FROM iam_user_organization_rel iuor
+              INNER JOIN iam_user iu
+              ON iu.id=iuor.user_id
+              LEFT JOIN (SELECT
+                DISTINCT  imr.member_id
+                FROM iam_member_role imr
+                WHERE imr.member_type = #{userSearch.memberType}
+                AND imr.source_type =  #{userSearch.memberSourceType}
+                AND imr.source_id = #{userSearch.projectId}) tmp
+                ON tmp.member_id = iu.id
+            WHERE iuor.organization_id =#{userSearch.organizationId}
+            AND tmp.member_id IS NULL
+             order by CONVERT(real_name USING gbk)
+
+    </select>
+    <select id="selectUserMatchLdapByLoginName"
+            resultType="com.crc.crcloud.steam.iam.model.dto.UserMatchLdapDTO">
+        SELECT iu.id,iu.login_name,iu.is_ldap,GROUP_CONCAT(iuor.organization_id)
+        FROM iam_user iu
+        LEFT JOIN iam_user_organization_rel iuor
+        ON iuor.user_id=iu.id
+        WHERE iu.login_name IN
+        <foreach collection="loginNames" separator="," open="(" item="item" close=")">#{item}</foreach>
+        GROUP BY iu.id,iu.login_name,iu.is_ldap
+
+
+    </select>
+    <select id="selectEmailUserByEmail" resultType="com.crc.crcloud.steam.iam.model.dto.UserMatchLdapDTO">
+        SELECT iu.login_name,iu.email FROM iam_user iu
+        WHERE iu.email IN
+        <foreach collection="emails" close=")" item="item" open="(" separator=",">#{item}</foreach>
+    </select>
+
+
+
+    <update id="updateLdapUser">
+        update iam_user
+        set email = #{iamUser.email},
+        real_name = #{iamUser.realName},
+        phone = #{iamUser.phone},
+        last_update_date=now()
+        where id = #{iamUser.id}
+    </update>
+</mapper>

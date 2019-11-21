@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.crc.crcloud.steam.iam.dao.IamProjectMapper">
+
+
+        <!-- 通用查询映射结果 -->
+        <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamProject">
+                    <id column="id" property="id" />
+                    <result column="name" property="name" />
+                    <result column="code" property="code" />
+                    <result column="description" property="description" />
+                    <result column="organization_id" property="organizationId" />
+                    <result column="is_enabled" property="isEnabled" />
+                    <result column="image_url" property="imageUrl" />
+                    <result column="object_version_number" property="objectVersionNumber" />
+                    <result column="created_by" property="createdBy" />
+                    <result column="creation_date" property="creationDate" />
+                    <result column="last_updated_by" property="lastUpdatedBy" />
+                    <result column="last_update_date" property="lastUpdateDate" />
+                    <result column="type" property="type" />
+                    <result column="category" property="category" />
+        </resultMap>
+
+
+        <!-- 通用查询结果列 -->
+        <sql id="Base_Column_List">
+                     id,
+                     name,
+                     code,
+                     description,
+                     organization_id,
+                     is_enabled,
+                     image_url,
+                     object_version_number,
+                     created_by,
+                     creation_date,
+                     last_updated_by,
+                     last_update_date,
+                     type,
+                     category
+        </sql>
+
+    <select id="page" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/>
+        from iam_project
+
+    </select>
+
+
+
+</mapper>
