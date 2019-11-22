@@ -1,5 +1,7 @@
 package com.crc.crcloud.steam.iam.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.crc.crcloud.steam.iam.common.enums.LdapSyncUserErrorEnum;
 import com.crc.crcloud.steam.iam.common.utils.CommonCollectionUtils;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
@@ -29,6 +31,8 @@ import org.springframework.ldap.filter.HardcodedFilter;
 import org.springframework.ldap.query.SearchScope;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -37,6 +41,7 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchControls;
+import java.beans.Transient;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -143,9 +148,7 @@ public class LdapServiceImpl implements LdapService {
     @Async("ldap-executor")
     public void syncLdapUser(OauthLdapDTO oauthLdapDTO, OauthLdapHistory oauthLdapHistory) {
         //初始化记录
-        oauthLdapHistory.setErrorUserCount(0);
-        oauthLdapHistory.setNewUserCount(0);
-        oauthLdapHistory.setUpdateUserCount(0);
+
         AndFilter andFilter = getAndFilterByObjectClass(oauthLdapDTO);
         //存在过滤条件则使用
         if (StringUtils.hasText(oauthLdapDTO.getCustomFilter())) {
@@ -216,6 +219,9 @@ public class LdapServiceImpl implements LdapService {
         }
         return oauthLdapHistory.getId();
     }
+
+
+
 
 
     /**
