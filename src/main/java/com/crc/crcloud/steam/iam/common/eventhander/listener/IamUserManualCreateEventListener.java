@@ -35,6 +35,7 @@ public class IamUserManualCreateEventListener implements ApplicationListener<Iam
         UserDTO userDTO = new UserDTO();
         @NotNull IamUserDTO iamUser = event.getSource();
         BeanUtil.copyProperties(iamUser, userDTO);
+        userDTO.setPassword(event.getRawPassword());
         final String logTitle = StrUtil.format("手动创建组织成员[{}]同步到iam-server", iamUser.getLoginName());
         log.info(logTitle);
         Optional<IamOrganizationDTO> firstOrg = organizationService.getUserOrganizations(iamUser.getId()).stream().findFirst();
