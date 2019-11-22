@@ -1,8 +1,11 @@
 package com.crc.crcloud.steam.iam.service;
 
 
+import com.crc.crcloud.steam.iam.entity.IamUserOrganizationRel;
+
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -18,5 +21,11 @@ public interface IamUserOrganizationRelService {
      */
     void link(@NotNull Long userId, @NotEmpty Set<Long> organizationIds);
 
-
+    /**
+     * 获取用户所属组织
+     * @param userId 用户编号
+     * @return 用户所属组织编号列表，按照关联的时间升序
+     */
+    @NotNull
+    List<IamUserOrganizationRel> getUserOrganizations(@NotNull Long userId);
 }

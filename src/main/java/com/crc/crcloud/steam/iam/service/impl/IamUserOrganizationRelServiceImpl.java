@@ -2,6 +2,7 @@ package com.crc.crcloud.steam.iam.service.impl;
 
 
 import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crc.crcloud.steam.iam.dao.IamUserOrganizationRelMapper;
@@ -61,5 +62,13 @@ public class IamUserOrganizationRelServiceImpl extends ServiceImpl<IamUserOrgani
 	public List<IamUserOrganizationRelDTO> getByUserId(@NotNull Long userId) {
 		List<IamUserOrganizationRel> relList = iamUserOrganizationRelMapper.selectList(Wrappers.<IamUserOrganizationRel>lambdaQuery().eq(IamUserOrganizationRel::getUserId, userId));
 		return ConvertHelper.convertList(relList, IamUserOrganizationRelDTO.class);
+	}
+
+	@Override
+	public @NotNull List<IamUserOrganizationRel> getUserOrganizations(@NotNull Long userId) {
+		LambdaQueryWrapper<IamUserOrganizationRel> queryWrapper = Wrappers.<IamUserOrganizationRel>lambdaQuery()
+				.eq(IamUserOrganizationRel::getUserId, userId)
+				.orderByAsc(IamUserOrganizationRel::getId);
+		return iamUserOrganizationRelMapper.selectList(queryWrapper);
 	}
 }
