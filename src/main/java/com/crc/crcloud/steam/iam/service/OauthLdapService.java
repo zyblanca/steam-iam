@@ -73,4 +73,10 @@ public interface OauthLdapService {
      * @return
      */
     OauthLdapVO queryOneByOrganizationId(Long organizationId);
+
+
+    /**
+     * 定时同步所有ldap用户信息
+     */
+    void jobForSyncLdapUser();
 }

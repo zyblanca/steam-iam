@@ -57,4 +57,6 @@ public interface LdapService {
      * @return
      */
     Long checkLast(Long ldapId);
+
+
 }
