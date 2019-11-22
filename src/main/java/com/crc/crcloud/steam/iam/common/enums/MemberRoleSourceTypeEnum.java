@@ -5,6 +5,7 @@ import lombok.Getter;
 
 /**
  * 角色来源
+ * @see io.choerodon.core.iam.ResourceLevel
  */
 @Getter
 @AllArgsConstructor

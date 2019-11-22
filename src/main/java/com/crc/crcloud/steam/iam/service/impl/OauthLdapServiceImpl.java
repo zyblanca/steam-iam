@@ -1,6 +1,7 @@
 package com.crc.crcloud.steam.iam.service.impl;
 
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
@@ -21,9 +22,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @Author liuchun
@@ -160,15 +164,72 @@ public class OauthLdapServiceImpl implements OauthLdapService {
             throw new IamAppCommException("ldap.attribute.false");
         }
         //记录操作信息
-        OauthLdapHistory oauthLdapHistory = new OauthLdapHistory();
-        oauthLdapHistory.setLdapId(id);
-        oauthLdapHistory.setSyncBeginTime(new Date());
+        OauthLdapHistory oauthLdapHistory = initHistory(id);
         oauthLdapHistoryMapper.insert(oauthLdapHistory);
         //调用同步操作
         ldapService.syncLdapUser(oauthLdapDTO, oauthLdapHistory);
         return oauthLdapHistory.getId();
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
+    public void jobForSyncLdapUser() {
+        //查询所有有效的ldap配置
+        LambdaQueryWrapper<OauthLdap> query = Wrappers.<OauthLdap>lambdaQuery().eq(OauthLdap::getIsEnabled, Boolean.TRUE);
+        List<OauthLdap> oauthLdaps = oauthLdapMapper.selectList(query);
+        log.info("ldap定时同步用户，共有配置{}", oauthLdaps.size());
+        //兼容历史数据，历史数据部分必填信息缺失
+        List<OauthLdap> availableLdap = oauthLdaps.stream().filter(v -> validLdap(v)).collect(Collectors.toList());
+        log.info("ldap定时同步用户，有效配置{}", availableLdap.size());
+        List<OauthLdapDTO> ldapJobs = availableLdap.stream().map(v -> CopyUtil.copy(v, OauthLdapDTO.class)).filter(v -> {
+            LdapConnectionDTO ldapConnectionDTO = ldapService.testConnection(v);
+            return ldapConnectionDTO.getCanConnectServer() && ldapConnectionDTO.getCanLogin() && ldapConnectionDTO.getMatchAttribute();
+        }).collect(Collectors.toList());
+        log.info("ldap定时同步用户，可连接，可登入，属性可匹配的配置{}", ldapJobs.size());
+
+        for (OauthLdapDTO oauthLdapDTO : ldapJobs) {
+
+            //调用同步操作
+            ldapService.syncLdapUser(oauthLdapDTO, initHistory(oauthLdapDTO.getId()));
+        }
+
+
+    }
+
+
+    private OauthLdapHistory initHistory(Long ldapId) {
+        //记录操作信息
+        OauthLdapHistory oauthLdapHistory = new OauthLdapHistory();
+        oauthLdapHistory.setLdapId(ldapId);
+        oauthLdapHistory.setSyncBeginTime(new Date());
+        oauthLdapHistory.setErrorUserCount(0);
+        oauthLdapHistory.setNewUserCount(0);
+        oauthLdapHistory.setUpdateUserCount(0);
+
+        oauthLdapHistoryMapper.insert(oauthLdapHistory);
+        return oauthLdapHistory;
+    }
+
+
+    //校验必填信息是否出现空值
+    private boolean validLdap(OauthLdap oauthLdap) {
+        return StringUtils.hasText(oauthLdap.getAccount()) &&
+                StringUtils.hasText(oauthLdap.getBaseDn()) &&
+                StringUtils.hasText(oauthLdap.getDirectoryType()) &&
+                StringUtils.hasText(oauthLdap.getEmailField()) &&
+                StringUtils.hasText(oauthLdap.getLdapPassword()) &&
+                StringUtils.hasText(oauthLdap.getLoginNameField()) &&
+                StringUtils.hasText(oauthLdap.getObjectClass()) &&
+                StringUtils.hasText(oauthLdap.getPort()) &&
+                StringUtils.hasText(oauthLdap.getRealNameField()) &&
+                StringUtils.hasText(oauthLdap.getServerAddress()) &&
+                StringUtils.hasText(oauthLdap.getUuidField()) &&
+                Objects.nonNull(oauthLdap.getOrganizationId()) &&
+                Objects.nonNull(oauthLdap.getConnectionTimeout()) &&
+                Objects.nonNull(oauthLdap.getSagaBatchSize()) &&
+                Objects.nonNull(oauthLdap.getUseSsl());
+
+    }
 
     @Override
     public OauthLdapVO queryOneByOrganizationId(Long organizationId) {

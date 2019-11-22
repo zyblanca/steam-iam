@@ -26,12 +26,14 @@ import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.user.SearchDTO;
+import com.crc.crcloud.steam.iam.model.event.IamUserManualCreateEvent;
 import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamOrganizationUserPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamUserCreateRequestVO;
 import com.crc.crcloud.steam.iam.service.IamMemberRoleService;
 import com.crc.crcloud.steam.iam.service.IamUserOrganizationRelService;
 import com.crc.crcloud.steam.iam.service.IamUserService;
+import io.choerodon.core.convertor.ApplicationContextHelper;
 import io.choerodon.core.convertor.ConvertHelper;
 import io.choerodon.core.iam.ResourceLevel;
 import lombok.extern.slf4j.Slf4j;
@@ -87,6 +89,7 @@ public class IamUserServiceImpl implements IamUserService {
         for (Long organizationId : organizationIds) {
             memberRoleService.grantUserRole(user.getId(), vo.getRoleIds(), organizationId, ResourceLevel.ORGANIZATION);
         }
+        ApplicationContextHelper.getContext().publishEvent(new IamUserManualCreateEvent(user, vo.getPassword()));
         return user;
     }
 

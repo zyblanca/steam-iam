@@ -70,7 +70,7 @@ public class OrganizationUserController {
     @PostMapping
     public ResponseEntity<IamUserSafeVO> createUser(@PathVariable("organization_id") Long organizationId,
                                                     @RequestBody @Valid IamUserCreateRequestVO vo) {
-        IamUserDTO userDTO = iamUserService.createUserByManual(vo, CollUtil.newHashSet(organizationId));
+        IamUserDTO userDTO = iamUserService.createUserByManual(vo, CollUtil.newLinkedHashSet(organizationId));
         return new ResponseEntity<>(new IamUserSafeVO(userDTO));
     }
 
