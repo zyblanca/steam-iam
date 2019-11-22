@@ -35,7 +35,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-                     id,
+        id,
                      login_name,
                      email,
                      current_organization_id,
@@ -60,42 +60,46 @@
                      creation_date,
                      last_updated_by,
                      last_update_date
-        </sql>
+    </sql>
     <update id="fillHashPassword">
-        update iam_user set hash_password = #{hashPassword},last_password_updated_at = now()  where  id = ${userId}
+        update iam_user
+        set hash_password            = #{hashPassword},
+            last_password_updated_at = now()
+        where id = ${userId}
     </update>
     <select id="getHashPassword" resultType="java.lang.String">
-        select hash_password from iam_user where id = ${userId}
+        select hash_password
+        from iam_user
+        where id = ${userId}
     </select>
     <select id="pageQueryOrganizationUser" resultMap="BaseResultMap">
+        <bind name="userMemberType"  value="@com.crc.crcloud.steam.iam.common.enums.MemberType@USER.getValue()"/>
         select
         iam_user.*
-        from iam_user as  iam_user inner join iam_user_organization_rel iuor on iam_user.id = iuor.user_id
-        left join iam_member_role role on iam_user.id = role.member_id and role.member_type='user'
+        from iam_user as iam_user inner join iam_user_organization_rel iuor on iam_user.id = iuor.user_id
+        left join iam_member_role role on iam_user.id = role.member_id and role.member_type=#{userMemberType}
         where
         iuor.organization_id in
         <foreach collection="organizationIds" item="organizationId" open="(" close=")" separator=",">
             ${organizationId}
         </foreach>
-        <if test="searchDTO.roleIds!=null and searchDTO.roleIds.size>0">
+        <!-- <if test="searchDTO.roleIds!=null and searchDTO.roleIds.size>0"> -->
+        <if test="@cn.hutool.core.collection.CollUtil@isNotEmpty(searchDTO.roleIds)">
             and role.role_id in
             <foreach collection="searchDTO.roleIds" item="roleId" open="(" close=")" separator=",">
                 ${roleId}
             </foreach>
         </if>
-        and (
-        1=1
-        <if test="searchDTO.loginName!=null and searchDTO.loginName != ''">
-            or iam_user.login_name like concat('%',#{searchDTO.loginName},'%')
+        <if test="@cn.hutool.core.util.StrUtil@isNotEmpty(searchDTO.loginName)">
+            and iam_user.login_name like concat('%',#{searchDTO.loginName},'%')
         </if>
-        <if test="searchDTO.realName!=null and searchDTO.realName != ''">
-            or iam_user.real_name like concat('%',#{searchDTO.realName},'%')
+        <if test="@cn.hutool.core.util.StrUtil@isNotEmpty(searchDTO.realName)">
+            and iam_user.real_name like concat('%',#{searchDTO.realName},'%')
         </if>
-        )
         <if test="searchDTO.isLdap!=null">
             and iam_user.is_ldap = ${searchDTO.isLdap}
         </if>
-
+        group by iam_user.id
     </select>
     <select id="pageByProject" resultMap="BaseResultMap">
         SELECT
@@ -142,23 +146,21 @@
         order by CONVERT(real_name USING gbk)
     </select>
     <select id="projectUnselectUser" resultMap="BaseResultMap">
-            SELECT
-              iu.id,
-              iu.login_name,
-              iu.real_name
-            FROM iam_user_organization_rel iuor
-              INNER JOIN iam_user iu
-              ON iu.id=iuor.user_id
-              LEFT JOIN (SELECT
-                DISTINCT  imr.member_id
-                FROM iam_member_role imr
-                WHERE imr.member_type = #{userSearch.memberType}
-                AND imr.source_type =  #{userSearch.memberSourceType}
-                AND imr.source_id = #{userSearch.projectId}) tmp
-                ON tmp.member_id = iu.id
-            WHERE iuor.organization_id =#{userSearch.organizationId}
-            AND tmp.member_id IS NULL
-             order by CONVERT(real_name USING gbk)
+        SELECT iu.id,
+               iu.login_name,
+               iu.real_name
+        FROM iam_user_organization_rel iuor
+                 INNER JOIN iam_user iu
+                            ON iu.id = iuor.user_id
+                 LEFT JOIN (SELECT DISTINCT imr.member_id
+                            FROM iam_member_role imr
+                            WHERE imr.member_type = #{userSearch.memberType}
+                              AND imr.source_type = #{userSearch.memberSourceType}
+                              AND imr.source_id = #{userSearch.projectId}) tmp
+                           ON tmp.member_id = iu.id
+        WHERE iuor.organization_id = #{userSearch.organizationId}
+          AND tmp.member_id IS NULL
+        order by CONVERT(real_name USING gbk)
 
     </select>
     <select id="selectUserMatchLdapByLoginName"
@@ -180,13 +182,12 @@
     </select>
 
 
-
     <update id="updateLdapUser">
         update iam_user
-        set email = #{iamUser.email},
-        real_name = #{iamUser.realName},
-        phone = #{iamUser.phone},
-        last_update_date=now()
+        set email           = #{iamUser.email},
+            real_name       = #{iamUser.realName},
+            phone           = #{iamUser.phone},
+            last_update_date=now()
         where id = #{iamUser.id}
     </update>
 </mapper>
