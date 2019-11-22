@@ -1,6 +1,5 @@
 package com.crc.crcloud.steam.iam.common.eventhander.listener;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.crc.crcloud.steam.iam.api.feign.IamServiceClient;
 import com.crc.crcloud.steam.iam.model.dto.IamOrganizationDTO;
@@ -34,7 +33,9 @@ public class IamUserManualCreateEventListener implements ApplicationListener<Iam
     public void onApplicationEvent(IamUserManualCreateEvent event) {
         UserDTO userDTO = new UserDTO();
         @NotNull IamUserDTO iamUser = event.getSource();
-        BeanUtil.copyProperties(iamUser, userDTO);
+        userDTO.setLoginName(iamUser.getLoginName());
+        userDTO.setRealName(iamUser.getRealName());
+        userDTO.setEmail(iamUser.getEmail());
         userDTO.setPassword(event.getRawPassword());
         final String logTitle = StrUtil.format("手动创建组织成员[{}]同步到iam-server", iamUser.getLoginName());
         log.info(logTitle);
