@@ -1,7 +1,9 @@
 package com.crc.crcloud.steam.iam.common.eventhander.listener;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.crc.crcloud.steam.iam.api.feign.IamServiceClient;
+import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
 import com.crc.crcloud.steam.iam.model.dto.IamOrganizationDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.user.UserDTO;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * 手动创建用户
@@ -43,11 +46,15 @@ public class IamUserManualCreateEventListener implements ApplicationListener<Iam
         if (firstOrg.isPresent()) {
             try {
                 ResponseEntity<UserDTO> responseEntity = iamServiceClient.create(firstOrg.get().getId(), userDTO);
-                if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                Predicate<ResponseEntity<UserDTO>> isSuccess = t -> t.getStatusCode().is2xxSuccessful();
+                isSuccess = isSuccess.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleField(UserDTO::getId)));
+                if (isSuccess.test(responseEntity)) {
                     log.error("{};同步成功", logTitle);
+                } else {
+                    log.error("{};同步失败: {}", logTitle, JSONUtil.toJsonStr(responseEntity.getBody()));
                 }
             } catch (Exception ex) {
-                log.error("{};同步失败: {}", logTitle, ex.getMessage(), ex);
+                log.error("{};同步异常: {}", logTitle, ex.getMessage(), ex);
             }
         } else {
             log.error("{};没有发现组织", logTitle);
