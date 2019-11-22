@@ -42,8 +42,7 @@ public class OrganizationUserController {
     private IamMemberRoleService memberRoleService;
 
 
-    //    @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR, InitRoleCode.ORGANIZATION_MEMBER})
-    @Permission(permissionPublic = true)
+    @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR, InitRoleCode.ORGANIZATION_MEMBER})
     @ApiOperation(value = "组织成员列表", notes = "分页", response = IamOrganizationUserPageResponseVO.class)
     @PostMapping("page")
     public ResponseEntity<IPage<IamOrganizationUserPageResponseVO>> page(@PathVariable("organization_id") Long organizationId
@@ -69,7 +68,7 @@ public class OrganizationUserController {
     @PostMapping
     public ResponseEntity<IamUserSafeVO> createUser(@PathVariable("organization_id") Long organizationId,
                                                     @RequestBody @Valid IamUserCreateRequestVO vo) {
-        IamUserDTO userDTO = iamUserService.createUserByManual(vo, CollUtil.newHashSet(organizationId));
+        IamUserDTO userDTO = iamUserService.createUserByManual(vo, CollUtil.newLinkedHashSet(organizationId));
         return new ResponseEntity<>(new IamUserSafeVO(userDTO));
     }
 
