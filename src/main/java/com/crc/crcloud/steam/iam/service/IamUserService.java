@@ -3,7 +3,6 @@ package com.crc.crcloud.steam.iam.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
-import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
@@ -31,7 +30,11 @@ public interface IamUserService {
      */
     @NotNull
     IamUserDTO createUserByManual(@Valid IamUserCreateRequestVO vo, @NotEmpty Set<Long> organizationIds);
-
+    /**
+     * 获取用户-如果用户不存在抛出异常
+     * @param userId 用户编号
+     * @return 用户信息
+     */
     IamUserDTO getAndThrow(@NotNull Long userId);
 
     /**
