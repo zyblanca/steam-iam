@@ -101,11 +101,12 @@ public class OauthLdapVO {
 
 
     @ApiModelProperty("登入名对应的字段名")
-    @NotEmpty(message = "ldap.real.name.empty")
+    @NotEmpty(message = "ldap.login.name.empty")
     private String loginNameField;
 
 
     @ApiModelProperty("用户名属性")
+    @NotEmpty(message = "ldap.real.name.empty")
     private String realNameField;
 
 
