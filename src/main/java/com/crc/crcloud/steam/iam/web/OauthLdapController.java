@@ -90,23 +90,23 @@ public class OauthLdapController {
                 .orElseThrow(() -> new IamAppCommException("common.update.error"));
     }
 
-    /**
-     * ldap详情
-     *
-     * @param organizationId 组织id
-     * @param id             ldap id
-     * @return ldap配置信息
-     */
-    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
-    @ApiOperation(value = "查询单个信息", notes = "查询单个详情", response = OauthLdapVO.class)
-    @GetMapping("/organizations/{organization_id}/{id}")
-    public ResponseEntity<OauthLdapVO> load(@ApiParam(value = "组织id", required = true)
-                                            @PathVariable(name = "organization_id") Long organizationId,
-                                            @ApiParam(value = "ldap id", required = true)
-                                            @PathVariable(name = "id") Long id) {
-        return Optional.ofNullable(oauthLdapService.queryOne(organizationId, id)).map(ResponseEntity::new)
-                .orElseThrow(() -> new IamAppCommException("common.data.null.error"));
-    }
+//    /**
+//     * ldap详情
+//     *
+//     * @param organizationId 组织id
+//     * @param id             ldap id
+//     * @return ldap配置信息
+//     */
+//    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
+//    @ApiOperation(value = "查询单个信息", notes = "查询单个详情", response = OauthLdapVO.class)
+//    @GetMapping("/organizations/{organization_id}/ldaps/{id}")
+//    public ResponseEntity<OauthLdapVO> load(@ApiParam(value = "组织id", required = true)
+//                                            @PathVariable(name = "organization_id") Long organizationId,
+//                                            @ApiParam(value = "ldap id", required = true)
+//                                            @PathVariable(name = "id") Long id) {
+//        return Optional.ofNullable(oauthLdapService.queryOne(organizationId, id)).map(ResponseEntity::new)
+//                .orElseThrow(() -> new IamAppCommException("common.data.null.error"));
+//    }
 
     /**
      * ldap详情
