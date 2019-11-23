@@ -48,8 +48,7 @@ public class IamUserController {
     @GetMapping("/projects/{project_id}/iam_user")
     public ResponseEntity<IPage<IamUserVO>> pageProjectUser(@ApiParam(value = "项目ID", required = true)
                                                             @PathVariable(name = "project_id") Long projectId,
-                                                            @ApiParam(value = "人员信息")
-                                                                    UserSearchDTO userSearchDTO,
+                                                            UserSearchDTO userSearchDTO,
                                                             PageUtil page) {
 
 
@@ -70,7 +69,6 @@ public class IamUserController {
     @GetMapping("/projects/{project_id}/iam_user/drop/down")
     public ResponseEntity<List<IamUserVO>> projectDropDownUser(@ApiParam(value = "项目ID", required = true)
                                                                @PathVariable(name = "project_id") Long projectId,
-                                                               @ApiParam(value = "人员信息")
                                                                        UserSearchDTO userSearchDTO) {
         return new ResponseEntity<>(iamUserService.projectDropDownUser(projectId, userSearchDTO));
     }
@@ -89,7 +87,6 @@ public class IamUserController {
     @GetMapping("/projects/{project_id}/iam_user/unselect")
     public ResponseEntity<List<IamUserVO>> projectUnselectUser(@ApiParam(value = "项目ID", required = true)
                                                                @PathVariable(name = "project_id") Long projectId,
-                                                               @ApiParam(value = "人员信息")
                                                                        UserSearchDTO userSearchDTO) {
         return new ResponseEntity<>(iamUserService.projectUnselectUser(projectId, userSearchDTO));
     }
@@ -107,7 +104,6 @@ public class IamUserController {
     @PostMapping("/projects/{project_id}/iam_user/bind/users")
     public ResponseEntity projectBindUsers(@ApiParam(value = "项目ID", required = true)
                                            @PathVariable(name = "project_id") Long projectId,
-                                           @ApiParam(value = "人员信息数组id")
                                                    List<Long> userIds) {
         iamUserService.projectBindUsers(projectId, userIds);
         return ResponseEntity.ok();

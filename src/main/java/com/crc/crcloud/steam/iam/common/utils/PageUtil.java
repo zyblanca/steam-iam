@@ -24,6 +24,7 @@ public class PageUtil<T> extends Page<T> {
         KEYS.add("summary");
         KEYS.add("name");
         KEYS.add("test_plan_name");
+        KEYS.add("real_name");
     }
 
 
