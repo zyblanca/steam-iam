@@ -40,7 +40,6 @@ public interface IamUserService {
     /**
      * 分页查询组织成员
      * <p>复合条件用户都会查询出来，不区分是否禁用开启等情况</p>
-     *
      * @param organizationId 组织ID
      * @param vo             查询属性与分页参数
      * @return 分页数据

@@ -78,6 +78,7 @@
         iam_user.*
         from iam_user as iam_user inner join iam_user_organization_rel iuor on iam_user.id = iuor.user_id
         left join iam_member_role role on iam_user.id = role.member_id and role.member_type=#{userMemberType}
+        inner join iam_role as iam_role on iam_role.id = role.role_id
         where
         iuor.organization_id in
         <foreach collection="organizationIds" item="organizationId" open="(" close=")" separator=",">

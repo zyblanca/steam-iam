@@ -44,4 +44,12 @@ public class IamOrganizationUserPageRequestVO {
     @Nullable
     @ApiModelProperty("用户来源筛选")
     private Set<String> origins;
+
+    @Nullable
+    @ApiModelProperty("正序字段")
+    private String asc;
+
+    @Nullable
+    @ApiModelProperty("倒序字段")
+    private String desc;
 }
