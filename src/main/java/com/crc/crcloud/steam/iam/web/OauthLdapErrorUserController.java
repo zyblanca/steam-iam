@@ -40,7 +40,8 @@ public class OauthLdapErrorUserController {
     * @param oauthLdapErrorUser
     * @return
     */
-    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
+    //@Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
+    @Permission(permissionLogin = true)
     @ApiOperation(value = "新增", notes = "新增", response = OauthLdapErrorUserVO.class)
     @PostMapping
     public ResponseEntity<OauthLdapErrorUserVO> insert(@ApiParam(value = "项目ID", required = true)
@@ -57,7 +58,8 @@ public class OauthLdapErrorUserController {
     * @param id
     * @return REST状态
     */
-    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
+   // @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
+    @Permission(permissionLogin = true)
     @ApiOperation(value="删除",notes="删除")
     @DeleteMapping("/{id}")
     public ResponseEntity delete(
@@ -77,7 +79,8 @@ public class OauthLdapErrorUserController {
     * @param oauthLdapErrorUser
     * @return
     */
-    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
+  //  @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
+    @Permission(permissionLogin = true)
     @ApiOperation(value="修改",notes="修改",response = OauthLdapErrorUserVO.class)
     @PutMapping
     public ResponseEntity<OauthLdapErrorUserVO> update(@ApiParam(value = "项目ID", required = true)
@@ -95,7 +98,8 @@ public class OauthLdapErrorUserController {
     * @param id
     * @return
     */
-    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
+   // @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
+    @Permission(permissionLogin = true)
     @ApiOperation(value="查询单个信息",notes = "查询单个详情",response = OauthLdapErrorUserVO.class)
     @GetMapping("{id}")
     public ResponseEntity<OauthLdapErrorUserVO> load(@ApiParam(value = "项目ID", required = true)
@@ -113,7 +117,8 @@ public class OauthLdapErrorUserController {
     * @param page           分页信息
     * @return
     */
-    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
+   // @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
+    @Permission(permissionLogin = true)
     @ApiOperation(value = "列表",notes="列表", response = OauthLdapErrorUserVO.class)
     @GetMapping
     public ResponseEntity<IPage<OauthLdapErrorUserVO>> page(@ApiParam(value = "项目ID", required = true)
