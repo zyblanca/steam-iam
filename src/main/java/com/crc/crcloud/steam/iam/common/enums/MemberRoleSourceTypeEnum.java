@@ -11,7 +11,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum MemberRoleSourceTypeEnum {
 
-    SIT("sit", ""),
+    SITE("site", ""),
     USER("user", ""),
     PROJECT("project", "项目"),
     ORGANIZATION("organization", "组织");
