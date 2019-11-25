@@ -2,8 +2,10 @@ package com.crc.crcloud.steam.iam.web;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
+import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
@@ -47,6 +49,9 @@ public class OrganizationUserController {
     @PostMapping("page")
     public ResponseEntity<IPage<IamOrganizationUserPageResponseVO>> page(@PathVariable("organization_id") Long organizationId
             , @RequestBody @Valid IamOrganizationUserPageRequestVO vo) {
+        if (StrUtil.isAllBlank(vo.getAsc(), vo.getDesc())) {
+            vo.setAsc(EntityUtil.getSimpleField(IamUserDTO::getLoginName));
+        }
         IPage<IamUserVO> pageResult = iamUserService.pageQueryOrganizationUser(organizationId, vo);
         final Map<Long, List<IamRoleDTO>> iamUserRoleMap = new ConcurrentHashMap<>(pageResult.getRecords().size());
         pageResult.getRecords().parallelStream().forEach(t -> {

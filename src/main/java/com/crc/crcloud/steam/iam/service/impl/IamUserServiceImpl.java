@@ -16,6 +16,7 @@ import com.crc.crcloud.steam.iam.common.enums.MemberType;
 import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
+import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.dao.IamMemberRoleMapper;
 import com.crc.crcloud.steam.iam.dao.IamProjectMapper;
@@ -23,6 +24,7 @@ import com.crc.crcloud.steam.iam.dao.IamUserMapper;
 import com.crc.crcloud.steam.iam.entity.IamMemberRole;
 import com.crc.crcloud.steam.iam.entity.IamProject;
 import com.crc.crcloud.steam.iam.entity.IamUser;
+import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.user.SearchDTO;
@@ -50,7 +52,9 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -202,7 +206,21 @@ public class IamUserServiceImpl implements IamUserService {
                 }
             }
         }
-        IPage<IamUser> pageResult = iamUserMapper.pageQueryOrganizationUser(new Page<>(vo.getPage(), vo.getPageSize()), CollUtil.newHashSet(organizationId), searchDTO);
+        final Page<IamUser> page = new Page<>(vo.getPage(), vo.getPageSize());
+        //处理排序转换
+        final Map<String, Function<String, String>> orderConvert = new HashMap<>(4);
+        orderConvert.put(EntityUtil.getSimpleField(IamUser::getLoginName), Function.identity());
+        orderConvert.put(EntityUtil.getSimpleField(IamUser::getRealName), t -> StrUtil.format("convert(iam_user.{} using gbk)", t));
+        orderConvert.put("origin", t -> EntityUtil.getSimpleField(IamUser::getIsLdap));
+        orderConvert.put(StrUtil.toUnderlineCase("roleName"), t -> StrUtil.format("convert(iam_role.{} using gbk)", EntityUtil.getSimpleField(IamRoleDTO::getName)));
+        BiConsumer<String, Consumer<String>> handler = (field, setter) -> {
+            Optional.ofNullable(field).filter(StrUtil::isNotBlank).map(StrUtil::toUnderlineCase)
+                    .filter(orderConvert::containsKey).map(t -> orderConvert.get(t).apply(t))
+                    .ifPresent(setter);
+        };
+        handler.accept(vo.getAsc(), page::setAsc);
+        handler.accept(vo.getDesc(), page::setDesc);
+        IPage<IamUser> pageResult = iamUserMapper.pageQueryOrganizationUser(page, CollUtil.newHashSet(organizationId), searchDTO);
         return pageResult.convert(t -> CopyUtil.copy(t, IamUserVO.class));
     }
 
