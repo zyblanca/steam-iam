@@ -28,4 +28,7 @@ public class SearchDTO {
     @Nullable
     @ApiModelProperty("是否LDAP用户")
     private Boolean isLdap;
+
+    @ApiModelProperty("角色排序")
+    private String orderByRoleName;
 }

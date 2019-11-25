@@ -212,14 +212,23 @@ public class IamUserServiceImpl implements IamUserService {
         orderConvert.put(EntityUtil.getSimpleField(IamUser::getLoginName), Function.identity());
         orderConvert.put(EntityUtil.getSimpleField(IamUser::getRealName), t -> StrUtil.format("convert(iam_user.{} using gbk)", t));
         orderConvert.put("origin", t -> EntityUtil.getSimpleField(IamUser::getIsLdap));
-        orderConvert.put(StrUtil.toUnderlineCase("roleName"), t -> StrUtil.format("convert(iam_role.{} using gbk)", EntityUtil.getSimpleField(IamRoleDTO::getName)));
+        final String roleNameField = StrUtil.toUnderlineCase("roleName");
+        orderConvert.put(roleNameField, t -> StrUtil.format("convert(iam_role.{} using gbk)", EntityUtil.getSimpleField(IamRoleDTO::getName)));
         BiConsumer<String, Consumer<String>> handler = (field, setter) -> {
             Optional.ofNullable(field).filter(StrUtil::isNotBlank).map(StrUtil::toUnderlineCase)
                     .filter(orderConvert::containsKey).map(t -> orderConvert.get(t).apply(t))
                     .ifPresent(setter);
         };
-        handler.accept(vo.getAsc(), page::setAsc);
-        handler.accept(vo.getDesc(), page::setDesc);
+        if (Objects.equals(roleNameField, StrUtil.toUnderlineCase(vo.getAsc()))) {
+            searchDTO.setOrderByRoleName(orderConvert.get(roleNameField).apply(roleNameField));
+        } else {
+            handler.accept(vo.getAsc(), page::setAsc);
+        }
+        if (Objects.equals(roleNameField, StrUtil.toUnderlineCase(vo.getDesc()))) {
+            searchDTO.setOrderByRoleName(orderConvert.get(roleNameField).apply(roleNameField) + " desc");
+        } else {
+            handler.accept(vo.getDesc(), page::setDesc);
+        }
         IPage<IamUser> pageResult = iamUserMapper.pageQueryOrganizationUser(page, CollUtil.newHashSet(organizationId), searchDTO);
         return pageResult.convert(t -> CopyUtil.copy(t, IamUserVO.class));
     }
