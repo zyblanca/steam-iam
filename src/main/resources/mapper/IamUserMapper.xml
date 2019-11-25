@@ -92,7 +92,7 @@
                 ${organizationId}
             </foreach>
             <if test="@cn.hutool.core.collection.CollUtil@isNotEmpty(searchDTO.roleIds)">
-                and role.role_id in
+                and iam_role.id in
                 <foreach collection="searchDTO.roleIds" item="roleId" open="(" close=")" separator=",">
                     ${roleId}
                 </foreach>
