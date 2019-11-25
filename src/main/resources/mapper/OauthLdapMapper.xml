@@ -64,7 +64,7 @@
     <update id="changeStatus">
         update oauth_ldap
         set is_enabled = #{oauthLdap.isEnabled},
-        last_updated_by=# {oauthLdap.lastUpdatedBy},
+        last_updated_by=#{oauthLdap.lastUpdatedBy},
         last_update_date=now()
         where id = #{oauthLdap.id}
     </update>
@@ -75,22 +75,22 @@
             port = #{oauthLdap.port},
             account = #{oauthLdap.account},
             ldap_password = #{oauthLdap.ldapPassword},
-            use_ssl =# {oauthLdap.useSsl},
-            is_enabled =# {oauthLdap.isEnabled},
-            base_dn =# {oauthLdap.baseDn},
-            directory_type =# {oauthLdap.directoryType},
-            object_class =# {oauthLdap.objectClass},
-            custom_filter =# {oauthLdap.customFilter},
-            saga_batch_size =# {oauthLdap.sagaBatchSize},
-            connection_timeout =# {oauthLdap.connectionTimeout},
-            uuid_field =# {oauthLdap.uuidField},
-            login_name_field =# {oauthLdap.loginNameField},
-            real_name_field =# {oauthLdap.realNameField},
-            email_field =# {oauthLdap.emailField},
-            phone_field =# {oauthLdap.phoneField},
+            use_ssl =#{oauthLdap.useSsl},
+            is_enabled =#{oauthLdap.isEnabled},
+            base_dn =#{oauthLdap.baseDn},
+            directory_type =#{oauthLdap.directoryType},
+            object_class =#{oauthLdap.objectClass},
+            custom_filter =#{oauthLdap.customFilter},
+            saga_batch_size =#{oauthLdap.sagaBatchSize},
+            connection_timeout =#{oauthLdap.connectionTimeout},
+            uuid_field =#{oauthLdap.uuidField},
+            login_name_field =#{oauthLdap.loginNameField},
+            real_name_field =#{oauthLdap.realNameField},
+            email_field =#{oauthLdap.emailField},
+            phone_field =#{oauthLdap.phoneField},
             object_version_number =object_version_number+1,
-            last_updated_by =# {oauthLdap.lastUpdatedBy},
-            last_update_date =# {oauthLdap.lastUpdateDate}
+            last_updated_by =#{oauthLdap.lastUpdatedBy},
+            last_update_date =#{oauthLdap.lastUpdateDate}
             where id = #{oauthLdap.id}
 
     </update>
