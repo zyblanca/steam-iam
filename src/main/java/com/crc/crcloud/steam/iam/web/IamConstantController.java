@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class IamConstantController {
 
 //    @Permission(level = ResourceLevel.SITE)
-    @Permission(level = ResourceLevel.SITE, permissionLogin = true)
+    @Permission(permissionLogin = true)
     @ApiOperation("获取用户来源列表-静态列表")
     @GetMapping("/user/origin")
     public ResponseEntity<List<Map<String, String>>> getUserOrigins() {

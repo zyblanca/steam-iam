@@ -41,7 +41,8 @@ public class OauthLdapHistoryController {
     * @param id
     * @return
     */
-    @Permission(level = ResourceLevel.ORGANIZATION)
+    //@Permission(level = ResourceLevel.ORGANIZATION)
+    @Permission(permissionLogin = true)
     @ApiOperation(value="查询单个信息",notes = "查询单个详情",response = OauthLdapHistoryVO.class)
     @GetMapping("organizations/{organization_id}/{id}")
     public ResponseEntity<OauthLdapHistoryVO> load(@ApiParam(value = "组织ID", required = true)
