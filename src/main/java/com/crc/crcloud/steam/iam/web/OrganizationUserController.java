@@ -42,7 +42,8 @@ public class OrganizationUserController {
     private IamMemberRoleService memberRoleService;
 
 
-    @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR, InitRoleCode.ORGANIZATION_MEMBER})
+   // @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR, InitRoleCode.ORGANIZATION_MEMBER})
+   @Permission(permissionLogin = true)
     @ApiOperation(value = "组织成员列表", notes = "分页", response = IamOrganizationUserPageResponseVO.class)
     @PostMapping("page")
     public ResponseEntity<IPage<IamOrganizationUserPageResponseVO>> page(@PathVariable("organization_id") Long organizationId
@@ -63,7 +64,8 @@ public class OrganizationUserController {
         return new ResponseEntity<>(pageResult.convert(convert));
     }
 
-    @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
+   // @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
+   @Permission(permissionLogin = true)
     @ApiOperation(value = "手动创建组织成员")
     @PostMapping
     public ResponseEntity<IamUserSafeVO> createUser(@PathVariable("organization_id") Long organizationId,
@@ -73,7 +75,8 @@ public class OrganizationUserController {
     }
 
     @ApiOperation("获取所有组织成员")
-    @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
+   // @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
+    @Permission(permissionLogin = true)
     @GetMapping
     public ResponseEntity<List<IamUserSafeVO>> list(@PathVariable("organization_id") Long organizationId) {
         IamOrganizationUserPageRequestVO pageRequestVO = IamOrganizationUserPageRequestVO.builder().pageSize(999).build();
@@ -88,7 +91,8 @@ public class OrganizationUserController {
         return new ResponseEntity<>(orgUsers);
     }
 
-    @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
+  //  @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
+  @Permission(permissionLogin = true)
     @ApiOperation("给用户授权角色")
     @PutMapping("grant/role")
     public ResponseEntity grantUserRole(@PathVariable("organization_id") Long organizationId, @RequestBody @Valid GrantUserRoleRequestVO vo) {

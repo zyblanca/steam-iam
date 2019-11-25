@@ -40,7 +40,8 @@ public class OauthLdapController {
      * @param oauthLdap      ldap配置
      * @return ldap配置
      */
-    @Permission(level = ResourceLevel.ORGANIZATION)
+  //  @Permission(level = ResourceLevel.ORGANIZATION)
+    @Permission(permissionLogin = true)
     @ApiOperation(value = "创建Ldap")
     @PostMapping(value = "/organizations/{organization_id}/ldaps")
     public ResponseEntity<OauthLdapVO> insert(@ApiParam(value = "组织id", required = true)
@@ -58,7 +59,8 @@ public class OauthLdapController {
      * @param organizationId 组织id
      * @return ldap配置
      */
-    @Permission(level = ResourceLevel.ORGANIZATION)
+   // @Permission(level = ResourceLevel.ORGANIZATION)
+    @Permission(permissionLogin = true)
     @ApiOperation(value = "启用/禁用,", notes = "启用/禁用isEnabled 0:禁用，1：启用")
     @PutMapping("/organizations/{organization_id}/status")
     public ResponseEntity<OauthLdapVO> delete(@ApiParam(value = "项目ID", required = true)
@@ -77,7 +79,8 @@ public class OauthLdapController {
      * @param oauthLdap      ldap配置
      * @return ldap配置
      */
-    @Permission(level = ResourceLevel.ORGANIZATION)
+   // @Permission(level = ResourceLevel.ORGANIZATION)
+    @Permission(permissionLogin = true)
     @ApiOperation(value = "修改", notes = "修改", response = OauthLdapVO.class)
     @PutMapping(value = "/organizations/{organization_id}/ldaps")
     public ResponseEntity<OauthLdapVO> update(@ApiParam(value = "项目ID", required = true)
@@ -115,7 +118,8 @@ public class OauthLdapController {
      * @param organizationId 组织id
      * @return ldap配置信息
      */
-    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
+   // @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
+    @Permission(permissionLogin = true)
     @ApiOperation(value = "通过组织查询ldap", notes = "通过组织查询ldap", response = OauthLdapVO.class)
     @GetMapping("/organizations/{organization_id}")
     public ResponseEntity<OauthLdapVO> loadByOrg(@ApiParam(value = "组织id", required = true)
@@ -129,7 +133,8 @@ public class OauthLdapController {
      *
      * @return 是否连接成功
      */
-    @Permission(level = ResourceLevel.ORGANIZATION)
+    //@Permission(level = ResourceLevel.ORGANIZATION)
+    @Permission(permissionLogin = true)
     @ApiOperation(value = "测试ldap连接", response = LdapConnectionDTO.class)
     @PostMapping("/organizations/{organization_id}/ldaps/{id}/test_connect")
     public ResponseEntity<LdapConnectionDTO> testConnect(@ApiParam(value = "组织id", required = true)
@@ -145,7 +150,8 @@ public class OauthLdapController {
     /**
      * 同步ldap用户
      */
-    @Permission(level = ResourceLevel.ORGANIZATION)
+   // @Permission(level = ResourceLevel.ORGANIZATION)
+    @Permission(permissionLogin = true)
     @ApiOperation(value = "同步ldap用户")
     @PostMapping("/organizations/{organization_id}/ldaps/{id}/sync_users")
     public ResponseEntity<Long> syncUsers(@ApiParam(value = "组织id", required = true)
