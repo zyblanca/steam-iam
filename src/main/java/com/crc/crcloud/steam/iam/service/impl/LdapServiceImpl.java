@@ -201,6 +201,7 @@ public class LdapServiceImpl implements LdapService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Long checkLast(Long ldapId) {
 
         OauthLdapHistory oauthLdapHistory = oauthLdapHistoryMapper.selectLastByLdapId(ldapId);

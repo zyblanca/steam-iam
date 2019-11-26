@@ -165,7 +165,7 @@ public class OauthLdapServiceImpl implements OauthLdapService {
         }
         //记录操作信息
         OauthLdapHistory oauthLdapHistory = initHistory(id);
-        oauthLdapHistoryMapper.insert(oauthLdapHistory);
+//        oauthLdapHistoryMapper.insert(oauthLdapHistory);
         //调用同步操作
         ldapService.syncLdapUser(oauthLdapDTO, oauthLdapHistory);
         return oauthLdapHistory.getId();
