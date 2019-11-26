@@ -260,6 +260,9 @@ public class OauthLdapServiceImpl implements OauthLdapService {
         if (Objects.isNull(oauthLdapVO.getIsEnabled())) {
             oauthLdapVO.setIsEnabled(1L);
         }
+        if(StringUtils.isEmpty(oauthLdapVO.getPhoneField())){
+            oauthLdapVO.setPhoneField(null);
+        }
 
     }
 

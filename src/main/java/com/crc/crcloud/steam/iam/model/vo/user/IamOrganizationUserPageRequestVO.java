@@ -8,8 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.annotation.Nullable;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 import java.util.Set;
 
 /**
@@ -20,11 +18,9 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class IamOrganizationUserPageRequestVO {
-    @NotNull
-    @Min(1)
+    @Nullable
     private Integer page;
-    @NotNull
-    @Min(1)
+    @Nullable
     private Integer pageSize;
 
     @Nullable

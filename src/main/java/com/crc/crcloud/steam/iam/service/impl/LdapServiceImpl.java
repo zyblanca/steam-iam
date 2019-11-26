@@ -555,10 +555,10 @@ public class LdapServiceImpl implements LdapService {
     }
 
     //匹配属性
-    private Boolean matchs(Set<String> key, String uuidField, LdapConnectionDTO ldapConnectionDTO) {
+    private Boolean matchs(Set<String> key, String field, LdapConnectionDTO ldapConnectionDTO) {
         //属性不存在，不匹配
-        if (Objects.isNull(uuidField)) return null;
-        Boolean b = key.contains(uuidField);
+        if (StringUtils.isEmpty(field)) return null;
+        Boolean b = key.contains(field);
         //只要有一个属性不存在，则匹配失败
         if (!b) ldapConnectionDTO.setMatchAttribute(Boolean.FALSE);
         return b;
