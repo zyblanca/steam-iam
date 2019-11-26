@@ -6,8 +6,8 @@ import com.crc.crcloud.steam.iam.api.feign.IamServiceClient;
 import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
 import com.crc.crcloud.steam.iam.model.dto.IamOrganizationDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
-import com.crc.crcloud.steam.iam.model.dto.user.UserDTO;
 import com.crc.crcloud.steam.iam.model.event.IamUserManualCreateEvent;
+import com.crc.crcloud.steam.iam.model.feign.user.UserDTO;
 import com.crc.crcloud.steam.iam.service.IamOrganizationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,17 +20,21 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
- * 手动创建用户
+ * 手动创建用户-同步到老服务的iam-server
  * @author LiuYang
  * @date 2019/11/22
  */
 @Slf4j
 @Component
-public class IamUserManualCreateEventListener implements ApplicationListener<IamUserManualCreateEvent> {
+public class SyncIamUserManualCreateEventListener implements ApplicationListener<IamUserManualCreateEvent> {
     @Autowired
     private IamServiceClient iamServiceClient;
     @Autowired
     private IamOrganizationService organizationService;
+
+    public SyncIamUserManualCreateEventListener() {
+        log.info("已注册手动创建用户事件-同步用户到老行云");
+    }
 
     @Override
     public void onApplicationEvent(IamUserManualCreateEvent event) {

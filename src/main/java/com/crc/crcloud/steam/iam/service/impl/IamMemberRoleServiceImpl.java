@@ -5,14 +5,19 @@ import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crc.crcloud.steam.iam.common.enums.MemberType;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
+import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
 import com.crc.crcloud.steam.iam.dao.IamMemberRoleMapper;
 import com.crc.crcloud.steam.iam.entity.IamMemberRole;
+import com.crc.crcloud.steam.iam.model.dto.IamMemberRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
+import com.crc.crcloud.steam.iam.model.dto.user.IamMemberRoleWithRoleDTO;
+import com.crc.crcloud.steam.iam.model.event.IamGrantUserRoleEvent;
 import com.crc.crcloud.steam.iam.service.IamMemberRoleService;
 import com.crc.crcloud.steam.iam.service.IamRoleService;
 import com.crc.crcloud.steam.iam.service.IamUserService;
 import io.choerodon.core.convertor.ApplicationContextHelper;
+import io.choerodon.core.convertor.ConvertHelper;
 import io.choerodon.core.iam.ResourceLevel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +28,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -58,6 +64,10 @@ public class IamMemberRoleServiceImpl extends ServiceImpl<IamMemberRoleMapper, I
 		Set<Long> needGrantRoles = CollUtil.newHashSet(roleIds);
 		//从待授权列表中移除已经授权过的角色
 		userRoles.forEach(r -> needGrantRoles.remove(r.getId()));
+		if (needGrantRoles.isEmpty()) {
+			log.warn("没有需要增量授权的角色");
+			return;
+		}
 		@NotNull List<IamRoleDTO> roles = iamRoleService.getRoles(needGrantRoles);
 		if (needGrantRoles.size() != roles.size()) {
 			throw new IamAppCommException("role.not.exist");
@@ -73,6 +83,13 @@ public class IamMemberRoleServiceImpl extends ServiceImpl<IamMemberRoleMapper, I
 					.build();
 		}).collect(Collectors.toList());
 		this.saveBatch(incrementRoleMembers);
+		//发出授权角色事件,发出的事件都是增量授权的列表
+		List<IamMemberRoleWithRoleDTO> rolesEvents = new ArrayList<>(incrementRoleMembers.size());
+		for (IamMemberRole incrementRoleMember : incrementRoleMembers) {
+			IamRoleDTO one = CollUtil.findOneByField(roles, EntityUtil.getSimpleFieldToCamelCase(IamRoleDTO::getId), incrementRoleMember.getRoleId());
+			rolesEvents.add(new IamMemberRoleWithRoleDTO(ConvertHelper.convert(incrementRoleMember, IamMemberRoleDTO.class), one));
+		}
+		ApplicationContextHelper.getContext().publishEvent(new IamGrantUserRoleEvent(iamUser, rolesEvents));
 	}
 
 	@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)

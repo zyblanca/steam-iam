@@ -94,4 +94,15 @@ public class EntityUtil {
         String property = PropertyNamer.methodToProperty(LambdaUtils.resolve(func).getImplMethodName());
         return StrUtil.toUnderlineCase(property);
     }
+
+    /**
+     * 获取bean字段值
+     * <code>getSimpleField(AgileIssue:getIssueId);return issueId</code>
+     * @param func 字段的lambda形式
+     * @return 字段名驼峰表示
+     */
+    @NotNull
+    public static <T> String getSimpleFieldToCamelCase(@NotNull SFunction<T, ?> func) {
+        return StrUtil.toCamelCase(getSimpleField(func));
+    }
 }

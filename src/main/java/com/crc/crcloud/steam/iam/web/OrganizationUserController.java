@@ -24,6 +24,7 @@ import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -49,6 +50,12 @@ public class OrganizationUserController {
     @PostMapping("page")
     public ResponseEntity<IPage<IamOrganizationUserPageResponseVO>> page(@PathVariable("organization_id") Long organizationId
             , @RequestBody @Valid IamOrganizationUserPageRequestVO vo) {
+        if (Objects.isNull(vo.getPage()) || vo.getPage() <= 0) {
+            vo.setPage(1);
+        }
+        if (Objects.isNull(vo.getPageSize()) || vo.getPageSize() <= 0) {
+            vo.setPage(10);
+        }
         if (StrUtil.isAllBlank(vo.getAsc(), vo.getDesc())) {
             vo.setAsc(EntityUtil.getSimpleField(IamUserDTO::getLoginName));
         }
