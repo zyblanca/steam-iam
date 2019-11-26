@@ -23,6 +23,8 @@ import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
 
+import java.util.ArrayList;
+
 import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.User.USER_CREATE;
 
 /**
@@ -64,7 +66,8 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
                         .fromUserId(DetailsHelper.getUserDetails().getUserId())
                         .isLdap(user.getIsLdap())
                         .build();
-                String input = objectMapper.writeValueAsString(CollUtil.newArrayList(payload));
+                ArrayList<UserEventPayload> payloads = CollUtil.newArrayList(payload);
+                String input = objectMapper.writeValueAsString(payloads);
                 producer.applyAndReturn(
                     StartSagaBuilder
                             .newBuilder()
@@ -72,7 +75,7 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
                             .withSourceId(user.getCurrentOrganizationId())
                             .withSagaCode(USER_CREATE),
                         builder -> {
-                            builder.withPayloadAndSerialize(input)
+                            builder.withPayloadAndSerialize(payloads)
                                     .withRefType("user") // iam-service 中设置为 user
                                     .withRefId(user.getId().toString());
                             return input;

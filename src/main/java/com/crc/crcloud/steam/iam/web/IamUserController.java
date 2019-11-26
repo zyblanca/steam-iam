@@ -12,6 +12,7 @@ import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -94,11 +95,14 @@ public class IamUserController {
         return new ResponseEntity<>(iamUserService.projectUnselectUser(projectId, userSearchDTO));
     }
 
+
+
+
     /**
      * 项目绑定用户
      *
      * @param projectId 项目id
-     * @param userIds   用户id
+     * @param iamUserVO   用户信息
      * @return 绑定结果
      */
     //简易权限，后续需要根据实际情况做校验
@@ -108,7 +112,8 @@ public class IamUserController {
     @PostMapping("/projects/{project_id}/iam_user/bind/users")
     public ResponseEntity projectBindUsers(@ApiParam(value = "项目ID", required = true)
                                            @PathVariable(name = "project_id") Long projectId,
-                                                   List<Long> userIds) {
+                                                   @RequestBody IamUserVO iamUserVO) {
+        List<Long> userIds = iamUserVO.getUserIds();
         iamUserService.projectBindUsers(projectId, userIds);
         return ResponseEntity.ok();
     }
