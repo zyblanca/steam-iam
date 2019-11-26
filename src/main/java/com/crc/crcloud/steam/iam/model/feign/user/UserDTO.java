@@ -1,4 +1,4 @@
-package com.crc.crcloud.steam.iam.model.dto.user;
+package com.crc.crcloud.steam.iam.model.feign.user;
 
 
 import java.util.Date;
