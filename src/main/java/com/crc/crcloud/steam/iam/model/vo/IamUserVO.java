@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @Author:
@@ -119,6 +120,8 @@ public class IamUserVO {
 
     @ApiModelProperty("")
     private Date lastUpdateDate;
+    @ApiModelProperty("用户id数组")
+    private List<Long> userIds;
 
 
 }
