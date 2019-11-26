@@ -37,7 +37,7 @@ public interface IamServiceClient {
      */
     @ApiOperation(value = "通过code查询角色")
     @GetMapping("/v1/roles")
-    ResponseEntity<RoleDTO> queryByCode(@RequestParam String code);
+    ResponseEntity<RoleDTO> queryByCode(@RequestParam("code") String code);
 
     @Permission(level = ResourceLevel.SITE)
     @ApiOperation(value = "全局层批量分配给用户/客户端角色")
