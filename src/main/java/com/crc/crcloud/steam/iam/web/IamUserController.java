@@ -111,7 +111,7 @@ public class IamUserController {
     @PostMapping("/projects/{project_id}/iam_user/bind/users")
     public ResponseEntity projectBindUsers(@ApiParam(value = "项目ID", required = true)
                                            @PathVariable(name = "project_id") Long projectId,
-                                                   List<Long> userIds) {
+                                                   @RequestBody List<Long> userIds) {
         iamUserService.projectBindUsers(projectId, userIds);
         return ResponseEntity.ok();
     }
