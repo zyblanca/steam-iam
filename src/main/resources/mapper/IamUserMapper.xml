@@ -124,13 +124,13 @@
         AND imr.source_id = #{userSearch.projectId})tmp
         INNER JOIN iam_user iu
         ON tmp.member_id = iu.id
-
+        where 1=1
         <if test="userSearch.realName != null and userSearch.realName != '' ">
 
-            iu.real_name like concat('%',concat(userSearch.realName,'%'))
+       and     iu.real_name like concat('%',concat(userSearch.realName,'%'))
         </if>
         <if test="userSearch.loginName != null and userSearch.loginName != '' ">
-            iu.login_name like concat('%',concat(userSearch.loginName,'%'))
+        and    iu.login_name like concat('%',concat(userSearch.loginName,'%'))
         </if>
 
     </select>
@@ -146,12 +146,13 @@
         AND imr.source_id = #{userSearch.projectId})tmp
         INNER JOIN iam_user iu
         ON tmp.member_id = iu.id
+        where 1=1
         <if test="userSearch.realName != null and userSearch.realName != '' ">
 
-            iu.real_name like concat('%',concat(userSearch.realName,'%'))
+          and   iu.real_name like concat('%',concat(userSearch.realName,'%'))
         </if>
         <if test="userSearch.loginName != null and userSearch.loginName != '' ">
-            iu.login_name like concat('%',concat(userSearch.loginName,'%'))
+         and    iu.login_name like concat('%',concat(userSearch.loginName,'%'))
         </if>
 
         order by CONVERT(real_name USING gbk)
