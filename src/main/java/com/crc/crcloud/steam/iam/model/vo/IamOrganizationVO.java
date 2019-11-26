@@ -3,19 +3,16 @@ package com.crc.crcloud.steam.iam.model.vo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
-import java.lang.Integer;
-import java.lang.Long;
-import java.lang.Byte;
 
 /**
  * @Author:
  * @Date: 2019-11-12
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
@@ -42,11 +39,11 @@ public class IamOrganizationVO{
 
 
         @ApiModelProperty("是否启用。1启用，0未启用")
-        private Byte isEnabled;
+        private Boolean isEnabled;
 
 
         @ApiModelProperty("是否为注册组织。1.是，0不是")
-        private Byte isRegister;
+        private Boolean isRegister;
 
 
         @ApiModelProperty("创建用户的编号")
@@ -62,7 +59,7 @@ public class IamOrganizationVO{
 
 
         @ApiModelProperty("组织规模。0：0-30,1：30-100,2：100")
-        private Byte scale;
+        private Integer scale;
 
 
         @ApiModelProperty("")
