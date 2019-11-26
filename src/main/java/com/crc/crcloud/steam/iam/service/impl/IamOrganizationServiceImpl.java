@@ -4,6 +4,7 @@ package com.crc.crcloud.steam.iam.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
@@ -12,14 +13,17 @@ import com.crc.crcloud.steam.iam.entity.IamOrganization;
 import com.crc.crcloud.steam.iam.entity.IamUserOrganizationRel;
 import com.crc.crcloud.steam.iam.model.dto.IamOrganizationDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.OrganizationPayload;
+import com.crc.crcloud.steam.iam.model.event.IamOrganizationToggleEnableEvent;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationUpdateRequestVO;
 import com.crc.crcloud.steam.iam.service.IamOrganizationService;
 import com.crc.crcloud.steam.iam.service.IamUserOrganizationRelService;
 import io.choerodon.asgard.saga.annotation.Saga;
 import io.choerodon.asgard.saga.producer.StartSagaBuilder;
 import io.choerodon.asgard.saga.producer.TransactionalProducer;
+import io.choerodon.core.convertor.ApplicationContextHelper;
 import io.choerodon.core.convertor.ConvertHelper;
 import io.choerodon.core.iam.ResourceLevel;
+import io.choerodon.core.oauth.DetailsHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -107,7 +111,7 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
 				.build();
 		this.iamOrganizationMapper.updateById(entity);
 		BeanUtil.copyProperties(entity, organization, CopyOptions.create().ignoreNullValue());
-		String logTitle = StrUtil.format("更新组织[{}|{}]", id, organization.getCode());
+		final String logTitle = StrUtil.format("更新组织[{}|{}]", id, organization.getCode());
 		log.info("{};完成", logTitle);
 		if (choerodonDevOpsProperties.isMessage()) {
 			final OrganizationPayload organizationPayload = new OrganizationPayload();
@@ -117,13 +121,12 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
 			consumer.accept(sagaBuilder);
 			producer.apply(sagaBuilder, startSagaBuilder -> {
 				startSagaBuilder.withSagaCode(ORG_UPDATE).withPayloadAndSerialize(organizationPayload)
-						.withRefType("organization") // iam-service 中设置为 user
-						.withRefId(Objects.toString(organizationPayload.getId()));
+						.withRefType("organization")
+						.withRefId(Objects.toString(id));
 			});
 		}
-		//todo 不为空时，说明需要更新组织禁用启用
 		if (Objects.nonNull(vo.getIsEnabled())) {
-			//更新组织状态
+			toggleEnable(id, vo.getIsEnabled(), DetailsHelper.getUserDetails().getUserId());
 			organization.setIsEnabled(vo.getIsEnabled());
 		}
 		return organization;
@@ -132,5 +135,21 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
 	@Override
 	public Optional<IamOrganizationDTO> get(@NotNull @Min(1) Long id) {
 		return Optional.ofNullable(this.iamOrganizationMapper.selectById(id)).map(t -> ConvertHelper.convert(t, IamOrganizationDTO.class));
+	}
+
+	@Override
+	public void toggleEnable(@NotNull Long id, @NotNull Boolean isEnable, Long userId) {
+		final IamOrganizationDTO organization = getAndThrow(id);
+		Assert.notNull(isEnable);
+		String display = isEnable ? "启用" : "禁用";
+		log.info("{}组织[{}|{}]", display, id, organization.getCode());
+		if (Objects.equals(organization.getIsEnabled(), isEnable)) {
+			log.warn("组织[{}|{}]当前已经是{}状态,不做处理", id, organization.getCode(), display);
+			return;
+		}
+		IamOrganization iamOrganization = IamOrganization.builder().id(organization.getId()).isEnabled(isEnable).build();
+		this.iamOrganizationMapper.updateById(iamOrganization);
+		BeanUtil.copyProperties(iamOrganization, organization, CopyOptions.create().ignoreNullValue());
+		ApplicationContextHelper.getContext().publishEvent(new IamOrganizationToggleEnableEvent(organization, userId));
 	}
 }

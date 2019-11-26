@@ -67,4 +67,14 @@ public interface IamOrganizationService {
     default IamOrganizationDTO getAndThrow(@NotNull @Min(1) Long id) {
         return get(id).orElseThrow(() -> new IamAppCommException("organization.data.empty"));
     }
+
+    /**
+     * 禁用启用组织
+     * <p>会发出事件{@link com.crc.crcloud.steam.iam.model.event.IamOrganizationToggleEnableEvent}</p>
+     * <p>warn:如果当前已经是对应要处理的状态，则不会进行更新，也不会发出上述事件</p>
+     * @param id 组织编号
+     * @param userId 操作人,主要用作消息通知
+     * @param isEnable true:启用组织，false禁用组织
+     */
+    void toggleEnable(@NotNull Long id, @NotNull Boolean isEnable, Long userId);
 }

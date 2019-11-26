@@ -8,6 +8,7 @@ import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationUpdateRequ
 import com.crc.crcloud.steam.iam.service.IamOrganizationService;
 import io.choerodon.core.convertor.ConvertHelper;
 import io.choerodon.core.iam.ResourceLevel;
+import io.choerodon.core.oauth.DetailsHelper;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -74,5 +75,23 @@ public class IamOrganizationController {
             return new ResponseEntity<>(ConvertHelper.convert(iamOrganization, IamOrganizationVO.class));
         }
         return new ResponseEntity<>();
+    }
+
+    @Permission(level = ResourceLevel.SITE)
+    @ApiOperation(value = "启用组织")
+    @PutMapping(value = "/{organization_id}/enable")
+    public ResponseEntity<IamOrganizationVO> enableOrganization(@PathVariable(name = "organization_id") Long id) {
+        Long userId = DetailsHelper.getUserDetails().getUserId();
+        iamOrganizationService.toggleEnable(id, Boolean.TRUE, userId);
+        return new ResponseEntity<>(ConvertHelper.convert(iamOrganizationService.getAndThrow(id), IamOrganizationVO.class));
+    }
+
+    @Permission(level = ResourceLevel.SITE)
+    @ApiOperation(value = "禁用组织")
+    @PutMapping(value = "/{organization_id}/disable")
+    public ResponseEntity<IamOrganizationVO> disableOrganization(@PathVariable(name = "organization_id") Long id) {
+        Long userId = DetailsHelper.getUserDetails().getUserId();
+        iamOrganizationService.toggleEnable(id, Boolean.FALSE, userId);
+        return new ResponseEntity<>(ConvertHelper.convert(iamOrganizationService.getAndThrow(id), IamOrganizationVO.class));
     }
 }

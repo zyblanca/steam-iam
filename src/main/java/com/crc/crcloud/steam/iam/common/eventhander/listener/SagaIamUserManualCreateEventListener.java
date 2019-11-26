@@ -2,6 +2,7 @@ package com.crc.crcloud.steam.iam.common.eventhander.listener;
 
 
 import cn.hutool.core.collection.CollUtil;
+import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.UserEventPayload;
 import com.crc.crcloud.steam.iam.model.event.IamUserManualCreateEvent;
@@ -14,15 +15,11 @@ import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.core.oauth.DetailsHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
-
 import java.util.ArrayList;
 
 import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.User.USER_CREATE;
@@ -35,7 +32,7 @@ import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.User.USER_CREATE;
 @Slf4j
 @Component
 // 如果 choerodon.devops.message 在配置文件中不是 true ，这个 bean 就不会被加载
-@ConditionalOnProperty(prefix = "choerodon.devops", value = "message", havingValue = "true")
+@ConditionalOnProperty(prefix = ChoerodonDevOpsProperties.PREFIX, value = ChoerodonDevOpsProperties.MESSAGE_KEY, havingValue = "true")
 public class SagaIamUserManualCreateEventListener implements ApplicationListener<IamUserManualCreateEvent> {
 
     @Autowired

@@ -12,11 +12,12 @@ import org.springframework.stereotype.Component;
 @Component
 @Data
 public class ChoerodonDevOpsProperties {
+    public static final String PREFIX = "choerodon.devops";
+    public static final String MESSAGE_KEY = "message";
     /**
      * 用来处理是否发送Saga事件
      */
-    @SuppressWarnings("SpellCheckingInspection")
-    @Value("${choerodon.devops.message:false}")
+    @Value("${" + PREFIX + "." + MESSAGE_KEY + ":false}")
     private boolean message;
 
 
