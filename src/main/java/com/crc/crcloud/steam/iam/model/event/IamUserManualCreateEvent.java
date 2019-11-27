@@ -37,6 +37,7 @@ public class IamUserManualCreateEvent extends IamUserCreateEvent {
     public IamUserManualCreateEvent(@NotEmpty List<IamUserCreateWithPasswordDTO> users) {
         super(Optional.of(users).get().stream().map(IamUserCreateWithPasswordDTO::getUser).collect(Collectors.toList()));
         Assert.notEmpty(users);
+        this.users = users;
     }
 
     /**
