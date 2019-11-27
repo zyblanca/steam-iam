@@ -46,7 +46,7 @@ public class SagaIamOrganizationToggleEnableEventListener implements Application
         }
     }
 
-    private void toggleEnable(String sagaCode, String refType, IamOrganizationToggleEnableEvent event) {
+    private void toggleEnable(String sagaCode, IamOrganizationToggleEnableEvent event) {
         final Long id = event.getSource().getId();
         final String logTitle = StrUtil.format("组织[{}|{}]", id, event.getSource().getCode());
         OrganizationEventPayload payload = new OrganizationEventPayload(id);
@@ -54,7 +54,7 @@ public class SagaIamOrganizationToggleEnableEventListener implements Application
         StartSagaBuilder startSagaBuilder = StartSagaBuilder.newBuilder()
                 .withSagaCode(sagaCode)
                 .withLevel(ResourceLevel.SITE)
-                .withRefType(refType)
+                .withRefType("organization")
                 .withRefId(Objects.toString(id))
                 .withPayloadAndSerialize(payload);
         producer.apply(startSagaBuilder, t -> {
@@ -64,11 +64,11 @@ public class SagaIamOrganizationToggleEnableEventListener implements Application
 
     @Saga(code = ORG_ENABLE, description = "steam-iam启用组织", inputSchemaClass = OrganizationEventPayload.class)
     public void enable(IamOrganizationToggleEnableEvent event) {
-        toggleEnable(ORG_ENABLE, "enableOrganization", event);
+        toggleEnable(ORG_ENABLE, event);
     }
 
     @Saga(code = ORG_DISABLE, description = "steam-iam禁用组织", inputSchemaClass = OrganizationEventPayload.class)
     public void disable(IamOrganizationToggleEnableEvent event) {
-        toggleEnable(ORG_DISABLE, "disableOrganization", event);
+        toggleEnable(ORG_DISABLE, event);
     }
 }

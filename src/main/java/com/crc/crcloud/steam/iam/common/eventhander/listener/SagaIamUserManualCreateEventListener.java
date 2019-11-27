@@ -2,12 +2,13 @@ package com.crc.crcloud.steam.iam.common.eventhander.listener;
 
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
+import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
+import com.crc.crcloud.steam.iam.entity.IamUserOrganizationRel;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.UserEventPayload;
 import com.crc.crcloud.steam.iam.model.event.IamUserManualCreateEvent;
+import com.crc.crcloud.steam.iam.service.IamUserOrganizationRelService;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.choerodon.asgard.saga.annotation.Saga;
@@ -24,11 +25,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.User.USER_CREATE;
 
@@ -45,6 +46,8 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
 
     @Autowired
     private TransactionalProducer producer;
+    @Autowired
+    private IamUserOrganizationRelService iamUserOrganizationRelService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -55,34 +58,39 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
     @Saga(code = USER_CREATE, description = "steam-iam创建用户", inputSchemaClass = UserEventPayload.class)
     @Override
     public void onApplicationEvent(IamUserManualCreateEvent event) {
-        @NotNull IamUserDTO user = event.getSource();
-        final String logTitle = StrUtil.format("用户[{}|{}]", user.getId(), user.getLoginName());
         try {
             Long fromUserId = Optional.ofNullable(DetailsHelper.getUserDetails()).map(CustomUserDetails::getUserId).orElse(null);
-            UserEventPayload payload = UserEventPayload.builder()
-                    .userId(user.getId())
-                    .realName(user.getRealName())
-                    .loginName(user.getLoginName())
-                    .email(user.getEmail())
-                    .organizationId(user.getCurrentOrganizationId())
-                    .fromUserId(fromUserId)
-                    .isLdap(user.getIsLdap())
-                    .build();
-            log.info("{};开始发送Saga事件[{code:{}}],内容: {}", logTitle, USER_CREATE, JSONUtil.toJsonStr(payload));
-            ArrayList<UserEventPayload> payloads = CollUtil.newArrayList(payload);
-            String input = objectMapper.writeValueAsString(payloads);
-            producer.applyAndReturn(
-                StartSagaBuilder
-                        .newBuilder()
-                        .withLevel(ResourceLevel.ORGANIZATION)
-                        .withSourceId(user.getCurrentOrganizationId())
-                        .withSagaCode(USER_CREATE),
-                    builder -> {
-                        builder.withPayloadAndSerialize(payloads)
-                                .withRefType("user") // iam-service 中设置为 user
-                                .withRefId(user.getId().toString());
-                        return input;
-                    });
+            Function<IamUserDTO, UserEventPayload> convertPayload = user -> {
+                final Long organizationId = iamUserOrganizationRelService.getUserOrganizations(user.getId()).stream().findFirst().map(IamUserOrganizationRel::getOrganizationId).orElse(null);
+                return UserEventPayload.builder()
+                        .userId(user.getId())
+                        .realName(user.getRealName())
+                        .loginName(user.getLoginName())
+                        .email(user.getEmail())
+                        .organizationId(organizationId)
+                        .fromUserId(fromUserId)
+                        .isLdap(user.getIsLdap())
+                        .build();
+            };
+            List<UserEventPayload> rawPayloads = event.getSource().stream().map(convertPayload).collect(Collectors.toList());
+            //通过组织分组用户
+            List<List<UserEventPayload>> payloadGroupByOrg = CollUtil.groupByField(rawPayloads, EntityUtil.getSimpleFieldToCamelCase(UserEventPayload::getOrganizationId));
+            for (List<UserEventPayload> payloads : payloadGroupByOrg) {
+                String input = objectMapper.writeValueAsString(payloads);
+                log.info("开始发送Saga事件[{code:{}}],内容: {}", USER_CREATE, input);
+                producer.applyAndReturn(
+                        StartSagaBuilder
+                                .newBuilder()
+                                .withLevel(ResourceLevel.ORGANIZATION)
+                                .withSourceId(CollUtil.getFirst(payloads).getOrganizationId())
+                                .withSagaCode(USER_CREATE),
+                        builder -> {
+                            builder.withPayloadAndSerialize(payloads)
+                                    .withRefType("user") // iam-service 中设置为 user
+                                    .withRefId(CollUtil.getFirst(payloads).getUserId().toString());
+                            return input;
+                        });
+            }
         } catch (Exception e){
             throw new CommonException("error.sagaEvent.organizationUserService.createUserByManual", e);
         }

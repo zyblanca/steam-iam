@@ -6,6 +6,7 @@ import com.crc.crcloud.steam.iam.api.feign.IamServiceClient;
 import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
 import com.crc.crcloud.steam.iam.model.dto.IamOrganizationDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
+import com.crc.crcloud.steam.iam.model.dto.user.IamUserCreateWithPasswordDTO;
 import com.crc.crcloud.steam.iam.model.event.IamUserManualCreateEvent;
 import com.crc.crcloud.steam.iam.model.feign.user.UserDTO;
 import com.crc.crcloud.steam.iam.service.IamOrganizationService;
@@ -38,30 +39,33 @@ public class SyncIamUserManualCreateEventListener implements ApplicationListener
 
     @Override
     public void onApplicationEvent(IamUserManualCreateEvent event) {
-        UserDTO userDTO = new UserDTO();
-        @NotNull IamUserDTO iamUser = event.getSource();
-        userDTO.setLoginName(iamUser.getLoginName());
-        userDTO.setRealName(iamUser.getRealName());
-        userDTO.setEmail(iamUser.getEmail());
-        userDTO.setPassword(event.getRawPassword());
-        final String logTitle = StrUtil.format("手动创建组织成员[{}]同步到iam-server", iamUser.getLoginName());
-        log.info(logTitle);
-        Optional<IamOrganizationDTO> firstOrg = organizationService.getUserOrganizations(iamUser.getId()).stream().findFirst();
-        if (firstOrg.isPresent()) {
-            try {
-                ResponseEntity<UserDTO> responseEntity = iamServiceClient.create(firstOrg.get().getId(), userDTO);
-                Predicate<ResponseEntity<UserDTO>> isSuccess = t -> t.getStatusCode().is2xxSuccessful();
-                isSuccess = isSuccess.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleField(UserDTO::getId)));
-                if (isSuccess.test(responseEntity)) {
-                    log.error("{};同步成功", logTitle);
-                } else {
-                    log.error("{};同步失败: {}", logTitle, JSONUtil.toJsonStr(responseEntity.getBody()));
+        for (IamUserCreateWithPasswordDTO userCreateWithPasswordDTO : event.getUsers()) {
+            @NotNull IamUserDTO iamUser = userCreateWithPasswordDTO.getUser();
+            final String rawPassword = userCreateWithPasswordDTO.getRawPassword();
+            UserDTO userDTO = new UserDTO();
+            userDTO.setLoginName(iamUser.getLoginName());
+            userDTO.setRealName(iamUser.getRealName());
+            userDTO.setEmail(iamUser.getEmail());
+            userDTO.setPassword(rawPassword);
+            final String logTitle = StrUtil.format("手动创建组织成员[{}]同步到iam-server", iamUser.getLoginName());
+            log.info(logTitle);
+            Optional<IamOrganizationDTO> firstOrg = organizationService.getUserOrganizations(iamUser.getId()).stream().findFirst();
+            if (firstOrg.isPresent()) {
+                try {
+                    ResponseEntity<UserDTO> responseEntity = iamServiceClient.create(firstOrg.get().getId(), userDTO);
+                    Predicate<ResponseEntity<UserDTO>> isSuccess = t -> t.getStatusCode().is2xxSuccessful();
+                    isSuccess = isSuccess.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleField(UserDTO::getId)));
+                    if (isSuccess.test(responseEntity)) {
+                        log.error("{};同步成功", logTitle);
+                    } else {
+                        log.error("{};同步失败: {}", logTitle, JSONUtil.toJsonStr(responseEntity.getBody()));
+                    }
+                } catch (Exception ex) {
+                    log.error("{};同步异常: {}", logTitle, ex.getMessage(), ex);
                 }
-            } catch (Exception ex) {
-                log.error("{};同步异常: {}", logTitle, ex.getMessage(), ex);
+            } else {
+                log.error("{};没有发现组织", logTitle);
             }
-        } else {
-            log.error("{};没有发现组织", logTitle);
         }
     }
 }
