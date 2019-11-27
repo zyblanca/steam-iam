@@ -6,7 +6,7 @@ import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
 import com.crc.crcloud.steam.iam.entity.IamUserOrganizationRel;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.UserEventPayload;
-import com.crc.crcloud.steam.iam.model.event.IamUserToggleEnableEvent;
+import com.crc.crcloud.steam.iam.model.event.IamUserUpdateEvent;
 import com.crc.crcloud.steam.iam.service.IamUserOrganizationRelService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.choerodon.asgard.saga.annotation.Saga;
@@ -25,17 +25,12 @@ import org.springframework.stereotype.Component;
 import javax.validation.constraints.NotNull;
 import java.util.Optional;
 
-import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.User.*;
+import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.User.USER_UPDATE;
 
-/**
- * @Description 切换用户状态 —— Saga 事件
- * @Author YangTian
- * @Date 2019/11/27
- */
 @Slf4j
 @Component
 @ConditionalOnProperty(prefix = ChoerodonDevOpsProperties.PREFIX, value = ChoerodonDevOpsProperties.MESSAGE_KEY, havingValue = "true")
-public class SagaIamUserToggleEnableEventListener implements ApplicationListener<IamUserToggleEnableEvent> {
+public class SagaIamUserUpdateEventListener implements ApplicationListener<IamUserUpdateEvent> {
 
     @Autowired
     private TransactionalProducer producer;
@@ -44,56 +39,42 @@ public class SagaIamUserToggleEnableEventListener implements ApplicationListener
 
     final private ObjectMapper objectMapper = new ObjectMapper();
 
-    public SagaIamUserToggleEnableEventListener(){
-        log.info("已注册启用禁用用户事件-发送saga事件");
+    public SagaIamUserUpdateEventListener() {
+        log.info("已注册更新用户事件-发送Saga事件");
     }
 
+    @Saga(code = USER_UPDATE, description = "steam-iam更新用户", inputSchemaClass = UserEventPayload.class)
     @Override
-    public void onApplicationEvent(IamUserToggleEnableEvent event) {
-        if (event.isEnable()){
-            enableUser(event);
-        } else {
-            disabledUser(event);
-        }
-    }
-
-    @Saga(code = USER_ENABLE, description = "steam-iam停用用户", inputSchemaClass = UserEventPayload.class)
-    private void disabledUser(IamUserToggleEnableEvent event) {
-        toggleStatus(USER_ENABLE, event);
-    }
-
-    @Saga(code = USER_DISABLE, description = "steam-iam启用用户", inputSchemaClass = UserEventPayload.class)
-    private void enableUser(IamUserToggleEnableEvent event) {
-        toggleStatus(USER_DISABLE, event);
-    }
-
-    private void toggleStatus(String sagaCode, IamUserToggleEnableEvent event) {
+    public void onApplicationEvent(IamUserUpdateEvent event) {
         @NotNull IamUserDTO user = event.getSource();
+        String logTitle = StrUtil.format("用户[{}|{}]", user.getId(), user.getLoginName());
         // 用户有可能属于多个组织，取第一个组织
         Long organizationId = service.getUserOrganizations(user.getId()).stream().findFirst().map(IamUserOrganizationRel::getOrganizationId).orElse(null);
-        final String logTitle = StrUtil.format("用户[{}|{}]", user.getId(), user.getLoginName());
         try {
             Long fromUserId = Optional.ofNullable(DetailsHelper.getUserDetails()).map(CustomUserDetails::getUserId).orElse(null);
             UserEventPayload payload = UserEventPayload.builder()
                     .userId(user.getId())
-                    .loginName(user.getLoginName())
-                    .organizationId(organizationId)
                     .fromUserId(fromUserId)
+                    .organizationId(organizationId)
+                    .loginName(user.getLoginName())
+                    .email(user.getEmail())
+                    .realName(user.getRealName())
+                    .isLdap(user.getIsLdap())
                     .build();
-            log.info("{};开始发送Saga事件[{code:{}}],内容: {}", logTitle, sagaCode, JSONUtil.toJsonStr(payload));
+            log.info("{{}:开发送Saga事件[{code:{}},内容：{}]", logTitle, USER_UPDATE, JSONUtil.toJsonStr(payload));
             String input = objectMapper.writeValueAsString(payload);
             producer.applyAndReturn(StartSagaBuilder.newBuilder()
-                            .withSagaCode(sagaCode)
                             .withLevel(ResourceLevel.ORGANIZATION)
-                            .withSourceId(organizationId),
+                            .withSourceId(organizationId)
+                            .withSagaCode(USER_UPDATE),
                     builder -> {
                         builder.withPayloadAndSerialize(payload)
                                 .withRefType("user")
                                 .withRefId(user.getId().toString());
-                        return input;
+                        return  input;
                     });
         } catch (Exception e) {
-            throw new CommonException("error.sagaEvent.organizationUserService.toggleUserStatus");
+            throw new CommonException("error.sagaEvent.organizationUserService.updateUser");
         }
     }
 }
