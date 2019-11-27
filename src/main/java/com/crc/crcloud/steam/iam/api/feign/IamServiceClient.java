@@ -70,4 +70,14 @@ public interface IamServiceClient {
                                                                      @RequestParam(name = "member_type", required = false) String memberType,
                                                                      @RequestParam(name = "member_ids") List<Long> memberIds,
                                                                      @RequestBody ValidList<MemberRoleDTO> memberRoleDTOList);
+
+    @Permission(permissionWithin = true)
+    @ApiOperation(value = "根据email批量查询用户信息列表")
+    @PostMapping(value = "/v1/users/emails")
+    ResponseEntity<List<UserDTO>> listUsersByEmails(@RequestBody String[] emails);
+
+    @Permission(level = ResourceLevel.ORGANIZATION, permissionLogin = true)
+    @ApiOperation(value = "根据用户名查询用户信息")
+    @GetMapping(value = "/v1/users")
+    ResponseEntity<UserDTO> queryByLoginName(@RequestParam(name = "login_name") String loginName);
 }
