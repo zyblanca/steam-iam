@@ -18,6 +18,7 @@ import com.crc.crcloud.steam.iam.model.dto.user.IamMemberRoleWithRoleDTO;
 import com.crc.crcloud.steam.iam.model.event.IamGrantUserRoleEvent;
 import com.crc.crcloud.steam.iam.model.feign.role.MemberRoleDTO;
 import com.crc.crcloud.steam.iam.model.feign.role.RoleDTO;
+import com.crc.crcloud.steam.iam.model.feign.user.UserDTO;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.core.validator.ValidList;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.*;
@@ -69,7 +71,14 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
      * @param roles 授权的角色
      */
     public void sync(@NotNull IamUserDTO user, @NotEmpty List<IamMemberRoleWithRoleDTO> roles) throws RuntimeException {
-        log.info("通过角色编码获取到老行云角色列表");
+        roles = roles.stream().filter(t -> Objects.equals(t.getIamMemberRole().getMemberId(), user.getId()) && Objects.equals(t.getIamMemberRole().getMemberType(), MemberType.USER.getValue()))
+                .collect(Collectors.toList());
+        Optional<UserDTO> iamServerUserOpt = getIamServerUserByLoginName(user.getLoginName());
+        if (!iamServerUserOpt.isPresent()) {
+            log.info("用户[{}]在老行云平台未找到", user.getLoginName());
+            return;
+        }
+        final UserDTO iamServerUser = iamServerUserOpt.get();
         @NotNull List<RoleDTO> iamServerRoles = getIamServerRoles(roles.stream().map(IamMemberRoleWithRoleDTO::getRole).collect(Collectors.toList()));
         log.info("用户[{}]同步新行云角色[{}]到老行云角色[{}]", user.getLoginName()
                 , roles.stream().map(IamMemberRoleWithRoleDTO::getRole).map(IamRoleDTO::getName).collect(Collectors.joining(","))
@@ -83,7 +92,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
         grantConsumer.put(ResourceLevel.ORGANIZATION, items -> {
             IamMemberRoleDTO first = CollUtil.getFirst(items);
             Long sourceId = first.getSourceId();
-            List<Long> memberIds = CollUtil.newArrayList(first.getMemberId());
+            List<Long> memberIds = CollUtil.newArrayList(iamServerUser.getId());
             return this.grantRole(items, list -> this.iamServiceClient.createOrUpdateOnOrganizationLevel(false, sourceId, MemberType.USER.getValue(), memberIds, list));
         });
         grantConsumer.put(ResourceLevel.PROJECT, grantConsumer.get(ResourceLevel.ORGANIZATION));
@@ -100,8 +109,14 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
             String sourceType = CollUtil.getFirst(items).getSourceType();
             Optional<ResourceLevel> resourceLevel = Arrays.stream(ResourceLevel.values()).filter(t -> Objects.equals(t.value(), sourceType)).findFirst();
             if (resourceLevel.isPresent() && grantConsumer.containsKey(resourceLevel.get())) {
-
-                grantConsumer.get(resourceLevel.get()).apply(items);
+                //转换用户为老行云平台用户
+                List<IamMemberRoleDTO> collect = items.stream().map(t -> {
+                    IamMemberRoleDTO n = new IamMemberRoleDTO();
+                    BeanUtil.copyProperties(t, n);
+                    n.setMemberId(iamServerUser.getId());
+                    return n;
+                }).collect(Collectors.toList());
+                grantConsumer.get(resourceLevel.get()).apply(collect);
             } else {
                 log.warn("存在不兼容的级别[{}],将忽略", sourceType);
             }
@@ -169,6 +184,33 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
             Optional.ofNullable(roleDTO).ifPresent(result::add);
         }
         return result;
+    }
+
+    /**
+     * 根据邮箱获取对应的老行云用户
+     * @param loginName 邮箱
+     * @return 老行云用户
+     */
+    private Optional<UserDTO> getIamServerUserByLoginName(@NotBlank String loginName) {
+        final RetryTemplate retryTemplate = new RetryTemplate();
+        //重试三次接口
+        retryTemplate.setRetryPolicy(new SimpleRetryPolicy());
+        //判定接口是否成功
+        AtomicReference<Predicate<ResponseEntity<UserDTO>>> isSuccess = new AtomicReference<>(t -> t.getStatusCode().is2xxSuccessful());
+        isSuccess.getAndUpdate(is -> is.and(t -> Objects.nonNull(t.getBody())));
+        isSuccess.getAndUpdate(is -> is.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleField(UserDTO::getId))));
+        RetryCallback<UserDTO, RuntimeException> retryCallback = retryContext -> {
+            ResponseEntity<UserDTO> responseEntity = iamServiceClient.queryByLoginName(loginName);
+            if (isSuccess.get().negate().test(responseEntity)) {
+                throw new IamAppCommException("不满足接口成功条件");
+            }
+            return responseEntity.getBody();
+        };
+        @Nullable final UserDTO userDTO = retryTemplate.execute(retryCallback, retryContext -> {
+            log.error("通过loginName[{}]查询对应老行云角色失败: {}", loginName, retryContext.getLastThrowable().getMessage(), retryContext.getLastThrowable());
+            return null;
+        });
+        return Optional.ofNullable(userDTO);
     }
 
     public SyncIamGrantUserRoleEventListener() {

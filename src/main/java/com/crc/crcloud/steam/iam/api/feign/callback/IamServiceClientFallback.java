@@ -43,4 +43,14 @@ public class IamServiceClientFallback implements IamServiceClient {
     public ResponseEntity<List<MemberRoleDTO>> createOrUpdateOnProjectLevel(Boolean isEdit, Long sourceId, String memberType, List<Long> memberIds, ValidList<MemberRoleDTO> memberRoleDTOList) {
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @Override
+    public ResponseEntity<List<UserDTO>> listUsersByEmails(String[] emails) {
+        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<UserDTO> queryByLoginName(String loginName) {
+        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
