@@ -10,6 +10,7 @@ import com.crc.crcloud.steam.iam.model.dto.payload.UserEventPayload;
 import com.crc.crcloud.steam.iam.model.event.IamUserManualCreateEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.choerodon.asgard.saga.annotation.Saga;
+import io.choerodon.asgard.saga.annotation.SagaTask;
 import io.choerodon.asgard.saga.producer.StartSagaBuilder;
 import io.choerodon.asgard.saga.producer.TransactionalProducer;
 import io.choerodon.core.exception.CommonException;
@@ -22,6 +23,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.User.USER_CREATE;
@@ -40,6 +42,10 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
     @Autowired
     private TransactionalProducer producer;
 
+
+    public SagaIamUserManualCreateEventListener(){
+        log.info("已注册创建用户事件-发送saga事件");
+    }
 //    @Value("${choerodon.devops.message:false}")
     /**
      * 注解 @ConditionalOnProperty(prefix = "choerodon.devops",value = "message", havingValue = "true")
@@ -85,6 +91,16 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
                 throw new CommonException("error.sagaEvent.organizationUserService.createUserByManual", e);
             }
         }
+    }
+
+    @SagaTask(code = "testSagaTask",
+            sagaCode = USER_CREATE,
+            description = "测试Saga事务",
+            seq = 1)
+    public UserEventPayload testSagaTask(String data) throws IOException {
+        UserEventPayload userEventPayload = objectMapper.readValue(data, UserEventPayload.class);
+        log.info("SgagTask:[{}],date:[{}]", "testSagaTask", data);
+        return  userEventPayload;
     }
 
 }
