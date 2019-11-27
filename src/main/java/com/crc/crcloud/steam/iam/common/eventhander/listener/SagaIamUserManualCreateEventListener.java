@@ -2,6 +2,8 @@ package com.crc.crcloud.steam.iam.common.eventhander.listener;
 
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.UserEventPayload;
@@ -48,10 +50,11 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Saga(code = USER_CREATE, description = "iam创建用户", inputSchemaClass = UserEventPayload.class)
+    @Saga(code = USER_CREATE, description = "steam-iam创建用户", inputSchemaClass = UserEventPayload.class)
     @Override
     public void onApplicationEvent(IamUserManualCreateEvent event) {
         @NotNull IamUserDTO user = event.getSource();
+        final String logTitle = StrUtil.format("用户[{}|{}]", user.getId(), user.getLoginName());
         if (devopsMessage){
             try {
                 UserEventPayload payload = UserEventPayload.builder()
@@ -63,6 +66,7 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
                         .fromUserId(DetailsHelper.getUserDetails().getUserId())
                         .isLdap(user.getIsLdap())
                         .build();
+                log.info("{};开始发送Saga事件[{code:{}}],内容: {}", logTitle, USER_CREATE, JSONUtil.toJsonStr(payload));
                 ArrayList<UserEventPayload> payloads = CollUtil.newArrayList(payload);
                 String input = objectMapper.writeValueAsString(payloads);
                 producer.applyAndReturn(
