@@ -8,6 +8,7 @@ import javax.validation.constraints.NotNull;
 
 /**
  * 手动用户创建事件
+ * <p>将会在设置完角色和所属组织之后发送</p>
  * @author LiuYang
  */
 public class IamUserManualCreateEvent extends IamUserCreateEvent {
