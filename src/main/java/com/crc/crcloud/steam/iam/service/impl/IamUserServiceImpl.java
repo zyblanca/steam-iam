@@ -93,6 +93,7 @@ public class IamUserServiceImpl implements IamUserService {
         for (Long organizationId : organizationIds) {
             memberRoleService.grantUserRole(user.getId(), vo.getRoleIds(), organizationId, ResourceLevel.ORGANIZATION);
         }
+        ApplicationContextHelper.getContext().publishEvent(new IamUserManualCreateEvent(user, vo.getPassword()));
         return user;
     }
 
@@ -117,9 +118,7 @@ public class IamUserServiceImpl implements IamUserService {
         iamUserMapper.insert(entity);
         iamUserMapper.fillHashPassword(entity.getId(), ENCODER.encode(vo.getPassword()));
         log.info("手动添加用户[{}]", vo.getRealName());
-        IamUserDTO userDTO = ConvertHelper.convert(entity, IamUserDTO.class);
-        ApplicationContextHelper.getContext().publishEvent(new IamUserManualCreateEvent(userDTO, vo.getPassword()));
-        return userDTO;
+        return ConvertHelper.convert(entity, IamUserDTO.class);
     }
 
     /**
