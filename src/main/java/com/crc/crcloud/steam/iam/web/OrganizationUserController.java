@@ -13,6 +13,7 @@ import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
 import com.crc.crcloud.steam.iam.model.vo.user.*;
 import com.crc.crcloud.steam.iam.service.IamMemberRoleService;
 import com.crc.crcloud.steam.iam.service.IamRoleService;
+import com.crc.crcloud.steam.iam.service.IamUserOrganizationRelService;
 import com.crc.crcloud.steam.iam.service.IamUserService;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.swagger.annotation.Permission;
@@ -21,6 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +45,8 @@ public class OrganizationUserController {
     private IamRoleService iamRoleService;
     @Autowired
     private IamMemberRoleService memberRoleService;
+    @Autowired
+    private IamUserOrganizationRelService userOrganizationRelService;
 
 
     // @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR, InitRoleCode.ORGANIZATION_MEMBER})
@@ -94,6 +99,7 @@ public class OrganizationUserController {
         List<IamUserSafeVO> orgUsers = new ArrayList<>(500);
         AtomicInteger page = new AtomicInteger();
         IPage<IamUserSafeVO> pageResult;
+        pageRequestVO.setAsc(EntityUtil.getSimpleField(IamUserSafeVO::getRealName));
         do {
             pageRequestVO.setPage(page.incrementAndGet());
             pageResult = iamUserService.pageQueryOrganizationUser(organizationId, pageRequestVO).convert(IamUserSafeVO::new);
@@ -109,6 +115,20 @@ public class OrganizationUserController {
     public ResponseEntity grantUserRole(@PathVariable("organization_id") Long organizationId, @RequestBody @Valid GrantUserRoleRequestVO vo) {
         memberRoleService.grantUserRole(vo.getUserIds(), CollUtil.newHashSet(vo.getRoleId()), organizationId, ResourceLevel.ORGANIZATION);
         return new ResponseEntity();
+    }
+
+    @ApiOperation(value = "用户关联角色下拉框", notes = "获取组织下没有关联过该角色的用户")
+    // @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
+    @Permission(permissionLogin = true)
+    @GetMapping("role/{role_id}/negate")
+    public ResponseEntity<List<IamUserSafeVO>> negateMemberByRole(@PathVariable("organization_id") Long organizationId
+            , @PathVariable("role_id") @Min(1) @NotNull Long roleId) {
+        ResponseEntity<List<IamUserSafeVO>> responseEntity = this.list(organizationId);
+        List<IamUserSafeVO> negateMember = responseEntity.getData().parallelStream().filter(t -> {
+            //过滤掉用户不包含所在角色的用户
+            return iamRoleService.getUserRoles(t.getId()).stream().noneMatch(role -> Objects.equals(role.getId(), roleId));
+        }).collect(Collectors.toList());
+        return new ResponseEntity<>(negateMember);
     }
 
 }
