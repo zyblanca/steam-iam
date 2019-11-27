@@ -55,11 +55,16 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
         log.info("已注册创建用户事件-发送saga事件");
     }
 
+    /**
+     * 创建用户事件，兼容 批量创建用户
+     * @param event
+     */
     @Saga(code = USER_CREATE, description = "steam-iam创建用户", inputSchemaClass = UserEventPayload.class)
     @Override
     public void onApplicationEvent(IamUserManualCreateEvent event) {
         try {
             Long fromUserId = Optional.ofNullable(DetailsHelper.getUserDetails()).map(CustomUserDetails::getUserId).orElse(null);
+            // 将 IamUserDTO 转化为 UserEventPayload
             Function<IamUserDTO, UserEventPayload> convertPayload = user -> {
                 final Long organizationId = iamUserOrganizationRelService.getUserOrganizations(user.getId()).stream().findFirst().map(IamUserOrganizationRel::getOrganizationId).orElse(null);
                 return UserEventPayload.builder()
@@ -73,8 +78,9 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
                         .build();
             };
             List<UserEventPayload> rawPayloads = event.getSource().stream().map(convertPayload).collect(Collectors.toList());
-            //通过组织分组用户
+            // 通过 组织ID 分组 用户
             List<List<UserEventPayload>> payloadGroupByOrg = CollUtil.groupByField(rawPayloads, EntityUtil.getSimpleFieldToCamelCase(UserEventPayload::getOrganizationId));
+            // 有几个分组就发送几次事件
             for (List<UserEventPayload> payloads : payloadGroupByOrg) {
                 String input = objectMapper.writeValueAsString(payloads);
                 log.info("开始发送Saga事件[{code:{}}],内容: {}", USER_CREATE, input);
@@ -86,7 +92,7 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
                                 .withSagaCode(USER_CREATE),
                         builder -> {
                             builder.withPayloadAndSerialize(payloads)
-                                    .withRefType("user") // iam-service 中设置为 user
+                                    .withRefType("users") // iam-service 中设置为 user
                                     .withRefId(CollUtil.getFirst(payloads).getUserId().toString());
                             return input;
                         });
