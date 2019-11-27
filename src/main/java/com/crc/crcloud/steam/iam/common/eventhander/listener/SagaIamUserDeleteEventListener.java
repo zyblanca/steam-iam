@@ -6,7 +6,7 @@ import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
 import com.crc.crcloud.steam.iam.entity.IamUserOrganizationRel;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.UserEventPayload;
-import com.crc.crcloud.steam.iam.model.event.IamUserToggleEnableEvent;
+import com.crc.crcloud.steam.iam.model.event.IamUserDeleteEvent;
 import com.crc.crcloud.steam.iam.service.IamUserOrganizationRelService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.choerodon.asgard.saga.annotation.Saga;
@@ -23,77 +23,52 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
+
 import java.util.Optional;
 
-import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.User.*;
+import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.User.USER_DELETE;
 
-/**
- * @Description 切换用户状态 —— Saga 事件
- * @Author YangTian
- * @Date 2019/11/27
- */
 @Slf4j
 @Component
 @ConditionalOnProperty(prefix = ChoerodonDevOpsProperties.PREFIX, value = ChoerodonDevOpsProperties.MESSAGE_KEY, havingValue = "true")
-public class SagaIamUserToggleEnableEventListener implements ApplicationListener<IamUserToggleEnableEvent> {
+public class SagaIamUserDeleteEventListener implements ApplicationListener<IamUserDeleteEvent> {
 
     @Autowired
     private TransactionalProducer producer;
     @Autowired
     private IamUserOrganizationRelService service;
 
-    final private ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = new ObjectMapper();
 
-    public SagaIamUserToggleEnableEventListener(){
-        log.info("已注册启用禁用用户事件-发送saga事件");
-    }
-
+    @Saga(code = USER_DELETE, description = "steam-iam删除用户", inputSchemaClass = UserEventPayload.class)
     @Override
-    public void onApplicationEvent(IamUserToggleEnableEvent event) {
-        if (event.isEnable()){
-            enableUser(event);
-        } else {
-            disabledUser(event);
-        }
-    }
-
-    @Saga(code = USER_ENABLE, description = "steam-iam停用用户", inputSchemaClass = UserEventPayload.class)
-    private void disabledUser(IamUserToggleEnableEvent event) {
-        toggleStatus(USER_ENABLE, event);
-    }
-
-    @Saga(code = USER_DISABLE, description = "steam-iam启用用户", inputSchemaClass = UserEventPayload.class)
-    private void enableUser(IamUserToggleEnableEvent event) {
-        toggleStatus(USER_DISABLE, event);
-    }
-
-    private void toggleStatus(String sagaCode, IamUserToggleEnableEvent event) {
+    public void onApplicationEvent(IamUserDeleteEvent event) {
         @NotNull IamUserDTO user = event.getSource();
-        // 用户有可能属于多个组织，取第一个组织
-        Long organizationId = service.getUserOrganizations(user.getId()).stream().findFirst().map(IamUserOrganizationRel::getOrganizationId).orElse(null);
+        Long userId = user.getId();
+        Long fromUserId = Optional.ofNullable(DetailsHelper.getUserDetails()).map(CustomUserDetails::getUserId).orElse(null);
+        Long organizationId = service.getUserOrganizations(userId).stream().findFirst().map(IamUserOrganizationRel::getOrganizationId).orElse(null);
         final String logTitle = StrUtil.format("用户[{}|{}]", user.getId(), user.getLoginName());
         try {
-            Long fromUserId = Optional.ofNullable(DetailsHelper.getUserDetails()).map(CustomUserDetails::getUserId).orElse(null);
             UserEventPayload payload = UserEventPayload.builder()
-                    .userId(user.getId())
+                    .userId(userId)
+                    .fromUserId(fromUserId)
                     .loginName(user.getLoginName())
                     .organizationId(organizationId)
-                    .fromUserId(fromUserId)
                     .build();
-            log.info("{};开始发送Saga事件[{code:{}}],内容: {}", logTitle, sagaCode, JSONUtil.toJsonStr(payload));
             String input = objectMapper.writeValueAsString(payload);
+            log.info("{};开始发送Saga事件[{code:{}}],内容: {}", logTitle, USER_DELETE, JSONUtil.toJsonStr(payload));
             producer.applyAndReturn(StartSagaBuilder.newBuilder()
-                            .withSagaCode(sagaCode)
                             .withLevel(ResourceLevel.ORGANIZATION)
-                            .withSourceId(organizationId),
+                            .withSourceId(organizationId)
+                            .withSagaCode(USER_DELETE),
                     builder -> {
                         builder.withPayloadAndSerialize(payload)
                                 .withRefType("user")
-                                .withRefId(user.getId().toString());
+                                .withRefId(userId.toString());
                         return input;
-                    });
+            });
         } catch (Exception e) {
-            throw new CommonException("error.sagaEvent.organizationUserService.toggleUserStatus");
+            throw new CommonException("error.sagaEvent.organizationUserService.deleteUser");
         }
     }
 }

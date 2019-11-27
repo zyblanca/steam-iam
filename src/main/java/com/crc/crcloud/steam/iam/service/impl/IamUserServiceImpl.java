@@ -100,7 +100,7 @@ public class IamUserServiceImpl implements IamUserService {
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     public @NotNull IamUserDTO createUserByManual(@Valid IamUserCreateRequestVO vo) {
         //只能以字母和数字开头，且长度不能少于2，内容可以包含字母数字.-
-        Predicate<String> matchLoginName = loginName -> ReUtil.isMatch("^[a-zA-Z0-9][a-zA-Z0-9.-]+$", loginName);
+        Predicate<String> matchLoginName = loginName -> ReUtil.isMatch("^[a-zA-Z0-9._][a-zA-Z0-9.-]+$", loginName);
         //不能以. .git .atom 结尾
         matchLoginName = matchLoginName.and(loginName -> !StrUtil.endWithAny(".", ".git", ".atom"));
         if (matchLoginName.negate().test(vo.getLoginName())) {

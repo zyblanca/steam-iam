@@ -22,8 +22,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -66,9 +65,24 @@ public class IamUserOrganizationRelServiceImpl extends ServiceImpl<IamUserOrgani
 
 	@Override
 	public @NotNull List<IamUserOrganizationRel> getUserOrganizations(@NotNull Long userId) {
+		return getUserOrganizations(CollUtil.newHashSet(userId)).getOrDefault(userId, new ArrayList<>(0));
+	}
+
+	@Override
+	public Map<Long, List<IamUserOrganizationRel>> getUserOrganizations(@NotNull Set<Long> userIds) {
+		if (CollUtil.isEmpty(userIds)) {
+			return new HashMap<>(0);
+		}
+		Map<Long, List<IamUserOrganizationRel>> result = new HashMap<>(userIds.size());
 		LambdaQueryWrapper<IamUserOrganizationRel> queryWrapper = Wrappers.<IamUserOrganizationRel>lambdaQuery()
-				.eq(IamUserOrganizationRel::getUserId, userId)
+				.in(IamUserOrganizationRel::getUserId, userIds)
 				.orderByAsc(IamUserOrganizationRel::getId);
-		return iamUserOrganizationRelMapper.selectList(queryWrapper);
+		iamUserOrganizationRelMapper.selectList(queryWrapper)
+				.forEach(t -> {
+					List<IamUserOrganizationRel> value = result.getOrDefault(t.getUserId(), new ArrayList<>());
+					value.add(t);
+					result.put(t.getUserId(), value);
+				});
+		return result;
 	}
 }
