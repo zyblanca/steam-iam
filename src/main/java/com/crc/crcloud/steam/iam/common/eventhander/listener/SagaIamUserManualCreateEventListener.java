@@ -8,6 +8,7 @@ import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.UserEventPayload;
 import com.crc.crcloud.steam.iam.model.event.IamUserManualCreateEvent;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.choerodon.asgard.saga.annotation.Saga;
 import io.choerodon.asgard.saga.annotation.SagaTask;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Component;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.User.USER_CREATE;
 
@@ -97,10 +99,11 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
             sagaCode = USER_CREATE,
             description = "测试Saga事务",
             seq = 1)
-    public UserEventPayload testSagaTask(String data) throws IOException {
-        UserEventPayload userEventPayload = objectMapper.readValue(data, UserEventPayload.class);
-        log.info("SgagTask:[{}],date:[{}]", "testSagaTask", data);
-        return  userEventPayload;
+    public List<UserEventPayload> testSagaTask(String data) throws IOException {
+        JavaType javaType = objectMapper.getTypeFactory().constructCollectionType(List.class, UserEventPayload.class);
+        List<UserEventPayload> payloads = objectMapper.readValue(data, javaType);
+        log.info("SagaTask:[{}],date:[{}]", "testSagaTask", data);
+        return  payloads;
     }
 
 }
