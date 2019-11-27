@@ -56,7 +56,7 @@ public class SyncIamUserManualCreateEventListener implements ApplicationListener
                     Predicate<ResponseEntity<UserDTO>> isSuccess = t -> t.getStatusCode().is2xxSuccessful();
                     isSuccess = isSuccess.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleField(UserDTO::getId)));
                     if (isSuccess.test(responseEntity)) {
-                        log.error("{};同步成功", logTitle);
+                        log.error("{};同步成功: {}", logTitle, responseEntity.getBody());
                     } else {
                         log.error("{};同步失败: {}", logTitle, JSONUtil.toJsonStr(responseEntity.getBody()));
                     }
