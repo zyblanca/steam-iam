@@ -100,6 +100,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
             String sourceType = CollUtil.getFirst(items).getSourceType();
             Optional<ResourceLevel> resourceLevel = Arrays.stream(ResourceLevel.values()).filter(t -> Objects.equals(t.value(), sourceType)).findFirst();
             if (resourceLevel.isPresent() && grantConsumer.containsKey(resourceLevel.get())) {
+
                 grantConsumer.get(resourceLevel.get()).apply(items);
             } else {
                 log.warn("存在不兼容的级别[{}],将忽略", sourceType);
@@ -122,6 +123,9 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
             Assert.notNull(responseEntity, "sourceFeignFunc result is must not null", responseEntity);
             //noinspection ConstantConditions
             result.addAll(responseEntity.getBody());
+            IamMemberRoleDTO first = CollUtil.getFirst(list);
+            String collect = list.stream().map(IamMemberRoleDTO::getRoleId).map(Object::toString).collect(Collectors.joining(","));
+            log.info("授权类型[{}|{}]授权角色[{}],结果: {}", first.getSourceType(), first.getSourceId(), collect, JSONUtil.toJsonStr(responseEntity.getBody()));
         }
         return result;
     }
