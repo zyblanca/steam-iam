@@ -37,7 +37,6 @@ public class SagaIamOrganizationToggleEnableEventListener implements Application
         log.info("已注册启用禁用组织事件-发送saga事件");
     }
 
-    @Saga(code = ORG_ENABLE, description = "steam-iam启用组织", inputSchemaClass = OrganizationEventPayload.class)
     @Override
     public void onApplicationEvent(IamOrganizationToggleEnableEvent event) {
         if (event.getCurrentEnableStatus()) {
