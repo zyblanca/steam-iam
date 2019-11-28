@@ -2,6 +2,7 @@ package com.crc.crcloud.steam.iam.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.crc.crcloud.steam.iam.api.feign.IamServiceClient;
 import com.crc.crcloud.steam.iam.common.enums.LdapSyncUserErrorEnum;
 import com.crc.crcloud.steam.iam.common.utils.CommonCollectionUtils;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
@@ -12,9 +13,15 @@ import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.LdapConnectionDTO;
 import com.crc.crcloud.steam.iam.model.dto.OauthLdapDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserMatchLdapDTO;
+import com.crc.crcloud.steam.iam.service.IamMemberRoleService;
+import com.crc.crcloud.steam.iam.service.IamRoleService;
 import com.crc.crcloud.steam.iam.service.LdapService;
+import io.choerodon.core.iam.InitRoleCode;
+import io.choerodon.core.iam.ResourceLevel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ldap.AuthenticationException;
 import org.springframework.ldap.InvalidNameException;
 import org.springframework.ldap.control.PagedResultsDirContextProcessor;
@@ -64,6 +71,12 @@ public class LdapServiceImpl implements LdapService {
     private OauthLdapErrorUserMapper oauthLdapErrorUserMapper;
 
     private static final String OBJECT_CLASS = "objectclass";
+    @Autowired
+    private IamServiceClient iamServiceClient;
+    @Autowired
+    private IamRoleMapper iamRoleMapper;
+    @Autowired
+    private IamMemberRoleService iamMemberRoleService;
 
     @Override
     public LdapConnectionDTO validAccount(OauthLdapDTO oauthLdapDTO) {
@@ -222,9 +235,6 @@ public class LdapServiceImpl implements LdapService {
     }
 
 
-
-
-
     /**
      * 比对人员信息
      * 1.ldap邮箱数据库中存在，并且ldap邮箱所属的用户名与数据库中该邮箱的用户名不一致，属于异常用户
@@ -296,13 +306,15 @@ public class LdapServiceImpl implements LdapService {
             //上诉都不匹配后，走匹配ldap选项
             matchLdapUser.add(user);
         }
-        //特殊用户匹配，用户名相同，不属于已绑定的组织，判断已绑定的组织是否跟
+        //特殊用户匹配，用户名相同，不属于已绑定的组织，判断已绑定的组织是否跟当前的ldap配置一致
         List<IamUserOrganizationRel> bandUser = matchLdapInfo(matchLdapUser, oauthLdapDTO, oauthLdapHistory, errorUsers, updateUser);
 
         oauthLdapHistory.setErrorUserCount(oauthLdapHistory.getErrorUserCount() + errorUsers.size() - initErrorSize);
         oauthLdapHistory.setNewUserCount(oauthLdapHistory.getNewUserCount() + insertUser.size());
         oauthLdapHistory.setUpdateUserCount(oauthLdapHistory.getUpdateUserCount() + updateUser.size());
-        insertLdapUser(insertUser, oauthLdapDTO.getOrganizationId());
+        List<OauthLdapErrorUser> insertError = insertLdapUser(oauthLdapHistory.getId(), insertUser, oauthLdapDTO.getOrganizationId());
+        oauthLdapHistory.setErrorUserCount(oauthLdapHistory.getErrorUserCount()+insertError.size());
+        errorUsers.addAll(insertError);
         updateLdapUser(updateUser);
         bandLdapUser(bandUser);
         insertErrorUser(errorUsers);
@@ -327,16 +339,80 @@ public class LdapServiceImpl implements LdapService {
     }
 
     //插入用户
-    private void insertLdapUser(List<IamUser> insertUser, Long organizationId) {
-        if (CollectionUtils.isEmpty(insertUser)) return;
-        insertUser.forEach(v -> {
+    private List<OauthLdapErrorUser> insertLdapUser(Long historyId, List<IamUser> insertUser, Long organizationId) {
+        if (CollectionUtils.isEmpty(insertUser)) return new ArrayList<>();
+
+        //默认都是成功的
+        for (IamUser v : insertUser) {
             iamUserMapper.insert(v);
             IamUserOrganizationRel iamUserOrganizationRel = new IamUserOrganizationRel();
             iamUserOrganizationRel.setUserId(v.getId());
             iamUserOrganizationRel.setOrganizationId(organizationId);
             iamUserOrganizationRelMapper.insert(iamUserOrganizationRel);
-        });
+        }
+        Set<Long> insertIds = insertUser.stream().map(IamUser::getId).collect(Collectors.toSet());
+        //临时步骤 往老行云同步用户信息
+        ResponseEntity<List<OauthLdapErrorUser>> errorUserResp = iamServiceClient.syncSteamUser(organizationId, insertUser);
+        //同步错误则放弃当前操作
+        if (!Objects.equals(errorUserResp.getStatusCode(), HttpStatus.OK)) {
+            //删除错误的数据
+            insertUser.forEach(v -> {
+                iamUserMapper.deleteById(v.getId());
+                iamUserOrganizationRelMapper.delete(Wrappers.<IamUserOrganizationRel>lambdaQuery()
+                        .eq(IamUserOrganizationRel::getUserId, v.getId())
+                        .eq(IamUserOrganizationRel::getOrganizationId, organizationId));
+            });
+            //错误数据返回
+            return
+                    insertUser.stream().map(v -> OauthLdapErrorUser.builder().cause(LdapSyncUserErrorEnum.SYNC_STEAM_USER_ERROR.getMsg())
+                            .email(v.getEmail())
+                            .loginName(v.getLoginName())
+                            .phone(v.getPhone())
+                            .realName(v.getRealName())
+                            .ldapHistoryId(historyId).build()
+                    ).collect(Collectors.toList());
+        }
+        List<OauthLdapErrorUser> errorUsers = errorUserResp.getBody();
+        List<Long> errorIds = new ArrayList<>();
+        //删除错误数据
+        if (!CollectionUtils.isEmpty(errorUsers)) {
+            for (OauthLdapErrorUser eUser : errorUsers) {
+                if (!insertIds.contains(eUser.getId())) {
+                    log.warn("ldap同步数据严重警告===发送插入的数据id与返回的数据id不一致{},返回{}", insertIds, eUser.getId());
+                    continue;
+                }
+                errorIds.add(eUser.getId());
+                eUser.setId(null);
+            }
+            if (!CollectionUtils.isEmpty(errorIds)) {
+                iamUserMapper.deleteBatchIds(errorIds);
+                iamUserOrganizationRelMapper.delete(Wrappers.<IamUserOrganizationRel>lambdaQuery()
+                        .in(IamUserOrganizationRel::getUserId, errorIds));
+            }
+        }
+        if(errorIds.size()==insertIds.size())return errorUsers;
+        //删除无效的用户，有效用户进行授权
+        if(!CollectionUtils.isEmpty(errorIds)){
+            insertIds.removeAll(errorIds);
+        }
+        //如果存在有效用户
+        if(!CollectionUtils.isEmpty(insertIds)){
+            //获取组织成员权限
+            IamRole iamRole = iamRoleMapper.selectOne(Wrappers.<IamRole>lambdaQuery()
+            .eq(IamRole::getFdLevel, ResourceLevel.ORGANIZATION.value())
+            .eq(IamRole::getCode, InitRoleCode.ORGANIZATION_MEMBER));
+            if(Objects.isNull(iamRole)){
+                log.warn("查询组织成员权限失败{},{}",ResourceLevel.ORGANIZATION.value(),InitRoleCode.ORGANIZATION_MEMBER);
+                return errorUsers;
+            }
+            Set<Long> roleIds = new HashSet<>();
+            roleIds.add(iamRole.getId());
+            iamMemberRoleService.grantUserRole(new HashSet<>(insertIds),roleIds,organizationId,ResourceLevel.ORGANIZATION);
+        }
+
+        return errorUsers;
     }
+
 
     //用户ldap匹配
     private List<IamUserOrganizationRel> matchLdapInfo(List<IamUser> matchLdapUser, OauthLdapDTO oauthLdapDTO, OauthLdapHistory oauthLdapHistory, List<OauthLdapErrorUser> errorUsers, List<IamUser> updateUser) {

@@ -1,6 +1,8 @@
 package com.crc.crcloud.steam.iam.api.feign;
 
 import com.crc.crcloud.steam.iam.api.feign.callback.IamServiceClientFallback;
+import com.crc.crcloud.steam.iam.entity.IamUser;
+import com.crc.crcloud.steam.iam.entity.OauthLdapErrorUser;
 import com.crc.crcloud.steam.iam.model.feign.role.MemberRoleDTO;
 import com.crc.crcloud.steam.iam.model.feign.role.RoleDTO;
 import com.crc.crcloud.steam.iam.model.feign.user.UserDTO;
@@ -9,6 +11,7 @@ import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.core.validator.ValidList;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.LdapDataEntry;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -80,4 +83,9 @@ public interface IamServiceClient {
     @ApiOperation(value = "根据用户名查询用户信息")
     @GetMapping(value = "/v1/users")
     ResponseEntity<UserDTO> queryByLoginName(@RequestParam(name = "login_name") String loginName);
+
+    //同步steam中ldap新增用户
+    @PostMapping("/organizations/{organization_id}/ldaps/sync_steam_users")
+    ResponseEntity<List<OauthLdapErrorUser>> syncSteamUser(@PathVariable("organization_id") Long organizationId,
+                                                     @RequestBody List<IamUser> users);
 }
