@@ -42,6 +42,11 @@
             <artifactId>choerodon-starter-asgard</artifactId>
             <version>${choerodon.starters.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.choerodon</groupId>
+            <artifactId>choerodon-starter-eureka-event</artifactId>
+            <version>${choerodon.starters.version}</version>
+        </dependency>
 <!--        <dependency>-->
 <!--            <groupId>io.choerodon</groupId>-->
 <!--            <artifactId>choerodon-liquibase</artifactId>-->
