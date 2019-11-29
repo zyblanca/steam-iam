@@ -95,7 +95,12 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
             List<Long> memberIds = CollUtil.newArrayList(iamServerUser.getId());
             return this.grantRole(items, list -> this.iamServiceClient.createOrUpdateOnOrganizationLevel(false, sourceId, MemberType.USER.getValue(), memberIds, list));
         });
-        grantConsumer.put(ResourceLevel.PROJECT, grantConsumer.get(ResourceLevel.ORGANIZATION));
+        grantConsumer.put(ResourceLevel.PROJECT, items -> {
+            IamMemberRoleDTO first = CollUtil.getFirst(items);
+            Long sourceId = first.getSourceId();
+            List<Long> memberIds = CollUtil.newArrayList(iamServerUser.getId());
+            return this.grantRole(items, list -> this.iamServiceClient.createOrUpdateOnProjectLevel(false, sourceId, MemberType.USER.getValue(), memberIds, list));
+        });
 
         grantConsumer.put(ResourceLevel.SITE, items -> {
             IamMemberRoleDTO first = CollUtil.getFirst(items);
