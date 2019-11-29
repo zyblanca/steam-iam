@@ -125,6 +125,7 @@
         INNER JOIN iam_user iu
         ON tmp.member_id = iu.id
         where 1=1
+        and iu.is_enabled =1
         <if test="userSearch.realName != null and userSearch.realName != '' ">
 
           and  iu.real_name like concat('%',concat(#{userSearch.realName},'%'))
@@ -147,6 +148,7 @@
         INNER JOIN iam_user iu
         ON tmp.member_id = iu.id
         where 1=1
+        and iu.is_enabled =1
         <if test="userSearch.realName != null and userSearch.realName != '' ">
 
          and   iu.real_name like concat('%',concat(#{userSearch.realName},'%'))
@@ -172,6 +174,7 @@
                            ON tmp.member_id = iu.id
         WHERE iuor.organization_id = #{userSearch.organizationId}
           AND tmp.member_id IS NULL
+          AND iu.is_enabled =1
         order by CONVERT(real_name USING gbk)
 
     </select>

@@ -10,8 +10,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.crc.crcloud.steam.iam.common.enums.MemberRoleEnum;
-import com.crc.crcloud.steam.iam.common.enums.MemberRoleSourceTypeEnum;
 import com.crc.crcloud.steam.iam.common.enums.MemberType;
 import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
@@ -20,9 +18,10 @@ import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.dao.IamMemberRoleMapper;
 import com.crc.crcloud.steam.iam.dao.IamProjectMapper;
+import com.crc.crcloud.steam.iam.dao.IamRoleMapper;
 import com.crc.crcloud.steam.iam.dao.IamUserMapper;
-import com.crc.crcloud.steam.iam.entity.IamMemberRole;
 import com.crc.crcloud.steam.iam.entity.IamProject;
+import com.crc.crcloud.steam.iam.entity.IamRole;
 import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
@@ -37,6 +36,7 @@ import com.crc.crcloud.steam.iam.service.IamUserOrganizationRelService;
 import com.crc.crcloud.steam.iam.service.IamUserService;
 import io.choerodon.core.convertor.ApplicationContextHelper;
 import io.choerodon.core.convertor.ConvertHelper;
+import io.choerodon.core.iam.InitRoleCode;
 import io.choerodon.core.iam.ResourceLevel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,11 +73,11 @@ public class IamUserServiceImpl implements IamUserService {
     @Autowired
     private IamUserOrganizationRelService iamUserOrganizationRelService;
     @Autowired
-    private IamMemberRoleService memberRoleService;
+    private IamMemberRoleService iamMemberRoleService;
     @Autowired
     private IamProjectMapper iamProjectMapper;
     @Autowired
-    private IamMemberRoleMapper iamMemberRoleMapper;
+    private IamRoleMapper iamRoleMapper;
     /**
      * 线程安全
      */
@@ -92,7 +92,7 @@ public class IamUserServiceImpl implements IamUserService {
         ApplicationContextHelper.getContext().publishEvent(new IamUserManualCreateEvent(user, vo.getPassword()));
         log.info("手动添加用户[{}],期望属于角色[{}]", vo.getRealName(), CollUtil.join(vo.getRoleIds(), ","));
         for (Long organizationId : organizationIds) {
-            memberRoleService.grantUserRole(user.getId(), vo.getRoleIds(), organizationId, ResourceLevel.ORGANIZATION);
+            iamMemberRoleService.grantUserRole(user.getId(), vo.getRoleIds(), organizationId, ResourceLevel.ORGANIZATION);
         }
         return user;
     }
@@ -237,7 +237,7 @@ public class IamUserServiceImpl implements IamUserService {
     public IPage<IamUserVO> pageByProject(Long projectId, UserSearchDTO userSearchDTO, PageUtil page) {
 
         userSearchDTO.setProjectId(projectId);
-        userSearchDTO.setMemberSourceType(MemberRoleSourceTypeEnum.PROJECT.getSourceType());
+        userSearchDTO.setMemberSourceType(ResourceLevel.PROJECT.value());
         userSearchDTO.setMemberType(MemberType.USER.getValue());
         //查询项目下的人
         IPage<IamUser> userPage = iamUserMapper.pageByProject(page, userSearchDTO);
@@ -252,7 +252,7 @@ public class IamUserServiceImpl implements IamUserService {
     @Override
     public List<IamUserVO> projectDropDownUser(Long projectId, UserSearchDTO userSearchDTO) {
         userSearchDTO.setProjectId(projectId);
-        userSearchDTO.setMemberSourceType(MemberRoleSourceTypeEnum.PROJECT.getSourceType());
+        userSearchDTO.setMemberSourceType(ResourceLevel.PROJECT.value());
         userSearchDTO.setMemberType(MemberType.USER.getValue());
         //查询项目下的人
         List<IamUser> users = iamUserMapper.projectDropDownUser(userSearchDTO);
@@ -264,7 +264,7 @@ public class IamUserServiceImpl implements IamUserService {
     public List<IamUserVO> projectUnselectUser(Long projectId, UserSearchDTO userSearchDTO) {
         IamProject project = getAndThrowProject(projectId);
         userSearchDTO.setProjectId(projectId);
-        userSearchDTO.setMemberSourceType(MemberRoleSourceTypeEnum.PROJECT.getSourceType());
+        userSearchDTO.setMemberSourceType(ResourceLevel.PROJECT.value());
         userSearchDTO.setMemberType(MemberType.USER.getValue());
         userSearchDTO.setOrganizationId(project.getOrganizationId());
         //查询组织下未被当前项目选择的人
@@ -277,15 +277,17 @@ public class IamUserServiceImpl implements IamUserService {
     public void projectBindUsers(Long projectId, List<Long> userIds) {
         if (CollectionUtils.isEmpty(userIds)) return;
         //当前写死项目拥有者权限
-        IamMemberRole iamMemberRole = new IamMemberRole();
-        iamMemberRole.setMemberType(MemberType.USER.getValue());
-        iamMemberRole.setRoleId(MemberRoleEnum.PROJECT_OWNER.getRoleId());
-        iamMemberRole.setSourceId(projectId);
-        iamMemberRole.setSourceType(MemberRoleSourceTypeEnum.PROJECT.getSourceType());
-        for (Long userId : userIds) {
-            iamMemberRole.setMemberId(userId);
-            iamMemberRoleMapper.insert(iamMemberRole);
+        //获取项目拥有者权限id
+        IamRole iamRole = iamRoleMapper.selectOne(Wrappers.<IamRole>lambdaQuery()
+                .eq(IamRole::getFdLevel, ResourceLevel.PROJECT.value()).eq(IamRole::getCode, InitRoleCode.PROJECT_OWNER).eq(IamRole::getIsEnabled, (byte) 1));
+        if (Objects.isNull(iamRole)) {
+            throw new IamAppCommException("project.invalid.owner.role");
         }
+        Set<Long> roleIds = new HashSet<>();
+        roleIds.add(iamRole.getId());
+        //公共授权通道
+        iamMemberRoleService.grantUserRole(new HashSet<>(userIds), roleIds, projectId, ResourceLevel.PROJECT);
+
     }
 
     @Override
