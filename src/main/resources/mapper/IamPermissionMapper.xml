@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.crc.crcloud.steam.iam.dao.IamPermissionMapper">
+
+
+        <!-- 通用查询映射结果 -->
+        <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamPermission">
+                    <id column="id" property="id" />
+                    <result column="code" property="code" />
+                    <result column="path" property="path" />
+                    <result column="method" property="method" />
+                    <result column="fd_level" property="fdLevel" />
+                    <result column="description" property="description" />
+                    <result column="action" property="action" />
+                    <result column="fd_resource" property="fdResource" />
+                    <result column="public_access" property="publicAccess" />
+                    <result column="login_access" property="loginAccess" />
+                    <result column="service_name" property="serviceName" />
+                    <result column="object_version_number" property="objectVersionNumber" />
+                    <result column="created_by" property="createdBy" />
+                    <result column="creation_date" property="creationDate" />
+                    <result column="last_updated_by" property="lastUpdatedBy" />
+                    <result column="last_update_date" property="lastUpdateDate" />
+                    <result column="is_within" property="isWithin" />
+        </resultMap>
+
+
+        <!-- 通用查询结果列 -->
+        <sql id="Base_Column_List">
+                     id,
+                     code,
+                     path,
+                     method,
+                     fd_level,
+                     description,
+                     action,
+                     fd_resource,
+                     public_access,
+                     login_access,
+                     service_name,
+                     object_version_number,
+                     created_by,
+                     creation_date,
+                     last_updated_by,
+                     last_update_date,
+                     is_within
+        </sql>
+
+    <select id="page" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/>
+        from iam_permission
+
+    </select>
+
+
+
+</mapper>
