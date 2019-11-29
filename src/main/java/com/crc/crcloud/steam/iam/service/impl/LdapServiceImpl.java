@@ -355,6 +355,7 @@ public class LdapServiceImpl implements LdapService {
         }
         Set<Long> insertIds = insertUser.stream().map(IamUser::getId).collect(Collectors.toSet());
         //临时步骤 往老行云同步用户信息
+        log.info("ldap同步用户，记录{},同步用户数量{}",historyId,insertUser.size());
         ResponseEntity<List<OauthLdapErrorUser>> errorUserResp = iamServiceClient.syncSteamUser(organizationId, insertUser);
         //同步错误则放弃当前操作
         if (!Objects.equals(errorUserResp.getStatusCode(), HttpStatus.OK)) {
@@ -365,6 +366,7 @@ public class LdapServiceImpl implements LdapService {
                         .eq(IamUserOrganizationRel::getUserId, v.getId())
                         .eq(IamUserOrganizationRel::getOrganizationId, organizationId));
             });
+            log.warn("同步用户老行云异常{}",errorUserResp);
             //错误数据返回
             return
                     insertUser.stream().map(v -> OauthLdapErrorUser.builder().cause(LdapSyncUserErrorEnum.SYNC_STEAM_USER_ERROR.getMsg())
