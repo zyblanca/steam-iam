@@ -161,7 +161,7 @@ public class LdapServiceImpl implements LdapService {
     @Async("ldap-executor")
     public void syncLdapUser(OauthLdapDTO oauthLdapDTO, OauthLdapHistory oauthLdapHistory) {
         //初始化记录
-
+        try{
         AndFilter andFilter = getAndFilterByObjectClass(oauthLdapDTO);
         //存在过滤条件则使用
         if (StringUtils.hasText(oauthLdapDTO.getCustomFilter())) {
@@ -206,7 +206,10 @@ public class LdapServiceImpl implements LdapService {
                     }
                 }
 
-        );
+        );}catch (Exception e){
+            log.warn("同步用户异常===》",e);
+        }
+
         oauthLdapHistory.setSyncEndTime(new Date());
         oauthLdapHistoryMapper.updateById(oauthLdapHistory);
 
