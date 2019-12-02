@@ -426,6 +426,7 @@ public class LdapServiceImpl implements LdapService {
                         .loginName(v.getLoginName())
                         .phone(v.getPhone())
                         .realName(v.getRealName())
+                        .uuid("--")
                         .ldapHistoryId(historyId).build()
                 ).collect(Collectors.toList());
     }

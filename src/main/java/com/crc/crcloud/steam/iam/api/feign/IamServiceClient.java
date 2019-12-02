@@ -85,7 +85,7 @@ public interface IamServiceClient {
     ResponseEntity<UserDTO> queryByLoginName(@RequestParam(name = "login_name") String loginName);
 
     //同步steam中ldap新增用户
-    @PostMapping("/organizations/{organization_id}/ldaps/sync_steam_users")
+    @PostMapping("/v1/organizations/{organization_id}/ldaps/sync_steam_users")
     ResponseEntity<List<OauthLdapErrorUser>> syncSteamUser(@PathVariable("organization_id") Long organizationId,
                                                      @RequestBody List<IamUser> users);
 }
