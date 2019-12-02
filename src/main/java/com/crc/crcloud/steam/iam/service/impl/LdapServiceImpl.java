@@ -161,53 +161,54 @@ public class LdapServiceImpl implements LdapService {
     @Async("ldap-executor")
     public void syncLdapUser(OauthLdapDTO oauthLdapDTO, OauthLdapHistory oauthLdapHistory) {
         //初始化记录
-        try{
-        AndFilter andFilter = getAndFilterByObjectClass(oauthLdapDTO);
-        //存在过滤条件则使用
-        if (StringUtils.hasText(oauthLdapDTO.getCustomFilter())) {
-            andFilter.and(new HardcodedFilter(oauthLdapDTO.getCustomFilter()));
-        }
-        LdapTemplate ldapTemplate = LdapUtil.getLdapTemplate(oauthLdapDTO, Boolean.FALSE);
-        //分页
-        PagedResultsDirContextProcessor processor = new PagedResultsDirContextProcessor(oauthLdapDTO.getSagaBatchSize());
-        //查找域
-        SearchControls searchControls = new SearchControls();
-        searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-        SingleContextSource.doWithSingleContext(
-                ldapTemplate.getContextSource(), new LdapOperationsCallback<List<IamUserDTO>>() {
+        try {
+            AndFilter andFilter = getAndFilterByObjectClass(oauthLdapDTO);
+            //存在过滤条件则使用
+            if (StringUtils.hasText(oauthLdapDTO.getCustomFilter())) {
+                andFilter.and(new HardcodedFilter(oauthLdapDTO.getCustomFilter()));
+            }
+            LdapTemplate ldapTemplate = LdapUtil.getLdapTemplate(oauthLdapDTO, Boolean.FALSE);
+            //分页
+            PagedResultsDirContextProcessor processor = new PagedResultsDirContextProcessor(oauthLdapDTO.getSagaBatchSize());
+            //查找域
+            SearchControls searchControls = new SearchControls();
+            searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+            SingleContextSource.doWithSingleContext(
+                    ldapTemplate.getContextSource(), new LdapOperationsCallback<List<IamUserDTO>>() {
 
-                    @Override
-                    public List<IamUserDTO> doWithLdapOperations(LdapOperations operations) {
-                        int page = 1;//记录操作信息
-                        AttributesMapper attributeMapper = new AttributesMapper() {
-                            @Override
-                            public Object mapFromAttributes(Attributes attributes) throws NamingException {
-                                return attributes;
-                            }
-                        };
-                        do {
-                            List<Attributes> attributesList = operations.search("", andFilter.toString(), searchControls, attributeMapper, processor);
-                            log.info("ldap同步用户，ldap id{},当前页{},每页{},当前查询数量{}", oauthLdapDTO.getId(), page, oauthLdapDTO.getSagaBatchSize(), attributesList.size());
-                            if (attributesList.isEmpty()) break;
-                            //普通用户，第一步的时候只能代表属性正确，不代表完整性正确
-                            List<IamUser> normalUser = new ArrayList<>();
-                            //错误的用户
-                            List<OauthLdapErrorUser> errorUsers = new ArrayList<>();
-                            //属性转对象
-                            transformationToUser(oauthLdapHistory, attributesList, normalUser, errorUsers, oauthLdapDTO);
-                            //对象对比并且进行插入或者更新
-                            operationUsers(oauthLdapHistory, normalUser, errorUsers, oauthLdapDTO);
-                            //help gc
-                            normalUser = null;
-                            errorUsers = null;
-                            page++;
-                        } while (processor.hasMore());
-                        return null;
+                        @Override
+                        public List<IamUserDTO> doWithLdapOperations(LdapOperations operations) {
+                            int page = 1;//记录操作信息
+                            AttributesMapper attributeMapper = new AttributesMapper() {
+                                @Override
+                                public Object mapFromAttributes(Attributes attributes) throws NamingException {
+                                    return attributes;
+                                }
+                            };
+                            do {
+                                List<Attributes> attributesList = operations.search("", andFilter.toString(), searchControls, attributeMapper, processor);
+                                log.info("ldap同步用户，ldap id{},当前页{},每页{},当前查询数量{}", oauthLdapDTO.getId(), page, oauthLdapDTO.getSagaBatchSize(), attributesList.size());
+                                if (attributesList.isEmpty()) break;
+                                //普通用户，第一步的时候只能代表属性正确，不代表完整性正确
+                                List<IamUser> normalUser = new ArrayList<>();
+                                //错误的用户
+                                List<OauthLdapErrorUser> errorUsers = new ArrayList<>();
+                                //属性转对象
+                                transformationToUser(oauthLdapHistory, attributesList, normalUser, errorUsers, oauthLdapDTO);
+                                //对象对比并且进行插入或者更新
+                                operationUsers(oauthLdapHistory, normalUser, errorUsers, oauthLdapDTO);
+                                //help gc
+                                normalUser = null;
+                                errorUsers = null;
+                                page++;
+                            } while (processor.hasMore());
+                            return null;
+                        }
                     }
-                }
 
-        );}catch (Exception e){
-            log.warn("同步用户异常===》",e);
+            );
+        } catch (Exception e) {
+            log.warn("同步用户异常===》", e);
         }
 
         oauthLdapHistory.setSyncEndTime(new Date());
@@ -316,7 +317,7 @@ public class LdapServiceImpl implements LdapService {
         oauthLdapHistory.setNewUserCount(oauthLdapHistory.getNewUserCount() + insertUser.size());
         oauthLdapHistory.setUpdateUserCount(oauthLdapHistory.getUpdateUserCount() + updateUser.size());
         List<OauthLdapErrorUser> insertError = insertLdapUser(oauthLdapHistory.getId(), insertUser, oauthLdapDTO.getOrganizationId());
-        oauthLdapHistory.setErrorUserCount(oauthLdapHistory.getErrorUserCount()+insertError.size());
+        oauthLdapHistory.setErrorUserCount(oauthLdapHistory.getErrorUserCount() + insertError.size());
         errorUsers.addAll(insertError);
         updateLdapUser(updateUser);
         bandLdapUser(bandUser);
@@ -355,27 +356,18 @@ public class LdapServiceImpl implements LdapService {
         }
         Set<Long> insertIds = insertUser.stream().map(IamUser::getId).collect(Collectors.toSet());
         //临时步骤 往老行云同步用户信息
-        log.info("ldap同步用户，记录{},同步用户数量{}",historyId,insertUser.size());
-        ResponseEntity<List<OauthLdapErrorUser>> errorUserResp = iamServiceClient.syncSteamUser(organizationId, insertUser);
-        //同步错误则放弃当前操作
-        if (!Objects.equals(errorUserResp.getStatusCode(), HttpStatus.OK)) {
-            //删除错误的数据
-            insertUser.forEach(v -> {
-                iamUserMapper.deleteById(v.getId());
-                iamUserOrganizationRelMapper.delete(Wrappers.<IamUserOrganizationRel>lambdaQuery()
-                        .eq(IamUserOrganizationRel::getUserId, v.getId())
-                        .eq(IamUserOrganizationRel::getOrganizationId, organizationId));
-            });
-            log.warn("同步用户老行云异常{}",errorUserResp);
-            //错误数据返回
-            return
-                    insertUser.stream().map(v -> OauthLdapErrorUser.builder().cause(LdapSyncUserErrorEnum.SYNC_STEAM_USER_ERROR.getMsg())
-                            .email(v.getEmail())
-                            .loginName(v.getLoginName())
-                            .phone(v.getPhone())
-                            .realName(v.getRealName())
-                            .ldapHistoryId(historyId).build()
-                    ).collect(Collectors.toList());
+        log.info("ldap同步用户，记录{},同步用户数量{}", historyId, insertUser.size());
+        ResponseEntity<List<OauthLdapErrorUser>> errorUserResp = null;
+        try {
+            errorUserResp = iamServiceClient.syncSteamUser(organizationId, insertUser);
+            if (!Objects.equals(errorUserResp.getStatusCode(), HttpStatus.OK)) {
+                log.warn("同步用户老行云异常{}", errorUserResp);
+                return operationErrorUser(organizationId, historyId, insertUser);
+            }
+        } catch (Exception e) {
+            log.warn("同步用户老行云异常{}", e);
+            return operationErrorUser(organizationId, historyId, insertUser);
+
         }
         List<OauthLdapErrorUser> errorUsers = errorUserResp.getBody();
         List<Long> errorIds = new ArrayList<>();
@@ -395,27 +387,47 @@ public class LdapServiceImpl implements LdapService {
                         .in(IamUserOrganizationRel::getUserId, errorIds));
             }
         }
-        if(errorIds.size()==insertIds.size())return errorUsers;
+        if (errorIds.size() == insertIds.size()) return errorUsers;
         //删除无效的用户，有效用户进行授权
-        if(!CollectionUtils.isEmpty(errorIds)){
+        if (!CollectionUtils.isEmpty(errorIds)) {
             insertIds.removeAll(errorIds);
         }
         //如果存在有效用户
-        if(!CollectionUtils.isEmpty(insertIds)){
+        if (!CollectionUtils.isEmpty(insertIds)) {
             //获取组织成员权限
             IamRole iamRole = iamRoleMapper.selectOne(Wrappers.<IamRole>lambdaQuery()
-            .eq(IamRole::getFdLevel, ResourceLevel.ORGANIZATION.value())
-            .eq(IamRole::getCode, InitRoleCode.ORGANIZATION_MEMBER));
-            if(Objects.isNull(iamRole)){
-                log.warn("查询组织成员权限失败{},{}",ResourceLevel.ORGANIZATION.value(),InitRoleCode.ORGANIZATION_MEMBER);
+                    .eq(IamRole::getFdLevel, ResourceLevel.ORGANIZATION.value())
+                    .eq(IamRole::getCode, InitRoleCode.ORGANIZATION_MEMBER));
+            if (Objects.isNull(iamRole)) {
+                log.warn("查询组织成员权限失败{},{}", ResourceLevel.ORGANIZATION.value(), InitRoleCode.ORGANIZATION_MEMBER);
                 return errorUsers;
             }
             Set<Long> roleIds = new HashSet<>();
             roleIds.add(iamRole.getId());
-            iamMemberRoleService.grantUserRole(new HashSet<>(insertIds),roleIds,organizationId,ResourceLevel.ORGANIZATION);
+            iamMemberRoleService.grantUserRole(new HashSet<>(insertIds), roleIds, organizationId, ResourceLevel.ORGANIZATION);
         }
 
         return errorUsers;
+    }
+
+    //调用老行云报错，修改
+    private List<OauthLdapErrorUser> operationErrorUser(Long organizationId, Long historyId, List<IamUser> insertUser) {
+        //删除错误的数据
+        insertUser.forEach(v -> {
+            iamUserMapper.deleteById(v.getId());
+            iamUserOrganizationRelMapper.delete(Wrappers.<IamUserOrganizationRel>lambdaQuery()
+                    .eq(IamUserOrganizationRel::getUserId, v.getId())
+                    .eq(IamUserOrganizationRel::getOrganizationId, organizationId));
+        });
+        //错误数据返回
+        return
+                insertUser.stream().map(v -> OauthLdapErrorUser.builder().cause(LdapSyncUserErrorEnum.SYNC_STEAM_USER_ERROR.getMsg())
+                        .email(v.getEmail())
+                        .loginName(v.getLoginName())
+                        .phone(v.getPhone())
+                        .realName(v.getRealName())
+                        .ldapHistoryId(historyId).build()
+                ).collect(Collectors.toList());
     }
 
 
