@@ -43,7 +43,7 @@ public class IamPermissionServiceImpl implements IamPermissionService {
 
     @Override
     public List<IamPermissionDTO> getByCodes(List<String> codes) {
-        if (CollUtil.isNotEmpty(codes)) {
+        if (CollUtil.isEmpty(codes)) {
             return new ArrayList<>();
         }
         LambdaQueryWrapper<IamPermission> queryWrapper = Wrappers.<IamPermission>lambdaQuery().in(IamPermission::getCode, codes);
