@@ -29,7 +29,6 @@ public interface IamRolePermissionService {
      * 清除该权限的所有关联角色
      * @param permissionId 权限编号
      */
-    @NotNull
     void clear(@NotNull Long permissionId);
 
     /**
