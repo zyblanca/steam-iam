@@ -408,7 +408,8 @@ public class LdapServiceImpl implements LdapService {
             roleIds.add(iamRole.getId());
             iamMemberRoleService.grantUserRole(new HashSet<>(insertIds), roleIds, organizationId, ResourceLevel.ORGANIZATION);
         }
-
+        //密码字段需要单独处理
+        iamUserMapper.update(null,Wrappers.<IamUser>lambdaUpdate().set(IamUser::getHashPassword,"ldap users do not have password").in(IamUser::getId,insertIds));
         return errorUsers;
     }
 
@@ -612,7 +613,7 @@ public class LdapServiceImpl implements LdapService {
             iamUser.setPhone(phone);
             iamUser.setRealName(realName);
             iamUser.setTimeZone("CTT");
-
+            iamUser.setHashPassword("ldap users do not have password");
             normalUser.add(iamUser);
         }
         history.setErrorUserCount(history.getErrorUserCount() + errorCount);
