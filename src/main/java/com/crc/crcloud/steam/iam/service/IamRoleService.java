@@ -54,4 +54,12 @@ public interface IamRoleService {
      */
     @NotNull
     List<IamRoleDTO> getRoles(@Nullable Set<Long> ids);
+
+    /**
+     * 获取角色
+     * @param codes 角色编码
+     * @return 角色
+     */
+    @NotNull
+    List<IamRoleDTO> getRolesByCode(@Nullable Set<String> codes);
 }

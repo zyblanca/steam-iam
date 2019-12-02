@@ -69,4 +69,13 @@ public class IamRoleServiceImpl implements IamRoleService {
 		LambdaQueryWrapper<IamRole> queryWrapper = Wrappers.<IamRole>lambdaQuery().in(IamRole::getId, ids);
 		return iamRoleMapper.selectList(queryWrapper).stream().map(t -> ConvertHelper.convert(t, IamRoleDTO.class)).collect(Collectors.toList());
 	}
+
+	@Override
+	public @NotNull List<IamRoleDTO> getRolesByCode(@Nullable Set<String> codes) {
+		if (CollUtil.isEmpty(codes)) {
+			return new ArrayList<>(0);
+		}
+		LambdaQueryWrapper<IamRole> queryWrapper = Wrappers.<IamRole>lambdaQuery().in(IamRole::getCode, codes);
+		return iamRoleMapper.selectList(queryWrapper).stream().map(t -> ConvertHelper.convert(t, IamRoleDTO.class)).collect(Collectors.toList());
+	}
 }
