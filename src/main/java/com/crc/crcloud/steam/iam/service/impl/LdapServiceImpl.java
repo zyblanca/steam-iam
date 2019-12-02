@@ -378,6 +378,8 @@ public class LdapServiceImpl implements LdapService {
                     log.warn("ldap同步数据严重警告===发送插入的数据id与返回的数据id不一致{},返回{}", insertIds, eUser.getId());
                     continue;
                 }
+                eUser.setUuid("--");
+                eUser.setLdapHistoryId(historyId);
                 errorIds.add(eUser.getId());
                 eUser.setId(null);
             }
