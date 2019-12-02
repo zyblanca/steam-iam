@@ -60,6 +60,7 @@ public class ParsePermissionServiceImpl implements ParsePermissionService {
 
     private RestTemplate restTemplate = new RestTemplate();
 
+    @Autowired
     private IamRoleService iamRoleService;
 
     @Value("${choerodon.cleanPermission:false}")
