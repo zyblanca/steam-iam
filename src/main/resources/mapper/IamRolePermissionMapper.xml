@@ -3,27 +3,29 @@
 <mapper namespace="com.crc.crcloud.steam.iam.dao.IamRolePermissionMapper">
 
 
-        <!-- 通用查询映射结果 -->
-        <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamRolePermission">
-                    <id column="id" property="id" />
-                    <result column="role_id" property="roleId" />
-                    <result column="permission_id" property="permissionId" />
-        </resultMap>
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamRolePermission">
+        <id column="id" property="id"/>
+        <result column="role_id" property="roleId"/>
+        <result column="permission_id" property="permissionId"/>
+    </resultMap>
 
 
-        <!-- 通用查询结果列 -->
-        <sql id="Base_Column_List">
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
                      id,
                      role_id,
                      permission_id
         </sql>
 
-    <select id="page" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"/>
-        from iam_role_permission
-
+    <select id="selectErrorLevelPermissionByRole"
+            resultMap="BaseResultMap">
+        SELECT irp.* FROM iam_role ir
+        INNER JOIN iam_role_permission irp ON ir.id = irp.role_id
+        INNER JOIN iam_permission ip ON irp.permission_id = ip.id
+        WHERE ir.id = #{role.id}
+        AND ir.fd_level != ip.fd_level
     </select>
-
 
 
 </mapper>

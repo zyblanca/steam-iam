@@ -3,19 +3,16 @@ package com.crc.crcloud.steam.iam.model.vo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
-import java.lang.Integer;
-import java.lang.Long;
-import java.lang.Byte;
 
 /**
  * @Author:
  * @Date: 2019-11-29
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
@@ -58,11 +55,11 @@ public class IamPermissionVO{
 
 
         @ApiModelProperty("是否公开的权限")
-        private Byte publicAccess;
+        private Boolean publicAccess;
 
 
         @ApiModelProperty("是否需要登录才能访问的权限")
-        private Byte loginAccess;
+        private Boolean loginAccess;
 
 
         @ApiModelProperty("权限所在的服务名称")
@@ -90,7 +87,7 @@ public class IamPermissionVO{
 
 
         @ApiModelProperty("是否为内部接口")
-        private Byte isWithin;
+        private Boolean isWithin;
 
 
 

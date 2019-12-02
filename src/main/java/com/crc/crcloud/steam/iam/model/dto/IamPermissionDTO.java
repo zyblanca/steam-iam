@@ -1,20 +1,16 @@
 package com.crc.crcloud.steam.iam.model.dto;
 
-import java.util.Date;
-import java.lang.Integer;
-import java.lang.Long;
-import java.lang.Byte;
-
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.NoArgsConstructor;
+
+import java.util.Date;
 
 /**
  * @Author:
  * @Date: 2019-11-29
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
@@ -23,7 +19,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 public class IamPermissionDTO {
 
     /**
-    * 
+     *
     */
     private Long id;
 
@@ -65,12 +61,12 @@ public class IamPermissionDTO {
     /**
     * 是否公开的权限
     */
-    private Byte publicAccess;
+    private Boolean publicAccess;
 
     /**
     * 是否需要登录才能访问的权限
     */
-    private Byte loginAccess;
+    private Boolean loginAccess;
 
     /**
     * 权限所在的服务名称
@@ -78,34 +74,50 @@ public class IamPermissionDTO {
     private String serviceName;
 
     /**
-    * 
+     *
     */
     private Long objectVersionNumber;
 
     /**
-    * 
+     *
     */
     private Long createdBy;
 
     /**
-    * 
+     *
     */
     private Date creationDate;
 
     /**
-    * 
+     *
     */
     private Long lastUpdatedBy;
 
     /**
-    * 
+     *
     */
     private Date lastUpdateDate;
 
     /**
     * 是否为内部接口
     */
-    private Byte isWithin;
+    private Boolean isWithin;
 
-
+    @Override
+    public String toString() {
+        return "IamPermissionDTO{" +
+                "id=" + id +
+                ", code='" + code + '\'' +
+                ", path='" + path + '\'' +
+                ", method='" + method + '\'' +
+                ", fdLevel='" + fdLevel + '\'' +
+                ", description='" + description + '\'' +
+                ", action='" + action + '\'' +
+                ", fdResource='" + fdResource + '\'' +
+                ", publicAccess=" + publicAccess +
+                ", loginAccess=" + loginAccess +
+                ", serviceName='" + serviceName + '\'' +
+                ", isWithin=" + isWithin +
+                '}';
+    }
 }

@@ -2,18 +2,16 @@ package com.crc.crcloud.steam.iam.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.Date;
-import java.lang.Integer;
-import java.lang.Long;
-import java.lang.Byte;
 
 /**
  * @Author:
  * @Date: 2019-11-29
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
@@ -23,7 +21,7 @@ import java.lang.Byte;
 public class IamPermission {
 
         /**
-        * 
+        *
         */
         @TableId(type = IdType.AUTO)
         private Long id;
@@ -66,12 +64,12 @@ public class IamPermission {
         /**
         * 是否公开的权限
         */
-        private Byte publicAccess;
+        private Boolean publicAccess;
 
         /**
         * 是否需要登录才能访问的权限
         */
-        private Byte loginAccess;
+        private Boolean loginAccess;
 
         /**
         * 权限所在的服务名称
@@ -79,30 +77,30 @@ public class IamPermission {
         private String serviceName;
 
         /**
-        * 
+        *
         */
         private Long objectVersionNumber;
 
         /**
-        * 
+        *
         */
         @TableField(fill=FieldFill.INSERT)
         private Long createdBy;
 
         /**
-        * 
+        *
         */
         @TableField(fill=FieldFill.INSERT)
         private Date creationDate;
 
         /**
-        * 
+        *
         */
         @TableField(fill=FieldFill.INSERT_UPDATE)
         private Long lastUpdatedBy;
 
         /**
-        * 
+        *
         */
         @TableField(fill=FieldFill.INSERT_UPDATE)
         private Date lastUpdateDate;
@@ -110,7 +108,7 @@ public class IamPermission {
         /**
         * 是否为内部接口
         */
-        private Byte isWithin;
+        private Boolean isWithin;
 
 
 }
