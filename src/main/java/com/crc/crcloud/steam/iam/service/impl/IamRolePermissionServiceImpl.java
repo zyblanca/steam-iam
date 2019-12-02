@@ -68,7 +68,7 @@ public class IamRolePermissionServiceImpl extends ServiceImpl<IamRolePermissionM
     }
 
     @Override
-    public @NotNull void clear(@NotNull Long permissionId) {
+    public void clear(@NotNull Long permissionId) {
         LambdaQueryWrapper<IamRolePermission> queryWrapper = Wrappers.<IamRolePermission>lambdaQuery().eq(IamRolePermission::getPermissionId, permissionId);
         this.iamRolePermissionMapper.delete(queryWrapper);
     }
