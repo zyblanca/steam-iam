@@ -99,4 +99,12 @@ public interface IamUserMapper extends BaseMapper<IamUser> {
      * @return
      */
     int updateLdapUser(@Param("iamUser") IamUser iamUser);
+
+    /**
+     * ldap初始化密码
+     * @param userIds 用户id
+     * @param password 用户密码
+     * @return
+     */
+    int batchUpdateLdapPassword(@Param("userIds") Set<Long> userIds,@Param("password") String password);
 }
