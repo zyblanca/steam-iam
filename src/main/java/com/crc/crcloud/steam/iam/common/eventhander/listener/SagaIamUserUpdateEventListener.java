@@ -53,13 +53,13 @@ public class SagaIamUserUpdateEventListener implements ApplicationListener<IamUs
         try {
             Long fromUserId = Optional.ofNullable(DetailsHelper.getUserDetails()).map(CustomUserDetails::getUserId).orElse(null);
             UserEventPayload payload = UserEventPayload.builder()
-                    .userId(user.getId())
+                    .id(user.getId())
                     .fromUserId(fromUserId)
                     .organizationId(organizationId)
-                    .loginName(user.getLoginName())
+                    .username(user.getLoginName())
                     .email(user.getEmail())
-                    .realName(user.getRealName())
-                    .isLdap(user.getIsLdap())
+                    .name(user.getRealName())
+                    .ldap(user.getIsLdap())
                     .build();
             log.info("{{}:开发送Saga事件[{code:{}},内容：{}]", logTitle, USER_UPDATE, JSONUtil.toJsonStr(payload));
             String input = objectMapper.writeValueAsString(payload);

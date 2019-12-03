@@ -68,13 +68,13 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
             Function<IamUserDTO, UserEventPayload> convertPayload = user -> {
                 final Long organizationId = iamUserOrganizationRelService.getUserOrganizations(user.getId()).stream().findFirst().map(IamUserOrganizationRel::getOrganizationId).orElse(null);
                 return UserEventPayload.builder()
-                        .userId(user.getId())
-                        .realName(user.getRealName())
-                        .loginName(user.getLoginName())
+                        .id(user.getId())
+                        .name(user.getRealName())
+                        .username(user.getLoginName())
                         .email(user.getEmail())
                         .organizationId(organizationId)
                         .fromUserId(fromUserId)
-                        .isLdap(user.getIsLdap())
+                        .ldap(user.getIsLdap())
                         .build();
             };
             List<UserEventPayload> rawPayloads = event.getSource().stream().map(convertPayload).collect(Collectors.toList());
@@ -93,7 +93,7 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
                         builder -> {
                             builder.withPayloadAndSerialize(payloads)
                                     .withRefType("users") // iam-service 中设置为 user
-                                    .withRefId(CollUtil.getFirst(payloads).getUserId().toString());
+                                    .withRefId(CollUtil.getFirst(payloads).getId().toString());
                             return input;
                         });
             }

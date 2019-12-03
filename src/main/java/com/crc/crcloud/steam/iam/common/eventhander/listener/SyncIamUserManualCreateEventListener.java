@@ -1,6 +1,7 @@
 package com.crc.crcloud.steam.iam.common.eventhander.listener;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.crc.crcloud.steam.iam.api.feign.IamServiceClient;
@@ -47,17 +48,20 @@ public class SyncIamUserManualCreateEventListener implements ApplicationListener
             @NotNull IamUserDTO iamUser = userCreateWithPasswordDTO.getUser();
             iamUserService.getHashPassword(iamUser.getId()).ifPresent(iamUser::setHashPassword);
             UserDTO userDTO = new UserDTO();
-            BeanUtil.copyProperties(iamUser, userDTO);
+            BeanUtil.copyProperties(iamUser, userDTO, CopyOptions.create().ignoreNullValue());
             userDTO.setPassword(iamUser.getHashPassword());
+            userDTO.setAdmin(iamUser.getIsAdmin());
             final String logTitle = StrUtil.format("手动创建组织成员[{}]同步到iam-server", iamUser.getLoginName());
             log.info(logTitle);
             Optional<IamOrganizationDTO> firstOrg = organizationService.getUserOrganizations(iamUser.getId()).stream().findFirst();
             if (firstOrg.isPresent()) {
                 try {
+                    userDTO.setOrganizationId(firstOrg.get().getId());
+                    log.info("新用户:{} ; 老用户: {}", JSONUtil.toJsonStr(iamUser), JSONUtil.toJsonStr(userDTO));
                     ResponseEntity<UserDTO> responseEntity = iamServiceClient.syncSteamUser(userDTO);
                     Predicate<ResponseEntity<UserDTO>> isSuccess = t -> t.getStatusCode().is2xxSuccessful();
-                    isSuccess = isSuccess.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleField(UserDTO::getId)));
-                    isSuccess = isSuccess.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleField(UserDTO::getLoginName)));
+                    isSuccess = isSuccess.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleFieldToCamelCase(UserDTO::getId)));
+                    isSuccess = isSuccess.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleFieldToCamelCase(UserDTO::getLoginName)));
                     if (isSuccess.test(responseEntity)) {
                         log.error("{};同步成功: {}", logTitle, JSONUtil.toJsonStr(responseEntity.getBody()));
                     } else {

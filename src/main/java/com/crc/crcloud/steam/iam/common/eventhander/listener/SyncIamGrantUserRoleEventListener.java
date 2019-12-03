@@ -173,7 +173,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
         retryTemplate.setRetryPolicy(new SimpleRetryPolicy());
         //判定接口是否成功
         AtomicReference<Predicate<ResponseEntity<RoleDTO>>> isSuccess = new AtomicReference<>(t -> t.getStatusCode().is2xxSuccessful());
-        isSuccess.getAndUpdate(is -> is.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleField(RoleDTO::getId))));
+        isSuccess.getAndUpdate(is -> is.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleFieldToCamelCase(RoleDTO::getId))));
         for (IamRoleDTO role : roles) {
             RetryCallback<RoleDTO, RuntimeException> retryCallback = retryContext -> {
                 ResponseEntity<RoleDTO> responseEntity = iamServiceClient.queryByCode(role.getCode());
@@ -203,7 +203,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
         //判定接口是否成功
         AtomicReference<Predicate<ResponseEntity<UserDTO>>> isSuccess = new AtomicReference<>(t -> t.getStatusCode().is2xxSuccessful());
         isSuccess.getAndUpdate(is -> is.and(t -> Objects.nonNull(t.getBody())));
-        isSuccess.getAndUpdate(is -> is.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleField(UserDTO::getId))));
+        isSuccess.getAndUpdate(is -> is.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleFieldToCamelCase(UserDTO::getId))));
         RetryCallback<UserDTO, RuntimeException> retryCallback = retryContext -> {
             ResponseEntity<UserDTO> responseEntity = iamServiceClient.queryByLoginName(loginName);
             if (isSuccess.get().negate().test(responseEntity)) {

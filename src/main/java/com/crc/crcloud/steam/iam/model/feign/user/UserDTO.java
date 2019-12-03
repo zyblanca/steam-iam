@@ -31,6 +31,8 @@ public class UserDTO {
     private Boolean isLocked; //连续登录错误次数超出规定次数后是否锁定账户
     private Date    lockedUntilAt;
     private Integer passwordAttempt;
+    private String internationalTelCode;
+    private Boolean admin;
 
     public Long getId() {
         return id;
@@ -177,5 +179,21 @@ public class UserDTO {
 
     public void setLocked(Boolean locked) {
         isLocked = locked;
+    }
+
+    public String getInternationalTelCode() {
+        return internationalTelCode;
+    }
+
+    public void setInternationalTelCode(String internationalTelCode) {
+        this.internationalTelCode = internationalTelCode;
+    }
+
+    public Boolean getAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(Boolean admin) {
+        this.admin = admin;
     }
 }
