@@ -108,8 +108,7 @@ public class IamOrganizationController {
         return ResponseEntity.ok();
     }
 
-    //    @Permission(level = ResourceLevel.SITE, permissionLogin = true)
-    @Permission(permissionPublic = true)
+    @Permission(level = ResourceLevel.SITE, permissionLogin = true)
     @ApiOperation(value = "组织列表(分页)")
     @PostMapping(value = "page")
     public ResponseEntity<IPage<IamOrganizationPageResponseVO>> page(@RequestBody IamOrganizationPageRequestVO vo) {
