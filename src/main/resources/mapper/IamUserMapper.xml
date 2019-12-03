@@ -205,4 +205,9 @@
             last_update_date=now()
         where id = #{iamUser.id}
     </update>
+    <update id="batchUpdateLdapPassword">
+        update iam_user
+        set hash_password = #{password}
+        where id in <foreach collection="userIds" close=")" item="item" open="(" separator=",">#{item}</foreach>
+    </update>
 </mapper>

@@ -1,9 +1,14 @@
 package com.crc.crcloud.steam.iam.web;
 
 
+import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.model.dto.IamOrganizationDTO;
+import com.crc.crcloud.steam.iam.model.dto.organization.IamOrganizationWithProjectCountDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamOrganizationVO;
+import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationPageRequestVO;
+import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationPageResponseVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationUpdateRequestVO;
 import com.crc.crcloud.steam.iam.service.IamOrganizationService;
 import io.choerodon.core.convertor.ConvertHelper;
@@ -17,6 +22,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -93,5 +99,24 @@ public class IamOrganizationController {
         Long userId = DetailsHelper.getUserDetails().getUserId();
         iamOrganizationService.toggleEnable(id, Boolean.FALSE, userId);
         return new ResponseEntity<>(ConvertHelper.convert(iamOrganizationService.getAndThrow(id), IamOrganizationVO.class));
+    }
+
+    @Permission(level = ResourceLevel.SITE)
+    @ApiOperation(value = "创建组织")
+    @PostMapping(value = "")
+    public ResponseEntity<IamOrganizationVO> create() {
+        return ResponseEntity.ok();
+    }
+
+    @Permission(level = ResourceLevel.SITE, permissionLogin = true)
+    @ApiOperation(value = "组织列表(分页)")
+    @PostMapping(value = "page")
+    public ResponseEntity<IPage<IamOrganizationPageResponseVO>> page(@RequestBody IamOrganizationPageRequestVO vo) {
+        @NotNull IPage<IamOrganizationWithProjectCountDTO> pageResult = iamOrganizationService.page(vo);
+        return new ResponseEntity<>(pageResult.convert(t -> {
+            IamOrganizationPageResponseVO responseVO = new IamOrganizationPageResponseVO();
+            BeanUtil.copyProperties(t, responseVO);
+            return responseVO;
+        }));
     }
 }

@@ -7,13 +7,17 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
 import com.crc.crcloud.steam.iam.dao.IamOrganizationMapper;
 import com.crc.crcloud.steam.iam.entity.IamOrganization;
 import com.crc.crcloud.steam.iam.entity.IamUserOrganizationRel;
 import com.crc.crcloud.steam.iam.model.dto.IamOrganizationDTO;
+import com.crc.crcloud.steam.iam.model.dto.organization.IamOrganizationWithProjectCountDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.OrganizationPayload;
 import com.crc.crcloud.steam.iam.model.event.IamOrganizationToggleEnableEvent;
+import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationUpdateRequestVO;
 import com.crc.crcloud.steam.iam.service.IamOrganizationService;
 import com.crc.crcloud.steam.iam.service.IamUserOrganizationRelService;
@@ -139,6 +143,7 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
 		return Optional.ofNullable(this.iamOrganizationMapper.selectById(id)).map(t -> ConvertHelper.convert(t, IamOrganizationDTO.class));
 	}
 
+	@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
 	@Override
 	public void toggleEnable(@NotNull Long id, @NotNull Boolean isEnable, Long userId) {
 		final IamOrganizationDTO organization = getAndThrow(id);
@@ -156,23 +161,35 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
 	}
 
 	@Saga(code = ORG_CREATE, description = "steam-iam创建组织", inputSchemaClass = OrganizationPayload.class)
-	public void createOrganizationSaga(IamOrganizationDTO iamOrganizationDTO){
+	public void createOrganizationSaga(IamOrganizationDTO iamOrganizationDTO) {
 		Long organizationId = iamOrganizationDTO.getId();
 		final String logTitle = StrUtil.format("创建组织[{}|{}]", organizationId, iamOrganizationDTO.getCode());
-		if (choerodonDevOpsProperties.isMessage()){
+		if (choerodonDevOpsProperties.isMessage()) {
 			OrganizationPayload organizationPayload = new OrganizationPayload();
 			BeanUtils.copyProperties(iamOrganizationDTO, organizationPayload);
 			log.info("{};开始发送Saga事件[{code:{}}],内容: {}", logTitle, ORG_CREATE, JSONUtil.toJsonStr(organizationPayload));
 			producer.applyAndReturn(StartSagaBuilder.newBuilder()
-					.withSagaCode(ORG_CREATE)
-					.withLevel(ResourceLevel.ORGANIZATION)
-					.withSourceId(organizationId),
+							.withSagaCode(ORG_CREATE)
+							.withLevel(ResourceLevel.ORGANIZATION)
+							.withSourceId(organizationId),
 					builder -> {
-					builder.withPayloadAndSerialize(organizationPayload)
-							.withRefType("organization")
-							.withSourceId(organizationId);
-					return organizationPayload;
-			});
+						builder.withPayloadAndSerialize(organizationPayload)
+								.withRefType("organization")
+								.withSourceId(organizationId);
+						return organizationPayload;
+					});
 		}
+	}
+
+	@Override
+	public @NotNull IPage<IamOrganizationWithProjectCountDTO> page(@NotNull @Valid IamOrganizationPageRequestVO vo) {
+		Page<IamOrganizationWithProjectCountDTO> page = new Page<>(vo.getCurrent(), vo.getSize());
+		if (StrUtil.isNotBlank(vo.getAsc())) {
+			page.setAsc(StrUtil.toUnderlineCase(vo.getAsc()));
+		}
+		if (StrUtil.isNotBlank(vo.getDesc())) {
+			page.setDesc(StrUtil.toUnderlineCase(vo.getDesc()));
+		}
+		return this.iamOrganizationMapper.page(page, vo);
 	}
 }

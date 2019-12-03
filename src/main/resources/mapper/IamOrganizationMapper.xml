@@ -3,28 +3,31 @@
 <mapper namespace="com.crc.crcloud.steam.iam.dao.IamOrganizationMapper">
 
 
-        <!-- 通用查询映射结果 -->
-        <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamOrganization">
-                    <id column="id" property="id" />
-                    <result column="name" property="name" />
-                    <result column="code" property="code" />
-                    <result column="description" property="description" />
-                    <result column="is_enabled" property="isEnabled" />
-                    <result column="is_register" property="isRegister" />
-                    <result column="user_id" property="userId" />
-                    <result column="address" property="address" />
-                    <result column="image_url" property="imageUrl" />
-                    <result column="scale" property="scale" />
-                    <result column="object_version_number" property="objectVersionNumber" />
-                    <result column="created_by" property="createdBy" />
-                    <result column="creation_date" property="creationDate" />
-                    <result column="last_updated_by" property="lastUpdatedBy" />
-                    <result column="last_update_date" property="lastUpdateDate" />
-        </resultMap>
-
-
-        <!-- 通用查询结果列 -->
-        <sql id="Base_Column_List">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamOrganization">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="description" property="description"/>
+        <result column="is_enabled" property="isEnabled"/>
+        <result column="is_register" property="isRegister"/>
+        <result column="user_id" property="userId"/>
+        <result column="address" property="address"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="scale" property="scale"/>
+        <result column="object_version_number" property="objectVersionNumber"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="creation_date" property="creationDate"/>
+        <result column="last_updated_by" property="lastUpdatedBy"/>
+        <result column="last_update_date" property="lastUpdateDate"/>
+    </resultMap>
+    <resultMap id="IamOrganizationWithProjectCountDTOResultMap"
+               extends="BaseResultMap"
+               type="com.crc.crcloud.steam.iam.model.dto.organization.IamOrganizationWithProjectCountDTO">
+        <result column="project_count" property="projectCount" />
+    </resultMap>
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
                      id,
                      name,
                      code,
@@ -42,12 +45,31 @@
                      last_update_date
         </sql>
 
-    <select id="page" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"/>
-        from iam_organization
-
+    <select id="page" resultMap="IamOrganizationWithProjectCountDTOResultMap">
+       <bind name="enables" value="@cn.hutool.core.collection.CollUtil@removeNull(vo.isEnables)"/>
+        select
+        <include refid="Base_Column_List"/>
+        ,project_count
+        from
+        (
+            select org.*, count(pro.id) as 'project_count'
+            from iam_organization org
+            left join iam_project pro on org.id = pro.organization_id
+            group by org.id
+        ) as org
+        <where>
+            <if test="@cn.hutool.core.util.StrUtil@isNotEmpty(vo.name)">
+                and name like concat('%',#{vo.name},'%')
+            </if>
+            <if test="@cn.hutool.core.util.StrUtil@isNotEmpty(vo.code)">
+                and code like concat('%',#{vo.code},'%')
+            </if>
+            <if test="@cn.hutool.core.collection.CollUtil@isNotEmpty(enables)">
+                and is_enabled in
+                <foreach collection="enables" item="value" separator="," open="(" close=")">${value}</foreach>
+            </if>
+        </where>
     </select>
-
 
 
 </mapper>

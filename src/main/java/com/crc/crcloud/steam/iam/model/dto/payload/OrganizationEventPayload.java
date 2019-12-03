@@ -1,7 +1,7 @@
 package com.crc.crcloud.steam.iam.model.dto.payload;
 
 /**
- * @author wuguokai
+ * @author liuyang
  */
 public class OrganizationEventPayload {
 
