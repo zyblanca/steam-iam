@@ -3,7 +3,6 @@ package com.crc.crcloud.steam.iam.web;
 import cn.hutool.core.map.MapUtil;
 import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
-import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -37,4 +36,6 @@ public class IamConstantController {
         }).collect(Collectors.toList());
         return new ResponseEntity<>(collect);
     }
+
+
 }

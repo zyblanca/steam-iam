@@ -2,7 +2,7 @@ package com.crc.crcloud.steam.iam.model.dto.payload;
 
 
 /**
- * @author superlee
+ * @author liuyang
  */
 public class OrganizationPayload {
 

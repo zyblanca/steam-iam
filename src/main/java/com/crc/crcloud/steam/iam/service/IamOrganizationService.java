@@ -1,9 +1,12 @@
 package com.crc.crcloud.steam.iam.service;
 
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.model.dto.IamOrganizationDTO;
+import com.crc.crcloud.steam.iam.model.dto.organization.IamOrganizationWithProjectCountDTO;
+import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationUpdateRequestVO;
 
 import javax.validation.Valid;
@@ -77,4 +80,12 @@ public interface IamOrganizationService {
      * @param isEnable true:启用组织，false禁用组织
      */
     void toggleEnable(@NotNull Long id, @NotNull Boolean isEnable, Long userId);
+
+    /**
+     * 分页查询
+     * @param vo 查询条件
+     * @return 数据结果
+     */
+    @NotNull
+    IPage<IamOrganizationWithProjectCountDTO> page(@NotNull @Valid IamOrganizationPageRequestVO vo);
 }
