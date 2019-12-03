@@ -13,6 +13,7 @@ import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.LdapConnectionDTO;
 import com.crc.crcloud.steam.iam.model.dto.OauthLdapDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserMatchLdapDTO;
+import com.crc.crcloud.steam.iam.model.event.IamUserLdapBatchCreateEvent;
 import com.crc.crcloud.steam.iam.service.IamMemberRoleService;
 import com.crc.crcloud.steam.iam.service.IamRoleService;
 import com.crc.crcloud.steam.iam.service.LdapService;
@@ -20,6 +21,7 @@ import io.choerodon.core.iam.InitRoleCode;
 import io.choerodon.core.iam.ResourceLevel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ldap.AuthenticationException;
@@ -77,6 +79,9 @@ public class LdapServiceImpl implements LdapService {
     private IamRoleMapper iamRoleMapper;
     @Autowired
     private IamMemberRoleService iamMemberRoleService;
+
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public LdapConnectionDTO validAccount(OauthLdapDTO oauthLdapDTO) {
@@ -408,6 +413,8 @@ public class LdapServiceImpl implements LdapService {
             roleIds.add(iamRole.getId());
             iamMemberRoleService.grantUserRole(new HashSet<>(insertIds), roleIds, organizationId, ResourceLevel.ORGANIZATION);
         }
+        //发起用户创建saga服务
+        applicationEventPublisher.publishEvent(new IamUserLdapBatchCreateEvent(organizationId,insertUser.stream().filter(v->insertIds.contains(v.getId())).collect(Collectors.toList())));
         //密码字段需要单独处理
         iamUserMapper.update(null,Wrappers.<IamUser>lambdaUpdate().set(IamUser::getHashPassword,"ldap users do not have password").in(IamUser::getId,insertIds));
         return errorUsers;
