@@ -68,7 +68,7 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
             Function<IamUserDTO, UserEventPayload> convertPayload = user -> {
                 final Long organizationId = iamUserOrganizationRelService.getUserOrganizations(user.getId()).stream().findFirst().map(IamUserOrganizationRel::getOrganizationId).orElse(null);
                 return UserEventPayload.builder()
-                        .id(user.getId())
+                        .id(user.getId().toString())
                         .name(user.getRealName())
                         .username(user.getLoginName())
                         .email(user.getEmail())

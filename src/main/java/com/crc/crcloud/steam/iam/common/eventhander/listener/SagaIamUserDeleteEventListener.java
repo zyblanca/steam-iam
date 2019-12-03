@@ -50,7 +50,7 @@ public class SagaIamUserDeleteEventListener implements ApplicationListener<IamUs
         final String logTitle = StrUtil.format("用户[{}|{}]", user.getId(), user.getLoginName());
         try {
             UserEventPayload payload = UserEventPayload.builder()
-                    .id(userId)
+                    .id(userId.toString())
                     .fromUserId(fromUserId)
                     .username(user.getLoginName())
                     .organizationId(organizationId)

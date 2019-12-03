@@ -75,7 +75,7 @@ public class SagaIamUserToggleEnableEventListener implements ApplicationListener
         try {
             Long fromUserId = Optional.ofNullable(DetailsHelper.getUserDetails()).map(CustomUserDetails::getUserId).orElse(null);
             UserEventPayload payload = UserEventPayload.builder()
-                    .id(user.getId())
+                    .id(user.getId().toString())
                     .username(user.getLoginName())
                     .organizationId(organizationId)
                     .fromUserId(fromUserId)

@@ -18,7 +18,7 @@ public class UserEventPayload {
     /**
      * 用户 id
      */
-    private Long id;
+    private String id;
     /**
      * 用户名称
      */
