@@ -54,10 +54,11 @@ public class SyncIamUserManualCreateEventListener implements ApplicationListener
             Optional<IamOrganizationDTO> firstOrg = organizationService.getUserOrganizations(iamUser.getId()).stream().findFirst();
             if (firstOrg.isPresent()) {
                 try {
+                    userDTO.setOrganizationId(firstOrg.get().getId());
                     ResponseEntity<UserDTO> responseEntity = iamServiceClient.syncSteamUser(userDTO);
                     Predicate<ResponseEntity<UserDTO>> isSuccess = t -> t.getStatusCode().is2xxSuccessful();
-                    isSuccess = isSuccess.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleField(UserDTO::getId)));
-                    isSuccess = isSuccess.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleField(UserDTO::getLoginName)));
+                    isSuccess = isSuccess.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleFieldToCamelCase(UserDTO::getId)));
+                    isSuccess = isSuccess.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleFieldToCamelCase(UserDTO::getLoginName)));
                     if (isSuccess.test(responseEntity)) {
                         log.error("{};同步成功: {}", logTitle, JSONUtil.toJsonStr(responseEntity.getBody()));
                     } else {
