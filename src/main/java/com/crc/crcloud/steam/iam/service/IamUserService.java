@@ -13,6 +13,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -91,4 +92,12 @@ public interface IamUserService {
      * @return 用户信息
      */
     List<IamUserVO> listUserByIds(List<Long> ids, Boolean onlyEnabled);
+
+    /**
+     * 获取用户的hash密码
+     * <p>用户不存在时 return {@link Optional#empty()}</p>
+     * @param userId 用户ID
+     * @return 如果密码为空串，也返回{@link Optional#empty()}
+     */
+    Optional<String> getHashPassword(@NotNull Long userId);
 }

@@ -1,5 +1,6 @@
 package com.crc.crcloud.steam.iam.common.eventhander.listener;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.crc.crcloud.steam.iam.api.feign.IamServiceClient;
@@ -10,6 +11,7 @@ import com.crc.crcloud.steam.iam.model.dto.user.IamUserCreateWithPasswordDTO;
 import com.crc.crcloud.steam.iam.model.event.IamUserManualCreateEvent;
 import com.crc.crcloud.steam.iam.model.feign.user.UserDTO;
 import com.crc.crcloud.steam.iam.service.IamOrganizationService;
+import com.crc.crcloud.steam.iam.service.IamUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
@@ -32,6 +34,8 @@ public class SyncIamUserManualCreateEventListener implements ApplicationListener
     private IamServiceClient iamServiceClient;
     @Autowired
     private IamOrganizationService organizationService;
+    @Autowired
+    private IamUserService iamUserService;
 
     public SyncIamUserManualCreateEventListener() {
         log.info("已注册手动创建用户事件-同步用户到老行云");
@@ -41,20 +45,19 @@ public class SyncIamUserManualCreateEventListener implements ApplicationListener
     public void onApplicationEvent(IamUserManualCreateEvent event) {
         for (IamUserCreateWithPasswordDTO userCreateWithPasswordDTO : event.getUsers()) {
             @NotNull IamUserDTO iamUser = userCreateWithPasswordDTO.getUser();
-            final String rawPassword = userCreateWithPasswordDTO.getRawPassword();
+            iamUserService.getHashPassword(iamUser.getId()).ifPresent(iamUser::setHashPassword);
             UserDTO userDTO = new UserDTO();
-            userDTO.setLoginName(iamUser.getLoginName());
-            userDTO.setRealName(iamUser.getRealName());
-            userDTO.setEmail(iamUser.getEmail());
-            userDTO.setPassword(rawPassword);
+            BeanUtil.copyProperties(iamUser, userDTO);
+            userDTO.setPassword(iamUser.getHashPassword());
             final String logTitle = StrUtil.format("手动创建组织成员[{}]同步到iam-server", iamUser.getLoginName());
             log.info(logTitle);
             Optional<IamOrganizationDTO> firstOrg = organizationService.getUserOrganizations(iamUser.getId()).stream().findFirst();
             if (firstOrg.isPresent()) {
                 try {
-                    ResponseEntity<UserDTO> responseEntity = iamServiceClient.create(firstOrg.get().getId(), userDTO);
+                    ResponseEntity<UserDTO> responseEntity = iamServiceClient.syncSteamUser(userDTO);
                     Predicate<ResponseEntity<UserDTO>> isSuccess = t -> t.getStatusCode().is2xxSuccessful();
                     isSuccess = isSuccess.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleField(UserDTO::getId)));
+                    isSuccess = isSuccess.and(t -> JSONUtil.parseObj(t.getBody()).containsKey(EntityUtil.getSimpleField(UserDTO::getLoginName)));
                     if (isSuccess.test(responseEntity)) {
                         log.error("{};同步成功: {}", logTitle, JSONUtil.toJsonStr(responseEntity.getBody()));
                     } else {

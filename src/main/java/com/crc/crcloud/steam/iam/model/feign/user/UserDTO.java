@@ -2,6 +2,7 @@ package com.crc.crcloud.steam.iam.model.feign.user;
 
 
 import java.util.Date;
+import java.util.Optional;
 
 /**
  * @author tankang3
@@ -21,6 +22,8 @@ public class UserDTO {
     private String  profilePhoto;
     private Boolean isEnabled;
     private Boolean isLdap;
+    private Boolean enabled;
+    private Boolean ldap;
     private String  language;
     private String  timeZone;
     private Date    lastPasswordUpdatedAt;
@@ -102,12 +105,14 @@ public class UserDTO {
     }
 
     public Boolean getLdap() {
-        return isLdap;
+        return Optional.ofNullable(isLdap).orElse(ldap);
     }
 
     public void setLdap(Boolean ldap) {
         isLdap = ldap;
+        this.ldap = ldap;
     }
+
 
     public String getLanguage() {
         return language;
@@ -158,11 +163,12 @@ public class UserDTO {
     }
 
     public Boolean getEnabled() {
-        return isEnabled;
+        return Optional.ofNullable(isEnabled).orElse(enabled);
     }
 
     public void setEnabled(Boolean enabled) {
         isEnabled = enabled;
+        this.enabled = enabled;
     }
 
     public Boolean getLocked() {
