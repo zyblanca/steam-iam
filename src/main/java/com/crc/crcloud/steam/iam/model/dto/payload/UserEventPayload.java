@@ -18,15 +18,15 @@ public class UserEventPayload {
     /**
      * 用户 id
      */
-    private Long userId;
+    private Long id;
     /**
      * 用户名称
      */
-    private String realName;
+    private String name;
     /**
      * 用户登录名称
      */
-    private String loginName;
+    private String username;
     /**
      * 邮箱
      */
@@ -42,5 +42,5 @@ public class UserEventPayload {
     /**
      * 是否是 ldap 用户
      */
-    private Boolean isLdap;
+    private Boolean ldap;
 }
