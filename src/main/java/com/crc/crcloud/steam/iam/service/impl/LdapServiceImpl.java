@@ -342,8 +342,10 @@ public class LdapServiceImpl implements LdapService {
 
     //修改用户
     private void updateLdapUser(List<IamUser> updateUser) {
-        if (CollectionUtils.isEmpty(updateUser)) return;
-        updateUser.forEach(v -> iamUserMapper.updateLdapUser(v));
+        //TODO 当前版本不做ldap人员修改功能
+        //后续看情况修改
+//        if (CollectionUtils.isEmpty(updateUser)) return;
+//        updateUser.forEach(v -> iamUserMapper.updateLdapUser(v));
 
     }
 
@@ -416,7 +418,7 @@ public class LdapServiceImpl implements LdapService {
         //发起用户创建saga服务
         applicationEventPublisher.publishEvent(new IamUserLdapBatchCreateEvent(organizationId,insertUser.stream().filter(v->insertIds.contains(v.getId())).collect(Collectors.toList())));
         //密码字段需要单独处理
-        iamUserMapper.update(null,Wrappers.<IamUser>lambdaUpdate().set(IamUser::getHashPassword,"ldap users do not have password").in(IamUser::getId,insertIds));
+        iamUserMapper.batchUpdateLdapPassword(insertIds,"ldap users do not have password");
         return errorUsers;
     }
 
