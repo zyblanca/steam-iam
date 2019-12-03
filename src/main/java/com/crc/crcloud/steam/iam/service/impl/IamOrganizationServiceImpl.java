@@ -25,6 +25,7 @@ import io.choerodon.core.convertor.ConvertHelper;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.core.oauth.DetailsHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -39,6 +40,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.Organization.ORG_CREATE;
 import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.Organization.ORG_UPDATE;
 
 /**
@@ -151,5 +153,26 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
 		this.iamOrganizationMapper.updateById(iamOrganization);
 		BeanUtil.copyProperties(iamOrganization, organization, CopyOptions.create().ignoreNullValue());
 		ApplicationContextHelper.getContext().publishEvent(new IamOrganizationToggleEnableEvent(organization, userId));
+	}
+
+	@Saga(code = ORG_CREATE, description = "steam-iam创建组织", inputSchemaClass = OrganizationPayload.class)
+	public void createOrganizationSaga(IamOrganizationDTO iamOrganizationDTO){
+		Long organizationId = iamOrganizationDTO.getId();
+		final String logTitle = StrUtil.format("创建组织[{}|{}]", organizationId, iamOrganizationDTO.getCode());
+		if (choerodonDevOpsProperties.isMessage()){
+			OrganizationPayload organizationPayload = new OrganizationPayload();
+			BeanUtils.copyProperties(iamOrganizationDTO, organizationPayload);
+			log.info("{};开始发送Saga事件[{code:{}}],内容: {}", logTitle, ORG_CREATE, JSONUtil.toJsonStr(organizationPayload));
+			producer.applyAndReturn(StartSagaBuilder.newBuilder()
+					.withSagaCode(ORG_CREATE)
+					.withLevel(ResourceLevel.ORGANIZATION)
+					.withSourceId(organizationId),
+					builder -> {
+					builder.withPayloadAndSerialize(organizationPayload)
+							.withRefType("organization")
+							.withSourceId(organizationId);
+					return organizationPayload;
+			});
+		}
 	}
 }

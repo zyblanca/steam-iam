@@ -3,7 +3,6 @@ package com.crc.crcloud.steam.iam.api.feign.callback;
 import com.crc.crcloud.steam.iam.api.feign.IamServiceClient;
 import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.entity.OauthLdapErrorUser;
-import com.crc.crcloud.steam.iam.model.dto.OauthLdapErrorUserDTO;
 import com.crc.crcloud.steam.iam.model.feign.role.MemberRoleDTO;
 import com.crc.crcloud.steam.iam.model.feign.role.RoleDTO;
 import com.crc.crcloud.steam.iam.model.feign.user.UserDTO;
@@ -59,6 +58,11 @@ public class IamServiceClientFallback implements IamServiceClient {
 
     @Override
     public ResponseEntity<List<OauthLdapErrorUser>> syncSteamUser(Long organizationId, List<IamUser> users) {
+        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<UserDTO> syncSteamUser(UserDTO userDTO) {
         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

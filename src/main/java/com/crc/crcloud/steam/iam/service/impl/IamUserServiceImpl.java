@@ -16,7 +16,6 @@ import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
-import com.crc.crcloud.steam.iam.dao.IamMemberRoleMapper;
 import com.crc.crcloud.steam.iam.dao.IamProjectMapper;
 import com.crc.crcloud.steam.iam.dao.IamRoleMapper;
 import com.crc.crcloud.steam.iam.dao.IamUserMapper;
@@ -311,5 +310,9 @@ public class IamUserServiceImpl implements IamUserService {
         return iamProject;
     }
 
-
+    @Override
+    public Optional<String> getHashPassword(@NotNull Long userId) {
+        String hashPassword = iamUserMapper.getHashPassword(userId);
+        return Optional.ofNullable(hashPassword).filter(StrUtil::isNotBlank);
+    }
 }

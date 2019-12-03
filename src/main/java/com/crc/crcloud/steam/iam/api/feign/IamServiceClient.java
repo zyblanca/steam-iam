@@ -11,7 +11,6 @@ import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.core.validator.ValidList;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.LdapDataEntry;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -28,6 +27,7 @@ import java.util.List;
 @FeignClient(value = "iam-service", fallback = IamServiceClientFallback.class)
 public interface IamServiceClient {
 
+    @Deprecated
     @ApiOperation(value = "创建用户")
     @PostMapping("/v1/organizations/{organization_id}/users")
     ResponseEntity<UserDTO> create(@PathVariable(name = "organization_id") Long organizationId,
@@ -84,8 +84,23 @@ public interface IamServiceClient {
     @GetMapping(value = "/v1/users")
     ResponseEntity<UserDTO> queryByLoginName(@RequestParam(name = "login_name") String loginName);
 
-    //同步steam中ldap新增用户
+    /**
+     * 同步steam中ldap新增用户
+     * @param organizationId 组织编号
+     * @param users 用户
+     * @return
+     */
     @PostMapping("/v1/organizations/{organization_id}/ldaps/sync_steam_users")
     ResponseEntity<List<OauthLdapErrorUser>> syncSteamUser(@PathVariable("organization_id") Long organizationId,
                                                      @RequestBody List<IamUser> users);
+
+    /**
+     * steam-iam同步用户，用户ID一致
+     * @param userDTO 用户数据，需要携带ID
+     * @return 返回插入数据
+     */
+    @Permission(permissionWithin = true)
+    @ApiOperation(value = "steam-iam同步用户，用户ID一致")
+    @PostMapping("/v1/users/sync_steam_user")
+    ResponseEntity<UserDTO> syncSteamUser(@RequestBody UserDTO userDTO);
 }
