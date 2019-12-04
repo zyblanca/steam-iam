@@ -42,9 +42,9 @@ public class SagaDevopsServiceApplicationListener {
     @Autowired
     private IamApplicationExplorationMapper applicationExplorationMapper;
 
-    @SagaTask(code = IAM_SYNC_APP, description = "iam接受devops-service同步application集合事件",
+    /*@SagaTask(code = IAM_SYNC_APP, description = "iam接受devops-service同步application集合事件",
             sagaCode = APP_SYNC,
-            seq = 1)
+            seq = 1)*/
     public void syncApplications(String data) throws IOException {
 
         List<IamApplication> applications = objectMapper.readValue(data, new TypeReference<List<IamApplication>>() {
