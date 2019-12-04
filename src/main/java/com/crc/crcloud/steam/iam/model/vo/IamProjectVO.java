@@ -1,12 +1,14 @@
 package com.crc.crcloud.steam.iam.model.vo;
 
-import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.util.Date;
 
 /**
@@ -26,10 +28,16 @@ public class IamProjectVO {
 
 
     @ApiModelProperty("项目名")
+    @NotEmpty(message = "project.name.empty")
+    @Size(max = 40, min = 1, message = "project.name.size")
+    @Pattern(regexp = "^[-—\\.\\w\\s\\u4e00-\\u9fa5]{1,40}$", message = "project.name.pattern")
     private String name;
 
 
     @ApiModelProperty("项目编码")
+    @NotEmpty(message = "project.code.name")
+    @Size(min = 1, max = 40, message = "project.code.size")
+    @Pattern(regexp = "^[-—\\.\\w\\s\\u4e00-\\u9fa5]{1,40}$", message = "project.code.pattern")
     private String code;
 
 
@@ -74,6 +82,7 @@ public class IamProjectVO {
 
 
     @ApiModelProperty("项目类别：agile(敏捷项目),program(普通项目组),analytical(分析型项目群)")
+    @NotEmpty(message = "project.category.empty")
     private String category;
 
 

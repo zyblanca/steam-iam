@@ -15,13 +15,13 @@ public interface IamProjectService {
 
 
     /**
-     * 新增
+     * 新增项目
      *
-     * @param projectId  项目ID
-     * @param iamProject
+     * @param organizationId  组织id
+     * @param iamProject 项目信息
      * @return
      */
-    IamProjectVO insert(Long projectId, IamProjectVO iamProject);
+    IamProjectVO insert(Long organizationId, IamProjectVO iamProject);
 
     /**
      * 删除

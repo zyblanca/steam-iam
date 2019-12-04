@@ -19,4 +19,6 @@ public interface IamRoleMapper extends BaseMapper<IamRole> {
 
     @NotNull
     List<IamRole> getUserRoles(@Param("userId") Long userId, @NotEmpty @Param("levels") Set<String> levels);
+
+    List<IamRole> selectRolesByLabelNameAndType(@Param("name") String name, @Param("type") String type);
 }
