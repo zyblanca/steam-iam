@@ -15,6 +15,7 @@ import com.crc.crcloud.steam.iam.service.IamMemberRoleService;
 import com.crc.crcloud.steam.iam.service.IamRoleService;
 import com.crc.crcloud.steam.iam.service.IamUserOrganizationRelService;
 import com.crc.crcloud.steam.iam.service.IamUserService;
+import io.choerodon.core.iam.InitRoleCode;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
@@ -49,8 +50,7 @@ public class OrganizationUserController {
     private IamUserOrganizationRelService userOrganizationRelService;
 
 
-    // @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR, InitRoleCode.ORGANIZATION_MEMBER})
-    @Permission(permissionLogin = true)
+    @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR, InitRoleCode.ORGANIZATION_MEMBER})
     @ApiOperation(value = "组织成员列表", notes = "分页", response = IamOrganizationUserPageResponseVO.class)
     @PostMapping("page")
     public ResponseEntity<IPage<IamOrganizationUserPageResponseVO>> page(@PathVariable("organization_id") Long organizationId
@@ -80,8 +80,7 @@ public class OrganizationUserController {
         return new ResponseEntity<>(pageResult.convert(convert));
     }
 
-    // @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
-    @Permission(permissionLogin = true)
+    @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
     @ApiOperation(value = "手动创建组织成员")
     @PostMapping
     public ResponseEntity<IamUserSafeVO> createUser(@PathVariable("organization_id") Long organizationId,
@@ -91,8 +90,7 @@ public class OrganizationUserController {
     }
 
     @ApiOperation("获取所有组织成员")
-    // @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
-    @Permission(permissionLogin = true)
+    @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
     @GetMapping
     public ResponseEntity<List<IamUserSafeVO>> list(@PathVariable("organization_id") Long organizationId) {
         IamOrganizationUserPageRequestVO pageRequestVO = IamOrganizationUserPageRequestVO.builder().pageSize(999).build();
@@ -108,8 +106,7 @@ public class OrganizationUserController {
         return new ResponseEntity<>(orgUsers);
     }
 
-    //  @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
-    @Permission(permissionLogin = true)
+    @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
     @ApiOperation("给用户授权角色")
     @PutMapping("grant/role")
     public ResponseEntity grantUserRole(@PathVariable("organization_id") Long organizationId, @RequestBody @Valid GrantUserRoleRequestVO vo) {
@@ -118,8 +115,7 @@ public class OrganizationUserController {
     }
 
     @ApiOperation(value = "用户关联角色下拉框", notes = "获取组织下没有关联过该角色的用户")
-    // @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
-    @Permission(permissionLogin = true)
+    @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
     @GetMapping("role/{role_id}/negate")
     public ResponseEntity<List<IamUserSafeVO>> negateMemberByRole(@PathVariable("organization_id") Long organizationId
             , @PathVariable("role_id") @Min(1) @NotNull Long roleId) {

@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/v1/constant")
 public class IamConstantController {
 
-//    @Permission(level = ResourceLevel.SITE)
     @Permission(permissionLogin = true)
     @ApiOperation("获取用户来源列表-静态列表")
     @GetMapping("/user/origin")
