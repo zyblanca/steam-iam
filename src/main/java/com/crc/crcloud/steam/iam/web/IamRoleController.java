@@ -35,7 +35,7 @@ public class IamRoleController {
     private IamRoleService iamRoleService;
 
     @Permission(level = ResourceLevel.ORGANIZATION)
-    @ApiOperation("获取组织权限列表")
+    @ApiOperation("获取组织角色列表")
     @GetMapping("organization")
     public ResponseEntity<List<IamRoleVO>> getOrganizationRoles() {
         @NotNull List<IamRoleDTO> rolesByOrganization = iamRoleService.getRolesByOrganization();

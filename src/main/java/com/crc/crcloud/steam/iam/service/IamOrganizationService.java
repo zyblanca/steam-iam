@@ -6,6 +6,7 @@ import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.model.dto.IamOrganizationDTO;
 import com.crc.crcloud.steam.iam.model.dto.organization.IamOrganizationWithProjectCountDTO;
+import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationCreateRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationUpdateRequestVO;
 
@@ -88,4 +89,11 @@ public interface IamOrganizationService {
      */
     @NotNull
     IPage<IamOrganizationWithProjectCountDTO> page(@NotNull @Valid IamOrganizationPageRequestVO vo);
+
+    /**
+     * 创建组织
+     * @param vo
+     * @return
+     */
+    IamOrganizationDTO create(@NotNull @Valid IamOrganizationCreateRequestVO vo);
 }

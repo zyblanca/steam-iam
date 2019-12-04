@@ -1,15 +1,20 @@
 package com.crc.crcloud.steam.iam.service.impl;
 
 
+import cn.hutool.core.bean.BeanDesc;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
+import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
+import com.crc.crcloud.steam.iam.common.utils.UserDetail;
 import com.crc.crcloud.steam.iam.dao.IamOrganizationMapper;
 import com.crc.crcloud.steam.iam.entity.IamOrganization;
 import com.crc.crcloud.steam.iam.entity.IamUserOrganizationRel;
@@ -17,6 +22,7 @@ import com.crc.crcloud.steam.iam.model.dto.IamOrganizationDTO;
 import com.crc.crcloud.steam.iam.model.dto.organization.IamOrganizationWithProjectCountDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.OrganizationPayload;
 import com.crc.crcloud.steam.iam.model.event.IamOrganizationToggleEnableEvent;
+import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationCreateRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationUpdateRequestVO;
 import com.crc.crcloud.steam.iam.service.IamOrganizationService;
@@ -42,6 +48,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.Organization.ORG_CREATE;
@@ -191,5 +198,53 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
 			page.setDesc(StrUtil.toUnderlineCase(vo.getDesc()));
 		}
 		return this.iamOrganizationMapper.page(page, vo);
+	}
+
+	@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
+	@Override
+	public IamOrganizationDTO create(@NotNull @Valid IamOrganizationCreateRequestVO vo) {
+		//只能以字母和数字开头，且长度不能少于2，内容可以包含字母数字.-
+		Predicate<String> matchCode = code -> ReUtil.isMatch("^[a-z][a-z0-9-]+$", code);
+		//不能以"-结尾"
+		matchCode = matchCode.and(code -> !StrUtil.endWithAny(code, "-"));
+		//不能连续出现两个"-"
+		matchCode = matchCode.and(code -> !StrUtil.containsAny(code, "--"));
+		if (matchCode.negate().test(vo.getCode())) {
+			throw new IamAppCommException("organization.code.illegal");
+		}
+		if (this.iamOrganizationMapper.selectCount(Wrappers.<IamOrganization>lambdaQuery().eq(IamOrganization::getCode, vo.getCode())) > 0) {
+			throw new IamAppCommException("organization.code.exist");
+		}
+		IamOrganization entity = new IamOrganization();
+		initOrganization(entity);
+		entity.setCode(vo.getCode());
+		entity.setImageUrl(vo.getImageUrl());
+		entity.setName(vo.getName());
+		this.iamOrganizationMapper.insert(entity);
+		IamOrganizationDTO iamOrganizationDTO = ConvertHelper.convert(entity, IamOrganizationDTO.class);
+		createOrganizationSaga(iamOrganizationDTO);
+		return iamOrganizationDTO;
+	}
+
+	/**
+	 * 初始化参数
+	 * <p>当必要参数不存在时，填充数据</p>
+	 * @param entity 组织数据
+	 */
+	public void initOrganization(IamOrganization entity) {
+		IamOrganization init = IamOrganization.builder()
+				.isEnabled(Boolean.TRUE)
+				.isRegister(Boolean.FALSE)
+				.userId(UserDetail.getUserId())
+				.build();
+		Map<String, Object> initField = BeanUtil.beanToMap(init, false, true);
+		BeanDesc beanDesc = BeanUtil.getBeanDesc(IamOrganization.class);
+		initField.forEach((k, v) -> {
+			BeanDesc.PropDesc prop = beanDesc.getProp(k);
+			Object value = prop.getValue(entity);
+			if (Objects.isNull(value)) {
+				prop.setValue(entity, v);
+			}
+		});
 	}
 }

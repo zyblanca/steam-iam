@@ -15,13 +15,13 @@ public interface IamProjectService {
 
 
     /**
-     * 新增
+     * 新增项目
      *
-     * @param projectId  项目ID
-     * @param iamProject
+     * @param organizationId  组织id
+     * @param iamProject 项目信息
      * @return
      */
-    IamProjectVO insert(Long projectId, IamProjectVO iamProject);
+    IamProjectVO insert(Long organizationId, IamProjectVO iamProject);
 
     /**
      * 删除
@@ -34,20 +34,18 @@ public interface IamProjectService {
     /**
      * 更新
      *
-     * @param projectId  项目ID
      * @param iamProject
      * @return
      */
-    IamProjectVO update(Long projectId, IamProjectVO iamProject);
+    IamProjectVO update(IamProjectVO iamProject);
 
     /**
      * 查询单个详情
      *
      * @param projectId 项目ID
-     * @param id
      * @return
      */
-    IamProjectVO queryOne(Long projectId, Long id);
+    IamProjectVO queryOne(Long projectId);
 
     /**
      * 分页查询

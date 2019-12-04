@@ -3,27 +3,27 @@
 <mapper namespace="com.crc.crcloud.steam.iam.dao.IamProjectMapper">
 
 
-        <!-- 通用查询映射结果 -->
-        <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamProject">
-                    <id column="id" property="id" />
-                    <result column="name" property="name" />
-                    <result column="code" property="code" />
-                    <result column="description" property="description" />
-                    <result column="organization_id" property="organizationId" />
-                    <result column="is_enabled" property="isEnabled" />
-                    <result column="image_url" property="imageUrl" />
-                    <result column="object_version_number" property="objectVersionNumber" />
-                    <result column="created_by" property="createdBy" />
-                    <result column="creation_date" property="creationDate" />
-                    <result column="last_updated_by" property="lastUpdatedBy" />
-                    <result column="last_update_date" property="lastUpdateDate" />
-                    <result column="type" property="type" />
-                    <result column="category" property="category" />
-        </resultMap>
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamProject">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="description" property="description"/>
+        <result column="organization_id" property="organizationId"/>
+        <result column="is_enabled" property="isEnabled"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="object_version_number" property="objectVersionNumber"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="creation_date" property="creationDate"/>
+        <result column="last_updated_by" property="lastUpdatedBy"/>
+        <result column="last_update_date" property="lastUpdateDate"/>
+        <result column="type" property="type"/>
+        <result column="category" property="category"/>
+    </resultMap>
 
 
-        <!-- 通用查询结果列 -->
-        <sql id="Base_Column_List">
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
                      id,
                      name,
                      code,
@@ -39,13 +39,24 @@
                      type,
                      category
         </sql>
+    <update id="updateBySql">
+        update iam_project
+        set name = #{project.name},
+            description=#{project.description},
+            image_url=#{project.imageUrl},
+            last_updated_by=#{project.lastUpdatedBy},
+            last_update_date=#{project.lastUpdateDate},
+            type=#{project.type},
+            category=#{project.category}
+         where id = #{project.id}
+    </update>
 
     <select id="page" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"/>
+        select
+        <include refid="Base_Column_List"/>
         from iam_project
 
     </select>
-
 
 
 </mapper>

@@ -17,4 +17,11 @@ public interface IamProjectMapper extends BaseMapper<IamProject> {
 
     IPage<IamProject> page(Page page, @Param("iamProject") IamProjectDTO iamProjectDTO);
 
+    /**
+     * 修改项目信息
+     * 当前code和organization字段不修改
+     * @param   project 项目信息
+     * @return
+     */
+    int updateBySql(@Param("project") IamProjectDTO project);
 }

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 
-<mapper namespace="com.crc.crcloud.steam.iam.dao.ApplicationMapper">
-    <resultMap id="Application" type="com.crc.crcloud.steam.iam.entity.Application">
+<mapper namespace="com.crc.crcloud.steam.iam.dao.IamApplicationMapper">
+    <resultMap id="IamApplication" type="com.crc.crcloud.steam.iam.entity.IamApplication">
         <id column="id" property="id"></id>
         <result column="organization_id" property="organizationId"/>
         <result column="project_id" property="projectId"/>
@@ -19,7 +19,7 @@
     </resultMap>
 
     <!-- iam-service(fp_project) ——> steam-iam(iam_project) -->
-    <select id="fuzzyQuery" resultMap="Application">
+    <select id="fuzzyQuery" resultMap="IamApplication">
         SELECT
           ia.*,
           fp.name as project_name,
@@ -61,7 +61,7 @@
         </if>
     </select>
 
-    <select id="matchId" resultMap="Application">
+    <select id="matchId" resultMap="IamApplication">
         SELECT *
         FROM iam_application
         WHERE id IN
