@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -31,6 +32,11 @@ public class IamOrganizationPageResponseVO {
     @ApiModelProperty("项目数量")
     private Integer projectCount;
 
-    @ApiModelProperty("是否启用。1启用，0未启用")
+    @NotNull
+    @ApiModelProperty("是否启用")
     private Boolean isEnabled;
+
+    @Nullable
+    @ApiModelProperty("组织图标URL")
+    private String imageUrl;
 }

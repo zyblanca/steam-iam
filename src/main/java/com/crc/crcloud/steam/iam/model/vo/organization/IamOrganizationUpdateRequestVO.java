@@ -24,7 +24,7 @@ public class IamOrganizationUpdateRequestVO {
 
     @ApiModelProperty(value = "组织名/必填")
     @NotEmpty(message = "error.organization.name.empty")
-    @Size(min = 1, max = 32, message = "error.organization.name.size")
+    @Size(min = 1, max = 30, message = "error.organization.name.size")
     private String name;
 
     @ApiModelProperty(value = "乐观锁版本号")

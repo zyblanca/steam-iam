@@ -2,11 +2,19 @@ package com.crc.crcloud.steam.iam.web;
 
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.NumberUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.crc.crcloud.steam.iam.api.feign.FileFeignClient;
+import com.crc.crcloud.steam.iam.common.constant.IamConstant;
+import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.model.dto.IamOrganizationDTO;
 import com.crc.crcloud.steam.iam.model.dto.organization.IamOrganizationWithProjectCountDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamOrganizationVO;
+import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationCreateRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationPageResponseVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationUpdateRequestVO;
@@ -17,12 +25,16 @@ import io.choerodon.core.oauth.DetailsHelper;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -39,10 +51,13 @@ import java.util.function.BiFunction;
 @Api("")
 @RestController
 @RequestMapping(value = "/v1/organizations")
+@Slf4j
 public class IamOrganizationController {
 
     @Autowired
     private IamOrganizationService iamOrganizationService;
+    @Autowired
+    private FileFeignClient fileFeignClient;
 
     /**
      * 修改组织信息
@@ -102,13 +117,33 @@ public class IamOrganizationController {
     }
 
     @Permission(level = ResourceLevel.SITE)
-    @ApiOperation(value = "创建组织")
-    @PostMapping(value = "")
-    public ResponseEntity<IamOrganizationVO> create() {
-        return ResponseEntity.ok();
+    @ApiOperation(value = "上传组织图标")
+    @PostMapping(value = "upload/image")
+    public ResponseEntity<String> uploadOrganizationImageUrl(@RequestParam(value = "file") @NotNull MultipartFile file) {
+        BigDecimal mb = NumberUtil.div(BigDecimal.valueOf(file.getSize()), BigDecimal.valueOf(1024 * 1024), 2, RoundingMode.HALF_UP);
+        log.info("需要上传组织图标: {} size:{}/m|{}/bytes", file.getOriginalFilename(), mb.toPlainString(), file.getSize());
+        if (NumberUtil.isGreater(mb, BigDecimal.ONE)) {
+            throw new IamAppCommException("organization.image.file.size");
+        }
+        final String extName = FileUtil.extName(file.getOriginalFilename());
+        boolean matchExtName = CollUtil.newHashSet("jpg", "jpeg", "png").stream().anyMatch(supportExtName -> supportExtName.equalsIgnoreCase(extName));
+        if (!matchExtName) {
+            throw new IamAppCommException("organization.image.file.illegal");
+        }
+        String imageUrl = fileFeignClient.uploadFile(IamConstant.BUCKET_NAME, IdWorker.getIdStr() + "." + extName, file).getBody();
+        log.info("upload file imageUrl: {}", imageUrl);
+        return new ResponseEntity<>(imageUrl);
     }
 
-    @Permission(level = ResourceLevel.SITE, permissionLogin = true)
+    @Permission(level = ResourceLevel.SITE)
+    @ApiOperation(value = "创建组织")
+    @PostMapping(value = "")
+    public ResponseEntity<IamOrganizationVO> create(@RequestBody @Valid IamOrganizationCreateRequestVO vo) {
+        IamOrganizationDTO organization = iamOrganizationService.create(vo);
+        return new ResponseEntity<>(ConvertHelper.convert(organization, IamOrganizationVO.class));
+    }
+
+    @Permission(level = ResourceLevel.SITE)
     @ApiOperation(value = "组织列表(分页)")
     @PostMapping(value = "page")
     public ResponseEntity<IPage<IamOrganizationPageResponseVO>> page(@RequestBody IamOrganizationPageRequestVO vo) {
