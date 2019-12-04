@@ -1,8 +1,8 @@
 package com.crc.crcloud.steam.iam.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.crc.crcloud.steam.iam.dao.ApplicationMapper;
-import com.crc.crcloud.steam.iam.entity.Application;
+import com.crc.crcloud.steam.iam.dao.IamApplicationMapper;
+import com.crc.crcloud.steam.iam.entity.IamApplication;
 import com.crc.crcloud.steam.iam.model.dto.payload.ApplicationPayload;
 import com.crc.crcloud.steam.iam.service.SteamCiApplicationService;
 import io.choerodon.core.exception.CommonException;
@@ -19,12 +19,12 @@ public class SteamCiApplicationServiceImpl implements SteamCiApplicationService 
     private static final Integer APPLICATION_ENABLE = 1;
 
     @Autowired
-    private ApplicationMapper applicationMapper;
+    private IamApplicationMapper applicationMapper;
 
     @Override
     public void processName(ApplicationPayload payload) {
-        Application rawApplication = convert2Application(payload);
-        Application legacyApplication = applicationMapper.selectOne(new QueryWrapper(rawApplication));
+        IamApplication rawApplication = convert2Application(payload);
+        IamApplication legacyApplication = applicationMapper.selectOne(new QueryWrapper(rawApplication));
         if (Objects.isNull(legacyApplication)) {
             throw new CommonException(String.format("找不到应用, applicationCode=%s, projectId=%d", payload.getApplicationCode(), payload.getSteamProjectId()));
         }
@@ -34,8 +34,8 @@ public class SteamCiApplicationServiceImpl implements SteamCiApplicationService 
 
     @Override
     public void processStatus(ApplicationPayload payload) {
-        Application raeApplication = convert2Application(payload);
-        Application legacyApplication = applicationMapper.selectOne(new QueryWrapper<>(raeApplication));
+        IamApplication raeApplication = convert2Application(payload);
+        IamApplication legacyApplication = applicationMapper.selectOne(new QueryWrapper<>(raeApplication));
         if (Objects.isNull(legacyApplication)) {
             throw new CommonException(String.format("找不到应用, applicationCode=%s, projectId=%d", payload.getApplicationCode(), payload.getSteamProjectId()));
         }
@@ -44,8 +44,8 @@ public class SteamCiApplicationServiceImpl implements SteamCiApplicationService 
         applicationMapper.updateApplicationEnabled(legacyApplication.getId(), payload.getStatus().intValue());
     }
 
-    private Application convert2Application(ApplicationPayload payload){
-        return Application.builder()
+    private IamApplication convert2Application(ApplicationPayload payload){
+        return IamApplication.builder()
                 .projectId(payload.getSteamProjectId())
                 .code(payload.getApplicationCode())
                 .build();
