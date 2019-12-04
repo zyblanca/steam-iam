@@ -16,53 +16,66 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@TableName("iam_application")
-public class Application {
+@TableName("iam_application_exploration")
+public class IamApplicationExploration {
+//    @Id
+//    @GeneratedValue
     @TableId
     private Long id;
-
-    private Long organizationId;
-
-    private Long projectId;
-
-    private String name;
-
-    private String code;
-
+    private Long applicationId;
+    private String path;
+    private Long rootId;
+    private Long parentId;
+    private String hashcode;
 //    @Column(name = "is_enabled")
     @TableField("is_enabled")
     private Boolean enabled;
 
+//    @Transient
+    @TableField(exist = false)
+    private String applicationName;
+//    @Transient
+    @TableField(exist = false)
+    private String applicationCode;
+//    @Transient
+    @TableField(exist = false)
     private String applicationCategory;
-
+//    @Transient
+    @TableField(exist = false)
     private String applicationType;
-
 //    @Transient
     @TableField(exist = false)
-    private Integer appCount;
+    private Boolean applicationEnabled;
 //    @Transient
     @TableField(exist = false)
-    private String projectName;
+    private Long projectId;
 //    @Transient
     @TableField(exist = false)
     private String projectCode;
 //    @Transient
     @TableField(exist = false)
-    private String imageUrl;
+    private String projectName;
+//    @Transient
+    @TableField(exist = false)
+    private String projectImageUrl;
 
     @ApiModelProperty(hidden = true)
     private Long objectVersionNumber;
+
+    @ApiModelProperty(hidden = true)
     @TableField(fill= FieldFill.INSERT)
-    @ApiModelProperty(hidden = true)
     private Date creationDate;
+
+    @ApiModelProperty(hidden = true)
     @TableField(fill = FieldFill.INSERT)
-    @ApiModelProperty(hidden = true)
     private Long createdBy;
-    @TableField(fill = FieldFill.INSERT_UPDATE)
+
     @ApiModelProperty(hidden = true)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private Date lastUpdateDate;
-    @TableField(fill = FieldFill.INSERT_UPDATE)
+
     @ApiModelProperty(hidden = true)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private Long lastUpdatedBy;
 
 }

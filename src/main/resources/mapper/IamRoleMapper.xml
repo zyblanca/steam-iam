@@ -50,6 +50,14 @@
             #{level}
         </foreach>
     </select>
+    <select id="selectRolesByLabelNameAndType" resultMap="BaseResultMap">
+        SELECT ir.*
+        FROM iam_role ir
+        LEFT JOIN iam_role_label irl ON ir.id = irl.role_id
+        LEFT JOIN iam_label il ON irl.label_id = il.id
+        WHERE il.name = #{name}
+        AND il.type = #{type}
+    </select>
 
 
 </mapper>

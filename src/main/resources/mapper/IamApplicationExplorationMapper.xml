@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.crc.crcloud.steam.iam.dao.IamApplicationExplorationMapper">
+
+    <resultMap id="IamApplicationExploration" type="com.crc.crcloud.steam.iam.entity.IamApplicationExploration">
+        <id property="id" column="id"/>
+        <result property="enabled" column="is_enabled" jdbcType="BOOLEAN"/>
+    </resultMap>
+
+    <resultMap id="IamApplication" type="com.crc.crcloud.steam.iam.entity.IamApplication">
+        <id property="id" column="id"/>
+        <result property="enabled" column="is_enabled" jdbcType="BOOLEAN"/>
+    </resultMap>
+
+    <select id="selectDescendantApplications" resultMap="IamApplication">
+        select ia.*, t.app_count from iam_application ia
+        join(
+        select i.application_id, count(i.application_id) as app_count
+        from iam_application_exploration i
+        where i.path like concat(#{path},'%')
+        group by i.application_id
+        )t on t.application_id = ia.id
+        where ia.application_category = #{category}
+        <if test="name != null">
+            AND j.name LIKE concat(concat('%',#{name}),'%')
+        </if>
+        <if test="code != null">
+            AND j.code LIKE concat(concat('%',#{code}),'%')
+        </if>
+    </select>
+
+    <select id="selectDescendantByApplicationIds" resultMap="IamApplicationExploration">
+        SELECT distinct iae.*
+        FROM iam_application_exploration iae
+        JOIN (
+        SELECT i.path
+        FROM iam_application_exploration i
+        WHERE i.application_id IN
+        <foreach item="item" index="index" collection="idSet"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        ) t ON 1=1
+        WHERE iae.path LIKE concat(t.path,'%')
+    </select>
+
+    <select id="selectDescendantByPath" resultMap="IamApplicationExploration">
+          select i.* from iam_application_exploration i
+          where i.path like concat(#{path},'%') order by i.id asc
+    </select>
+
+    <select id="selectDescendants" resultMap="IamApplicationExploration">
+        select
+          i.*,
+          ia.name application_name,
+          ia.code application_code,
+          ia.application_category application_category,
+          ia.application_type application_type,
+          ia.is_enabled application_enabled,
+          ia.project_id project_id,
+          fp.name project_name,
+          fp.code project_code,
+          fp.image_url project_image_url
+        from iam_application_exploration i
+        join iam_application ia on i.application_id = ia.id
+        left join fd_project fp on ia.project_id = fp.id
+        where i.path like concat(#{path},'%') order by i.id asc
+    </select>
+
+    <select id="selectDescendantByApplicationIdsAndParentId" resultMap="IamApplicationExploration">
+        SELECT distinct iae.*
+        FROM iam_application_exploration iae
+        JOIN (
+        SELECT i.path
+        FROM iam_application_exploration i
+        WHERE i.application_id IN
+        <foreach item="item" index="index" collection="idSet"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        AND i.parent_id = #{parentId}
+        ) t ON 1=1
+        WHERE iae.path LIKE concat(t.path,'%')
+    </select>
+
+    <select id="selectDescendantByApplicationIdAndParentId" resultMap="IamApplicationExploration">
+        SELECT distinct iae.*
+        FROM iam_application_exploration iae
+        JOIN (
+        SELECT i.path
+        FROM iam_application_exploration i
+        WHERE i.application_id = #{id}
+        AND i.parent_id = #{parentId}
+        ) t ON 1=1
+        WHERE iae.path LIKE concat(t.path,'%')
+    </select>
+
+    <select id="selectAncestorByApplicationId" resultMap="IamApplicationExploration">
+        SELECT DISTINCT i.*
+        FROM iam_application_exploration i
+        JOIN (
+        SELECT path FROM iam_application_exploration j WHERE j.application_id = #{id}
+        ) t ON 1=1
+        WHERE t.path LIKE concat(i.path, '%');
+    </select>
+
+    <select id="selectDirectDescendantByApplicationId" resultMap="IamApplicationExploration">
+        select * from iam_application_exploration
+        where parent_id = #{id}
+    </select>
+
+    <delete id="deleteDescendantByApplicationId" parameterType="Long">
+        DELETE iae FROM iam_application_exploration iae
+        JOIN
+        (
+        SELECT path FROM iam_application_exploration WHERE application_id = #{id}
+        ) t ON 1=1
+        WHERE iae.path LIKE concat(t.path,'%')
+    </delete>
+
+    <delete id="deleteDescendantByApplicationIds">
+        DELETE iae FROM iam_application_exploration iae
+        JOIN
+        (
+        SELECT path FROM iam_application_exploration WHERE application_id IN
+        <foreach item="item" index="index" collection="idSet"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        ) t ON 1=1
+        WHERE iae.path LIKE concat(t.path,'%')
+    </delete>
+
+    <delete id="deleteDescendantByApplicationIdsAndParentId">
+        DELETE iae FROM iam_application_exploration iae
+        JOIN
+        (
+        SELECT path FROM iam_application_exploration WHERE application_id IN
+        <foreach item="item" index="index" collection="idSet"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        AND parent_id = #{parentId}
+        ) t ON 1=1
+        WHERE iae.path LIKE concat(t.path,'%')
+    </delete>
+
+</mapper>
