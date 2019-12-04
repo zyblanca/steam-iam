@@ -34,20 +34,18 @@ public interface IamProjectService {
     /**
      * 更新
      *
-     * @param projectId  项目ID
      * @param iamProject
      * @return
      */
-    IamProjectVO update(Long projectId, IamProjectVO iamProject);
+    IamProjectVO update(IamProjectVO iamProject);
 
     /**
      * 查询单个详情
      *
      * @param projectId 项目ID
-     * @param id
      * @return
      */
-    IamProjectVO queryOne(Long projectId, Long id);
+    IamProjectVO queryOne(Long projectId);
 
     /**
      * 分页查询

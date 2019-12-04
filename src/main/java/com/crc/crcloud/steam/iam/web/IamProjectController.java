@@ -14,6 +14,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -46,9 +48,25 @@ public class IamProjectController {
     @PostMapping("/add_project/{organization_id}")
     public ResponseEntity<IamProjectVO> insert(@ApiParam(value = "组织id", required = true)
                                                @PathVariable(name = "organization_id") Long organizationId,
-                                               @RequestBody IamProjectVO iamProject) {
+                                               @RequestBody @Validated IamProjectVO iamProject) {
 
         return new ResponseEntity<>(iamProjectService.insert(organizationId, iamProject));
     }
+
+    /**
+     * 修改项目信息
+     * 项目code和组织,可用标志不可修改
+     * 启用禁用使用额外的接口
+     */
+    @Permission(level = ResourceLevel.PROJECT, roles = InitRoleCode.PROJECT_OWNER)
+    @ApiOperation(value = "修改项目")
+    @PutMapping(value = "/{project_id}")
+    public ResponseEntity<IamProjectVO> update(@PathVariable(name = "project_id") Long id,
+                                               @RequestBody @Validated IamProjectVO iamProjectVO) {
+        iamProjectVO.setId(id);
+
+        return new ResponseEntity<>(iamProjectService.update(iamProjectVO));
+    }
+
 
 }

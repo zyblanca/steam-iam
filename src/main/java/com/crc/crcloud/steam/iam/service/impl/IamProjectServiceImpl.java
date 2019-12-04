@@ -19,6 +19,7 @@ import com.crc.crcloud.steam.iam.entity.IamRole;
 import com.crc.crcloud.steam.iam.model.dto.IamProjectDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.ProjectEventPayload;
 import com.crc.crcloud.steam.iam.model.event.IamProjectCreateEvent;
+import com.crc.crcloud.steam.iam.model.event.IamProjectUpdateEvent;
 import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
 import com.crc.crcloud.steam.iam.service.IamMemberRoleService;
 import com.crc.crcloud.steam.iam.service.IamProjectService;
@@ -38,10 +39,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.CollectionUtils;
 import sun.awt.CustomCursor;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -169,38 +167,65 @@ public class IamProjectServiceImpl implements IamProjectService {
         iamProjectMapper.deleteById(id);
     }
 
-    /**
-     * 更新
-     *
-     * @param projectId    项目ID
-     * @param iamProjectVO
-     * @return
-     */
+
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     @Override
-    public IamProjectVO update(Long projectId, IamProjectVO iamProjectVO) {
-        //最好使用自定义修改语句，修改条件包含项目ID
-        IamProjectDTO dataDTO = ConvertHelper.convert(iamProjectVO, IamProjectDTO.class);
-        iamProjectMapper.updateById(ConvertHelper.convert(dataDTO, IamProject.class));
-        return queryOne(projectId, iamProjectVO.getId());
+    public IamProjectVO update(IamProjectVO iamProjectVO) {
+        checkName(iamProjectVO);
+        IamProjectDTO iamProjectDTO = CopyUtil.copy(iamProjectVO, IamProjectDTO.class);
+        iamProjectDTO.setLastUpdateDate(new Date());
+        iamProjectDTO.setLastUpdatedBy(UserDetail.getUserId());
+        //修改项目信息
+        iamProjectMapper.updateBySql(iamProjectDTO);
+        //发起saga事件
+        applicationEventPublisher.publishEvent(new IamProjectUpdateEvent(intiUpdateParam(iamProjectDTO)));
+
+        return queryOne(iamProjectVO.getId());
+    }
+
+    //修改项目saga参数
+    private ProjectEventPayload intiUpdateParam(IamProjectDTO iamProjectDTO) {
+        ProjectEventPayload projectEventPayload = new ProjectEventPayload();
+        IamProject project = iamProjectMapper.selectById(iamProjectDTO.getId());
+        IamOrganization organization = iamOrganizationMapper.selectById(project.getOrganizationId());
+        CustomUserDetails customUserDetails = DetailsHelper.getUserDetails();
+        //用户信息
+        projectEventPayload.setUserName(customUserDetails.getUsername());
+        projectEventPayload.setUserId(customUserDetails.getUserId());
+        //不变的信息
+        projectEventPayload.setOrganizationName(organization.getName());
+        projectEventPayload.setOrganizationId(organization.getId());
+        projectEventPayload.setOrganizationCode(organization.getCode());
+        projectEventPayload.setProjectId(project.getId());
+        projectEventPayload.setProjectCode(project.getCode());
+        //可能变化的参数
+        projectEventPayload.setProjectName(iamProjectDTO.getName());
+        projectEventPayload.setImageUrl(iamProjectDTO.getImageUrl());
+        return projectEventPayload;
+    }
+
+    //修改的时候 验证名称是否被其他项目拥有
+    private void checkName(IamProjectVO iamProjectVO) {
+        IamProject project = iamProjectMapper.selectOne(Wrappers.<IamProject>lambdaQuery().eq(IamProject::getName, iamProjectVO.getName()));
+        if (Objects.nonNull(project) && !Objects.equals(project.getId(), iamProjectVO.getId())) {
+            throw new IamAppCommException("project.name.duplicated");
+        }
     }
 
     /**
      * 查询单个详情
      *
      * @param projectId 项目ID
-     * @param id
      * @return
      */
     @Override
-    public IamProjectVO queryOne(Long projectId, Long id) {
-        //查询的数据 如果包含项目ID，校验项目ID是否一致，不一致抛异常
-        IamProject data = iamProjectMapper.selectById(id);
+    public IamProjectVO queryOne(Long projectId) {
+        IamProject data = iamProjectMapper.selectById(projectId);
         if (Objects.isNull(data)) {
             throw new IamAppCommException("common.data.null.error");
         }
-        IamProjectDTO dataDTO = ConvertHelper.convert(data, IamProjectDTO.class);
-        return ConvertHelper.convert(dataDTO, IamProjectVO.class);
+
+        return CopyUtil.copy(data, IamProjectVO.class);
     }
 
     /**
