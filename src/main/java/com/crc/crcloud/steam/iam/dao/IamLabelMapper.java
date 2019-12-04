@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -21,4 +22,6 @@ public interface IamLabelMapper extends BaseMapper<IamLabel> {
     IPage<IamLabel> page(Page page, @Param("iamLabel") IamLabelDTO iamLabelDTO);
 
     List<IamLabel> selectByRoleIds(@Param("roleIds") Collection<Long> roleIds);
+
+    Set<String> selectLabelNamesInRoleIds(List<Long> roleIds);
 }

@@ -1,5 +1,6 @@
 package com.crc.crcloud.steam.iam.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -59,13 +60,22 @@ public class IamApplicationExploration {
     private String projectImageUrl;
 
     @ApiModelProperty(hidden = true)
-    private Date creationDate;
-    @ApiModelProperty(hidden = true)
-    private Long createdBy;
-    @ApiModelProperty(hidden = true)
-    private Date lastUpdateDate;
-    @ApiModelProperty(hidden = true)
-    private Long lastUpdatedBy;
-    @ApiModelProperty(hidden = true)
     private Long objectVersionNumber;
+
+    @ApiModelProperty(hidden = true)
+    @TableField(fill= FieldFill.INSERT)
+    private Date creationDate;
+
+    @ApiModelProperty(hidden = true)
+    @TableField(fill = FieldFill.INSERT)
+    private Long createdBy;
+
+    @ApiModelProperty(hidden = true)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Date lastUpdateDate;
+
+    @ApiModelProperty(hidden = true)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Long lastUpdatedBy;
+
 }

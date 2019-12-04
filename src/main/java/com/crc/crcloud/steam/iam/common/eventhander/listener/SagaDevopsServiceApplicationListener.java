@@ -1,18 +1,28 @@
 package com.crc.crcloud.steam.iam.common.eventhander.listener;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.enums.ApplicationCategory;
 import com.crc.crcloud.steam.iam.common.enums.ApplicationType;
 import com.crc.crcloud.steam.iam.common.utils.AssertHelper;
+import com.crc.crcloud.steam.iam.common.utils.CollectionUtils;
 import com.crc.crcloud.steam.iam.dao.IamApplicationExplorationMapper;
 import com.crc.crcloud.steam.iam.dao.IamApplicationMapper;
+import com.crc.crcloud.steam.iam.dao.IamLabelMapper;
+import com.crc.crcloud.steam.iam.dao.IamMemberRoleMapper;
 import com.crc.crcloud.steam.iam.entity.IamApplication;
 import com.crc.crcloud.steam.iam.entity.IamApplicationExploration;
+import com.crc.crcloud.steam.iam.entity.IamMemberRole;
+import com.crc.crcloud.steam.iam.model.dto.payload.UserMemberEventPayload;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.choerodon.asgard.saga.annotation.SagaTask;
+import io.choerodon.asgard.saga.producer.StartSagaBuilder;
+import io.choerodon.asgard.saga.producer.TransactionalProducer;
+import io.choerodon.core.iam.ResourceLevel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,8 +30,14 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.MemberRole.MEMBER_ROLE_UPDATE;
+import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.Organization.ORG_UPDATE;
 
 @Slf4j
 @Component
@@ -36,13 +52,19 @@ public class SagaDevopsServiceApplicationListener {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
+    private TransactionalProducer producer;
+    @Autowired
     private AssertHelper assertHelper;
     @Autowired
     private IamApplicationMapper applicationMapper;
     @Autowired
     private IamApplicationExplorationMapper applicationExplorationMapper;
+    @Autowired
+    private IamMemberRoleMapper iamMemberRoleMapper;
+    @Autowired
+    private IamLabelMapper iamLabelMapper;
 
-    /*@SagaTask(code = IAM_SYNC_APP, description = "iam接受devops-service同步application集合事件",
+    /*@SagaTask(code = IAM_SYNC_APP, description = "iam 接受 devops-service 同步 application 集合事件",
             sagaCode = APP_SYNC,
             seq = 1)*/
     public void syncApplications(String data) throws IOException {
@@ -149,6 +171,59 @@ public class SagaDevopsServiceApplicationListener {
         }
         app.setApplicationCategory(ApplicationCategory.APPLICATION.code());
         return false;
+    }
+
+    /*@SagaTask(code = MEMBER_ROLE_UPDATE, description = "iam接收devops平滑升级事件",
+            sagaCode = "devops-upgrade-0.9",
+            seq = 1)*/
+    public void assignRolesOnProject(String data) {
+        IamMemberRole iamMemberRole = new IamMemberRole();
+        iamMemberRole.setSourceType(ResourceLevel.PROJECT.value());
+        iamMemberRole.setMemberType("user");
+        List<IamMemberRole> iamMemberRoleList = iamMemberRoleMapper.selectList(new QueryWrapper<>(iamMemberRole));
+        Map<HashMap<Long, Long>, List<IamMemberRole>> map = iamMemberRoleList.stream().collect(Collectors.groupingBy(m -> {
+            HashMap<Long, Long> hashMap = new HashMap<>();
+            hashMap.put(m.getSourceId(), m.getMemberId());
+            return hashMap;
+        }));
+        List<UserMemberEventPayload> userMemberEventPayloadList = new ArrayList<>();
+        for (Map.Entry<HashMap<Long, Long>, List<IamMemberRole>> entry : map.entrySet()) {
+            UserMemberEventPayload payload = new UserMemberEventPayload();
+            List<IamMemberRole> memberRoles = entry.getValue();
+            Long sourceId = null;
+            Long userId = null;
+            List<Long> roleIds = new ArrayList<>();
+            for (IamMemberRole memberRole : memberRoles) {
+                sourceId = memberRole.getSourceId();
+                userId = memberRole.getMemberId();
+                roleIds.add(memberRole.getRoleId());
+            }
+            payload.setResourceId(sourceId);
+            payload.setResourceType("project");
+            payload.setUserId(userId);
+            if (CollUtil.isNotEmpty(roleIds)){
+                payload.setRoleLabels(iamLabelMapper.selectLabelNamesInRoleIds(roleIds));
+            }
+            userMemberEventPayloadList.add(payload);
+        }
+        List<List<UserMemberEventPayload>> lists = CollectionUtils.subList(userMemberEventPayloadList, 1000);
+        lists.forEach(list -> {
+            try {
+                String input = objectMapper.writeValueAsString(list);
+                String refIds = list.stream().map(t -> t.getUserId() + "").collect(Collectors.joining(","));
+                log.info("steam-iam开始发送Saga事件[{code:{}}],内容: {}", ORG_UPDATE, input);
+                producer.apply(StartSagaBuilder.newBuilder()
+                        .withLevel(ResourceLevel.PROJECT)
+                        .withSagaCode(MEMBER_ROLE_UPDATE),
+                        builder -> {
+                        builder.withPayloadAndSerialize(list)
+                                .withRefType("users")
+                                .withRefId(refIds);
+                });
+            } catch (Exception e) {
+                throw new IamAppCommException("error.iRoleMemberServiceImpl.updateMemberRole.event");
+            }
+        });
     }
 
 }
