@@ -34,8 +34,7 @@ public class IamRoleController {
     @Autowired
     private IamRoleService iamRoleService;
 
-    @Permission(level = ResourceLevel.SITE)
-//   @Permission(permissionLogin = true)
+    @Permission(level = ResourceLevel.ORGANIZATION)
     @ApiOperation("获取组织权限列表")
     @GetMapping("organization")
     public ResponseEntity<List<IamRoleVO>> getOrganizationRoles() {

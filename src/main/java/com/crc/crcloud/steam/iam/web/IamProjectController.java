@@ -23,7 +23,7 @@ import java.util.Optional;
 /**
 * @Author:
 * @Date: 2019-11-12
-* @Description: 
+ * @Description:
 */
 @Api("")
 @RestController
@@ -40,8 +40,7 @@ public class IamProjectController {
     * @param iamProject
     * @return
     */
-//    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
-    @Permission(permissionLogin = true)
+    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
     @ApiOperation(value = "新增", notes = "新增", response = IamProjectVO.class)
     @PostMapping
     public ResponseEntity<IamProjectVO> insert(@ApiParam(value = "项目ID", required = true)
@@ -58,8 +57,7 @@ public class IamProjectController {
     * @param id
     * @return REST状态
     */
-//    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
-    @Permission(permissionLogin = true)
+    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
     @ApiOperation(value="删除",notes="删除")
     @DeleteMapping("/{id}")
     public ResponseEntity delete(
@@ -79,8 +77,7 @@ public class IamProjectController {
     * @param iamProject
     * @return
     */
-//    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
-    @Permission(permissionLogin = true)
+    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
     @ApiOperation(value="修改",notes="修改",response = IamProjectVO.class)
     @PutMapping
     public ResponseEntity<IamProjectVO> update(@ApiParam(value = "项目ID", required = true)
@@ -98,8 +95,7 @@ public class IamProjectController {
     * @param id
     * @return
     */
-    //@Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
-    @Permission(permissionLogin = true)
+    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
     @ApiOperation(value="查询单个信息",notes = "查询单个详情",response = IamProjectVO.class)
     @GetMapping("{id}")
     public ResponseEntity<IamProjectVO> load(@ApiParam(value = "项目ID", required = true)
@@ -117,8 +113,7 @@ public class IamProjectController {
     * @param page           分页信息
     * @return
     */
-    //@Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
-    @Permission(permissionLogin = true)
+    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
     @ApiOperation(value = "列表",notes="列表", response = IamProjectVO.class)
     @GetMapping
     public ResponseEntity<IPage<IamProjectVO>> page(@ApiParam(value = "项目ID", required = true)
