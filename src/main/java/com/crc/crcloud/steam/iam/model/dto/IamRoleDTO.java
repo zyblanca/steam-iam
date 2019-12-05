@@ -1,20 +1,16 @@
 package com.crc.crcloud.steam.iam.model.dto;
 
-import java.util.Date;
-import java.lang.Integer;
-import java.lang.Long;
-import java.lang.Byte;
-
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.NoArgsConstructor;
+
+import java.util.Date;
 
 /**
  * @Author:
  * @Date: 2019-11-12
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
@@ -23,7 +19,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 public class IamRoleDTO {
 
     /**
-    * 
+    *
     */
     private Long id;
 
@@ -50,50 +46,50 @@ public class IamRoleDTO {
     /**
     * 是否启用。1启用，0未启用
     */
-    private Byte isEnabled;
+    private Boolean isEnabled;
 
     /**
     * 是否可以修改。1表示可以，0不可以
     */
-    private Byte isModified;
+    private Boolean isModified;
 
     /**
     * 是否可以被禁用
     */
-    private Byte isEnableForbidden;
+    private Boolean isEnableForbidden;
 
     /**
     * 是否内置。1表示是，0表示不是
     */
-    private Byte isBuiltIn;
+    private Boolean isBuiltIn;
 
     /**
     * 是否禁止在更高的层次上分配，禁止project role在organization上分配。1表示可以，0表示不可以
     */
-    private Byte isAssignable;
+    private Boolean isAssignable;
 
     /**
-    * 
+    *
     */
     private Long objectVersionNumber;
 
     /**
-    * 
+    *
     */
     private Long createdBy;
 
     /**
-    * 
+    *
     */
     private Date creationDate;
 
     /**
-    * 
+    *
     */
     private Long lastUpdatedBy;
 
     /**
-    * 
+    *
     */
     private Date lastUpdateDate;
 

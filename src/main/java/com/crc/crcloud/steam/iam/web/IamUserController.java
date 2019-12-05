@@ -1,20 +1,44 @@
 package com.crc.crcloud.steam.iam.web;
 
 
+import cn.hutool.cache.Cache;
+import cn.hutool.cache.impl.LRUCache;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUnit;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
-import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
+import com.crc.crcloud.steam.iam.model.dto.*;
 import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
+import com.crc.crcloud.steam.iam.model.vo.organization.IamUserCurrentOrganizationUpdateRequestVO;
+import com.crc.crcloud.steam.iam.model.vo.organization.IamUserOrganizationsResponseVO;
+import com.crc.crcloud.steam.iam.service.IamMemberRoleService;
+import com.crc.crcloud.steam.iam.service.IamOrganizationService;
+import com.crc.crcloud.steam.iam.service.IamRoleService;
 import com.crc.crcloud.steam.iam.service.IamUserService;
+import io.choerodon.core.iam.InitRoleCode;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 
 /**
@@ -22,16 +46,28 @@ import java.util.List;
  *
  * @author hand-196
  */
+@Slf4j
+@Validated
 @Api("")
 @RestController
 @RequestMapping(value = "/v1")
 public class IamUserController {
 
     private final IamUserService iamUserService;
+    @Autowired
+    private IamRoleService iamRoleService;
+    @Autowired
+    private IamMemberRoleService iamMemberRoleService;
+    @Autowired
+    private IamOrganizationService organizationService;
 
     public IamUserController(IamUserService iamUserService) {
         this.iamUserService = iamUserService;
     }
+
+    /**用户是否为对应level管理员，缓存10s*/
+    private final Cache<String, Boolean> isOrganizationAdminCache = new LRUCache<>(1000, DateUnit.SECOND.getMillis() * 10);
+    private final BiFunction<ResourceLevel, Object, String> getCacheKey = (level, keyId) -> StrUtil.format("{}#{}", level, keyId.toString());
 
     /**
      * 分页查询指定项目下的成员信息
@@ -69,7 +105,7 @@ public class IamUserController {
     @GetMapping("/projects/{project_id}/iam_user/drop/down")
     public ResponseEntity<List<IamUserVO>> projectDropDownUser(@ApiParam(value = "项目ID", required = true)
                                                                @PathVariable(name = "project_id") Long projectId,
-                                                                       UserSearchDTO userSearchDTO) {
+                                                               UserSearchDTO userSearchDTO) {
         return new ResponseEntity<>(iamUserService.projectDropDownUser(projectId, userSearchDTO));
     }
 
@@ -87,11 +123,9 @@ public class IamUserController {
     @GetMapping("/projects/{project_id}/iam_user/unselect")
     public ResponseEntity<List<IamUserVO>> projectUnselectUser(@ApiParam(value = "项目ID", required = true)
                                                                @PathVariable(name = "project_id") Long projectId,
-                                                                       UserSearchDTO userSearchDTO) {
+                                                               UserSearchDTO userSearchDTO) {
         return new ResponseEntity<>(iamUserService.projectUnselectUser(projectId, userSearchDTO));
     }
-
-
 
 
     /**
@@ -107,7 +141,7 @@ public class IamUserController {
     @PostMapping("/projects/{project_id}/iam_user/bind/users")
     public ResponseEntity projectBindUsers(@ApiParam(value = "项目ID", required = true)
                                            @PathVariable(name = "project_id") Long projectId,
-                                                   @RequestBody IamUserVO iamUserVO) {
+                                           @RequestBody IamUserVO iamUserVO) {
         List<Long> userIds = iamUserVO.getUserIds();
         iamUserService.projectBindUsers(projectId, userIds);
         return ResponseEntity.ok();
@@ -128,6 +162,96 @@ public class IamUserController {
     public ResponseEntity<List<IamUserVO>> listUserByIds(@RequestBody List<Long> ids,
                                                          @RequestParam(value = "only_enabled", defaultValue = "true", required = false) Boolean onlyEnabled) {
         return new ResponseEntity<>(iamUserService.listUserByIds(ids, onlyEnabled));
+    }
+
+    @Permission(level = ResourceLevel.SITE, permissionLogin = true)
+    @ApiOperation("查询用户是否为平台管理员")
+    @GetMapping("users/site/admin")
+    public ResponseEntity<Boolean> isSiteAdmin(@RequestParam(value = "user_id", required = false) Long userId) {
+        /*
+         *为了减少使用方处理异常场景,对参数异常采用返回False参数
+         */
+        final AtomicBoolean isAdmin = new AtomicBoolean(false);
+        Predicate<Long> validatedId = Objects::nonNull;
+        //不为空并且大于0
+        validatedId = validatedId.and(id -> NumberUtil.isGreater(BigDecimal.valueOf(id), BigDecimal.ZERO));
+        if (validatedId.test(userId)) {
+            final String cacheKey = getCacheKey.apply(ResourceLevel.SITE, userId.toString());
+            Boolean admin = isOrganizationAdminCache.get(cacheKey, () -> {
+                try {
+                    IamUserDTO iamUser = iamUserService.getAndThrow(userId);
+                    @NotNull List<IamRoleDTO> roles = iamRoleService.getUserRoles(userId, ResourceLevel.SITE);
+                    return Optional.ofNullable(iamUser.getIsAdmin()).orElse(Boolean.FALSE) || CollUtil.newArrayList(roles).stream().anyMatch(role -> Objects.equals(role.getCode(), InitRoleCode.SITE_ADMINISTRATOR));
+                } catch (Exception ex) {
+                    log.error(" getUserRoles({},{}) error: {}", userId, ResourceLevel.SITE, ex.getMessage(), ex);
+                }
+                return false;
+            });
+            isAdmin.set(Optional.ofNullable(admin).orElse(Boolean.FALSE));
+        }
+        return new ResponseEntity<>(isAdmin.get());
+    }
+
+    /**
+     * 根据用户查询所有组织并且用户角色为组织管理员
+     * @param userId 用户编号
+     * @return Boolean
+     */
+    @Permission(level = ResourceLevel.ORGANIZATION, permissionLogin = true)
+    @ApiOperation(value = "查询用户在该组织是否为组织管理员")
+    @GetMapping("users/organization/admin")
+    public ResponseEntity<Boolean> isOrganizationAdmin(
+            @RequestParam(value = "user_id", required = false) Long userId
+            , @ApiParam("组织编号") @RequestParam(value = "organization_id", required = false) Long organizationId) {
+        /*
+         *为了减少使用方处理异常场景,对参数异常采用返回False参数
+         */
+        final AtomicBoolean isAdmin = new AtomicBoolean(false);
+        Predicate<Long> validatedId = Objects::nonNull;
+        //不为空并且大于0
+        validatedId = validatedId.and(id -> NumberUtil.isGreater(BigDecimal.valueOf(id), BigDecimal.ZERO));
+        if (validatedId.test(userId) && validatedId.test(organizationId)) {
+            final String cacheKey = getCacheKey.apply(ResourceLevel.ORGANIZATION, userId + "#" + organizationId);
+            Boolean admin = isOrganizationAdminCache.get(cacheKey, () -> {
+                try {
+                    @NotNull List<IamMemberRoleDTO> userMemberRoleByOrganization = iamMemberRoleService.getUserMemberRoleByOrganization(userId, CollUtil.newHashSet(organizationId));
+                    @NotNull List<IamRoleDTO> roles = iamRoleService.getRoles(userMemberRoleByOrganization.stream().map(IamMemberRoleDTO::getRoleId).collect(Collectors.toSet()));
+                    return CollUtil.newArrayList(roles).stream().anyMatch(role -> Objects.equals(role.getCode(), InitRoleCode.ORGANIZATION_ADMINISTRATOR));
+                } catch (Exception ex) {
+                    log.error(" getUserMemberRoleByOrganization({},{}) error: {}", organizationId, userId, ex.getMessage(), ex);
+                }
+                return false;
+            });
+            isAdmin.set(Optional.ofNullable(admin).orElse(Boolean.FALSE));
+        }
+        return new ResponseEntity<>(isAdmin.get());
+    }
+
+    @Permission(level = ResourceLevel.ORGANIZATION, permissionLogin = true)
+    @ApiOperation(value = "获取用户已授权的组织列表", notes = "包括只授权了项目，但是没有授权组织,也需要被包含进来")
+    @GetMapping("users/{user_id}/organizations")
+    public ResponseEntity<IamUserOrganizationsResponseVO> getUserOrganizations(@RequestParam(value = "user_id") Long userId) {
+        final IamUserDTO iamUser = iamUserService.getAndThrow(userId);
+        List<IamOrganizationDTO> organizations = organizationService.getUserAuthOrganizations(userId, false);
+        List<IamUserOrganizationsResponseVO.IamUserOrganizationResponse> userOrganizations = organizations.stream().map(IamUserOrganizationsResponseVO::instance).collect(Collectors.toList());
+        IamUserOrganizationsResponseVO.IamUserOrganizationsResponseVOBuilder responseBuilder = IamUserOrganizationsResponseVO.builder()
+                .organizationList(userOrganizations);
+        //处理当前组织
+        Optional.ofNullable(iamUser.getCurrentOrganizationId()).flatMap(id -> {
+            return userOrganizations.stream().filter(t -> Objects.equals(t.getId(), id)).findFirst();
+        }).ifPresent(t -> responseBuilder.currentOrganization(t.getId()).currentOrganizationName(t.getName()));
+        return new ResponseEntity<>(responseBuilder.build());
+    }
+
+    @Permission(level = ResourceLevel.ORGANIZATION, permissionLogin = true)
+    @ApiOperation(value = "记录用户当前组织")
+    @PutMapping("users/{user_id}/current_organization")
+    public ResponseEntity<Boolean> updateUserCurrentOrganization(@RequestParam(value = "user_id") Long userId, @RequestBody @Valid IamUserCurrentOrganizationUpdateRequestVO vo) {
+        final IamUserDTO iamUser = iamUserService.getAndThrow(userId);
+        if (!Objects.equals(iamUser.getCurrentOrganizationId(), vo.getCurrentOrganizationId())) {
+            iamUserService.updateUserCurrentOrganization(userId, vo.getCurrentOrganizationId());
+        }
+        return new ResponseEntity<>(Boolean.TRUE);
     }
 
 

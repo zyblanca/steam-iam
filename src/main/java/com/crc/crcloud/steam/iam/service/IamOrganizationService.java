@@ -10,11 +10,13 @@ import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationCreateRequ
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationUpdateRequestVO;
 
+import javax.annotation.Nullable;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @Author
@@ -96,4 +98,24 @@ public interface IamOrganizationService {
      * @return
      */
     IamOrganizationDTO create(@NotNull @Valid IamOrganizationCreateRequestVO vo);
+
+    /**
+     * 获取用户授权的组织列表
+     * <p>此处跟用户所属组织的那个组织没有关联{@link com.crc.crcloud.steam.iam.entity.IamUserOrganizationRel}</p>
+     * <p>包括只授权了项目，但是没有授权组织,也需要被包含进来</p>
+     * @see this#getUserOrganizations(Long)
+     * @param userId 用户编号
+     * @param includeDisable 是否包含禁用属性,true:返回结果中包含已经禁用的
+     * @return 组织列表
+     */
+    @NotNull
+    List<IamOrganizationDTO> getUserAuthOrganizations(@NotNull Long userId, boolean includeDisable);
+
+    /**
+     * 获取组织列表
+     * <p>不过滤任何，例如是否禁用等</p>
+     * @param organizationIds 组织编号
+     * @return 组织列表
+     */
+    List<IamOrganizationDTO> getByIds(@Nullable Set<Long> organizationIds);
 }

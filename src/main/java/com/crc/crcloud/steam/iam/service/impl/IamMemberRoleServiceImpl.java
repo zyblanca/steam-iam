@@ -2,6 +2,9 @@ package com.crc.crcloud.steam.iam.service.impl;
 
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ArrayUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crc.crcloud.steam.iam.common.enums.MemberType;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
@@ -98,5 +101,38 @@ public class IamMemberRoleServiceImpl extends ServiceImpl<IamMemberRoleMapper, I
 		for (Long userId : userIds) {
 			grantUserRole(userId, roleIds, sourceId, resourceLevel);
 		}
+	}
+
+	@Override
+	public @NotNull List<IamMemberRoleDTO> getUserMemberRoleByOrganization(@NotNull Long userId, @NotEmpty Set<Long> organizationIds) {
+		return getUserMemberRoleByBySource(userId, ResourceLevel.ORGANIZATION, ArrayUtil.toArray(organizationIds, Long.class));
+	}
+
+	/**
+	 * 查询用户的角色关联关系
+	 * @param userId 用户编号
+	 * @param sourceType 资源级别
+	 * @param sourceIds 资源编号-只有 {@link ResourceLevel#ORGANIZATION}{@link  ResourceLevel#PROJECT} 不传时查所有
+	 * @return 关联关系集合
+	 */
+	@NotNull
+	private List<IamMemberRoleDTO> getUserMemberRoleByBySource(@NotNull Long userId, @NotNull ResourceLevel sourceType, Long... sourceIds) {
+		final Set<ResourceLevel> needSourceIds = CollUtil.newHashSet(ResourceLevel.ORGANIZATION, ResourceLevel.PROJECT);
+		LambdaQueryWrapper<IamMemberRole> queryWrapper = Wrappers.<IamMemberRole>lambdaQuery()
+				.eq(IamMemberRole::getMemberId, userId)
+				.eq(IamMemberRole::getMemberType, ResourceLevel.USER.value())
+				.eq(IamMemberRole::getSourceType, sourceType.value());
+		if (needSourceIds.contains(sourceType)) {
+			List<Long> ids = CollUtil.toList(sourceIds).stream().filter(Objects::nonNull).collect(Collectors.toList());
+			if (CollUtil.isNotEmpty(ids)) {
+				queryWrapper.in(IamMemberRole::getSourceId, ids);
+			}
+		}
+		return this.iamMemberRoleMapper.selectList(queryWrapper).stream().map(t -> ConvertHelper.convert(t, IamMemberRoleDTO.class)).collect(Collectors.toList());
+	}
+
+	@Override
+	public @NotNull List<IamMemberRoleDTO> getUserMemberRoleBySourceType(@NotNull Long userId, @NotNull ResourceLevel sourceType) {
+		return getUserMemberRoleByBySource(userId, sourceType);
 	}
 }

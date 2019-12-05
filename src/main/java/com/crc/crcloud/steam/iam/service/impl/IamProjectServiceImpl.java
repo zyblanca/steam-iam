@@ -1,6 +1,7 @@
 package com.crc.crcloud.steam.iam.service.impl;
 
 
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -32,13 +33,12 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.CollectionUtils;
-import sun.awt.CustomCursor;
 
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -74,7 +74,7 @@ public class IamProjectServiceImpl implements IamProjectService {
         IamProject iamProject = new IamProject();
         BeanUtils.copyProperties(iamProjectVO, iamProject);
         iamProject.setOrganizationId(organizationId);
-        iamProject.setIsEnabled((byte) 1);
+        iamProject.setIsEnabled(Boolean.TRUE);
         //创建项目
         iamProjectMapper.insert(iamProject);
         //发起saga事件
@@ -257,5 +257,11 @@ public class IamProjectServiceImpl implements IamProjectService {
         return result;
     }
 
-
+    @Override
+    public @NotNull List<IamProjectDTO> getByIds(@Nullable Set<Long> ids) {
+        if (CollUtil.isEmpty(ids)) {
+            return new ArrayList<>();
+        }
+        return iamProjectMapper.selectBatchIds(ids).stream().map(t -> ConvertHelper.convert(t, IamProjectDTO.class)).collect(Collectors.toList());
+    }
 }

@@ -2,18 +2,16 @@ package com.crc.crcloud.steam.iam.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.Date;
-import java.lang.Integer;
-import java.lang.Long;
-import java.lang.Byte;
 
 /**
  * @Author:
  * @Date: 2019-11-12
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
@@ -23,7 +21,7 @@ import java.lang.Byte;
 public class IamProject {
 
         /**
-        * 
+        *
         */
         @TableId(type = IdType.AUTO)
         private Long id;
@@ -51,7 +49,7 @@ public class IamProject {
         /**
         * 是否启用。1启用，0未启用
         */
-        private Byte isEnabled;
+        private Boolean isEnabled;
 
         /**
         * 项目图标url
@@ -59,30 +57,30 @@ public class IamProject {
         private String imageUrl;
 
         /**
-        * 
+        *
         */
         private Long objectVersionNumber;
 
         /**
-        * 
+        *
         */
         @TableField(fill=FieldFill.INSERT)
         private Long createdBy;
 
         /**
-        * 
+        *
         */
         @TableField(fill=FieldFill.INSERT)
         private Date creationDate;
 
         /**
-        * 
+        *
         */
         @TableField(fill=FieldFill.INSERT_UPDATE)
         private Long lastUpdatedBy;
 
         /**
-        * 
+        *
         */
         @TableField(fill=FieldFill.INSERT_UPDATE)
         private Date lastUpdateDate;
