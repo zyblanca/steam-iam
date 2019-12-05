@@ -3,19 +3,16 @@ package com.crc.crcloud.steam.iam.model.vo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
-import java.lang.Integer;
-import java.lang.Long;
-import java.lang.Byte;
 
 /**
  * @Author:
  * @Date: 2019-11-12
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
@@ -46,23 +43,23 @@ public class IamRoleVO{
 
 
         @ApiModelProperty("是否启用。1启用，0未启用")
-        private Byte isEnabled;
+        private Boolean isEnabled;
 
 
         @ApiModelProperty("是否可以修改。1表示可以，0不可以")
-        private Byte isModified;
+        private Boolean isModified;
 
 
         @ApiModelProperty("是否可以被禁用")
-        private Byte isEnableForbidden;
+        private Boolean isEnableForbidden;
 
 
         @ApiModelProperty("是否内置。1表示是，0表示不是")
-        private Byte isBuiltIn;
+        private Boolean isBuiltIn;
 
 
         @ApiModelProperty("是否禁止在更高的层次上分配，禁止project role在organization上分配。1表示可以，0表示不可以")
-        private Byte isAssignable;
+        private Boolean isAssignable;
 
 
         @ApiModelProperty("")

@@ -18,15 +18,17 @@ import com.crc.crcloud.steam.iam.common.utils.UserDetail;
 import com.crc.crcloud.steam.iam.dao.IamOrganizationMapper;
 import com.crc.crcloud.steam.iam.entity.IamOrganization;
 import com.crc.crcloud.steam.iam.entity.IamUserOrganizationRel;
+import com.crc.crcloud.steam.iam.model.dto.IamMemberRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamOrganizationDTO;
+import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
+import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.organization.IamOrganizationWithProjectCountDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.OrganizationPayload;
 import com.crc.crcloud.steam.iam.model.event.IamOrganizationToggleEnableEvent;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationCreateRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationUpdateRequestVO;
-import com.crc.crcloud.steam.iam.service.IamOrganizationService;
-import com.crc.crcloud.steam.iam.service.IamUserOrganizationRelService;
+import com.crc.crcloud.steam.iam.service.*;
 import io.choerodon.asgard.saga.annotation.Saga;
 import io.choerodon.asgard.saga.producer.StartSagaBuilder;
 import io.choerodon.asgard.saga.producer.TransactionalProducer;
@@ -49,6 +51,7 @@ import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 
 import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.Organization.ORG_CREATE;
@@ -246,5 +249,44 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
 				prop.setValue(entity, v);
 			}
 		});
+	}
+
+	@Override
+	public @NotNull List<IamOrganizationDTO> getUserAuthOrganizations(@NotNull final Long userId, final boolean includeDisable) {
+		final IamUserService iamUserService = ApplicationContextHelper.getContext().getBean(IamUserService.class);
+		final IamMemberRoleService iamMemberRoleService = ApplicationContextHelper.getContext().getBean(IamMemberRoleService.class);
+		final IamRoleService iamRoleService = ApplicationContextHelper.getContext().getBean(IamRoleService.class);
+		final IamProjectService iamProjectService = ApplicationContextHelper.getContext().getBean(IamProjectService.class);
+		final IamUserDTO iamUser = iamUserService.getAndThrow(userId);
+		@NotNull List<IamRoleDTO> userRoles = iamRoleService.getUserRoles(userId, ResourceLevel.ORGANIZATION, ResourceLevel.PROJECT)
+				//判断是否需要过滤掉禁用的
+				.stream().filter(role -> includeDisable ? true : role.getIsEnabled()).collect(Collectors.toList());
+		final Set<Long> roleIds = userRoles.stream().map(IamRoleDTO::getId).collect(Collectors.toSet());
+		@NotNull List<IamMemberRoleDTO> sourceByOrg = iamMemberRoleService.getUserMemberRoleBySourceType(userId, ResourceLevel.ORGANIZATION);
+		//剔除掉不属于上面用户角色项（禁用的）
+		sourceByOrg = sourceByOrg.stream().filter(t -> roleIds.contains(t.getRoleId())).collect(Collectors.toList());
+		@NotNull List<IamMemberRoleDTO> sourceByPro = iamMemberRoleService.getUserMemberRoleBySourceType(userId, ResourceLevel.PROJECT);
+		sourceByPro = sourceByPro.stream().filter(t -> roleIds.contains(t.getRoleId())).collect(Collectors.toList());
+		//转换为组织ID
+		final Set<Long> organizationIds = sourceByOrg.stream().map(IamMemberRoleDTO::getSourceId).collect(Collectors.toSet());
+		//将项目根据参数是否去除掉禁用项之后转为组织
+		iamProjectService.getByIds(sourceByPro.stream().map(IamMemberRoleDTO::getSourceId).collect(Collectors.toSet()))
+				.forEach(pro -> {
+					if (includeDisable ? true : pro.getIsEnabled()) {
+						organizationIds.add(pro.getOrganizationId());
+					}
+				});
+		//获取组织后根据参数是否去除掉禁用项
+		ToLongFunction<IamOrganizationDTO> keyExtractor = o -> Optional.ofNullable(o.getCreationDate()).map(Date::getTime).orElse(0L);
+		List<IamOrganizationDTO> organizations = getByIds(organizationIds).stream().sorted(Comparator.comparingLong(keyExtractor)).collect(Collectors.toList());
+		return organizations.stream().filter(t -> includeDisable ? true : t.getIsEnabled()).collect(Collectors.toList());
+	}
+
+	@Override
+	public List<IamOrganizationDTO> getByIds(@Nullable Set<Long> organizationIds) {
+		if (CollUtil.isEmpty(organizationIds)) {
+			return new ArrayList<>();
+		}
+		return this.iamOrganizationMapper.selectBatchIds(organizationIds).stream().map(t -> ConvertHelper.convert(t, IamOrganizationDTO.class)).collect(Collectors.toList());
 	}
 }

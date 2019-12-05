@@ -4,6 +4,7 @@ package com.crc.crcloud.steam.iam.service.impl;
 import cn.hutool.core.bean.BeanDesc;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -31,6 +32,7 @@ import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamOrganizationUserPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamUserCreateRequestVO;
 import com.crc.crcloud.steam.iam.service.IamMemberRoleService;
+import com.crc.crcloud.steam.iam.service.IamOrganizationService;
 import com.crc.crcloud.steam.iam.service.IamUserOrganizationRelService;
 import com.crc.crcloud.steam.iam.service.IamUserService;
 import io.choerodon.core.convertor.ApplicationContextHelper;
@@ -314,5 +316,12 @@ public class IamUserServiceImpl implements IamUserService {
     public Optional<String> getHashPassword(@NotNull Long userId) {
         String hashPassword = iamUserMapper.getHashPassword(userId);
         return Optional.ofNullable(hashPassword).filter(StrUtil::isNotBlank);
+    }
+
+    @Override
+    public void updateUserCurrentOrganization(@NotNull Long userId, @NotNull Long currentOrganizationId) {
+        Assert.notNull(userId);
+        ApplicationContextHelper.getContext().getBean(IamOrganizationService.class).get(currentOrganizationId)
+                .ifPresent(org -> iamUserMapper.updateById(IamUser.builder().id(userId).currentOrganizationId(currentOrganizationId).build()));
     }
 }

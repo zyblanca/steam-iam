@@ -100,4 +100,12 @@ public interface IamUserService {
      * @return 如果密码为空串，也返回{@link Optional#empty()}
      */
     Optional<String> getHashPassword(@NotNull Long userId);
+
+    /**
+     * 修改用户当前组织编号记录
+     * {@link IamUserDTO#getCurrentOrganizationId()}
+     * @param userId 用户编号
+     * @param currentOrganizationId 当前组织编号
+     */
+    void updateUserCurrentOrganization(@NotNull Long userId, @NotNull Long currentOrganizationId);
 }

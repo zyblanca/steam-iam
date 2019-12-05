@@ -3,7 +3,13 @@ package com.crc.crcloud.steam.iam.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.crc.crcloud.steam.iam.model.dto.IamProjectDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
+
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
+import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -56,4 +62,12 @@ public interface IamProjectService {
      * @return
      */
     IPage<IamProjectVO> queryPage(IamProjectVO iamProject, Long projectId, Page page);
+
+    /**
+     * 获取项目
+     * @param ids 项目编号
+     * @return 项目集合
+     */
+    @NotNull
+    List<IamProjectDTO> getByIds(@Nullable Set<Long> ids);
 }
