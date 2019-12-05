@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.model.dto.LdapConnectionDTO;
+import com.crc.crcloud.steam.iam.model.dto.OauthLdapDTO;
 import com.crc.crcloud.steam.iam.model.vo.OauthLdapVO;
 
 
@@ -79,4 +80,11 @@ public interface OauthLdapService {
      * 定时同步所有ldap用户信息
      */
     void jobForSyncLdapUser();
+
+    /**
+     * 处理 SagaTask 创建 Ldap
+     * @param orgId
+     * @param ldapDTO
+     */
+    OauthLdapDTO sagaTaskCreateLdap(Long orgId, OauthLdapDTO ldapDTO);
 }
