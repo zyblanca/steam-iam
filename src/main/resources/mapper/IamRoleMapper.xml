@@ -42,7 +42,7 @@
                      last_update_date
         </sql>
     <select id="getUserRoles" resultMap="BaseResultMap">
-        select role.*
+        select distinct role.*
         from iam_role role inner join iam_member_role m_role on role.id = m_role.role_id
         where
         m_role.member_id = ${userId} and m_role.member_type = 'user' and m_role.source_type in
