@@ -17,6 +17,7 @@ import com.crc.crcloud.steam.iam.model.dto.OauthLdapDTO;
 import com.crc.crcloud.steam.iam.model.vo.OauthLdapVO;
 import com.crc.crcloud.steam.iam.service.LdapService;
 import com.crc.crcloud.steam.iam.service.OauthLdapService;
+import io.choerodon.core.convertor.ConvertHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ import org.springframework.util.StringUtils;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -194,6 +196,33 @@ public class OauthLdapServiceImpl implements OauthLdapService {
         }
 
 
+    }
+
+    @Override
+    public OauthLdapDTO sagaTaskCreateLdap(Long orgId, OauthLdapDTO ldapDTO) {
+        if (Objects.isNull(iamOrganizationMapper.selectById(orgId))) {
+            throw new IamAppCommException("error.sagaTask.organization.not.exist");
+        }
+        ldapDTO.setOrganizationId(orgId);
+        validateLdap(ldapDTO);
+        OauthLdap oauthLdap = ConvertHelper.convert(ldapDTO, OauthLdap.class);
+        if (1 != oauthLdapMapper.insert(oauthLdap)) {
+            throw new IamAppCommException("error.sagaTask.ldap.insert");
+        }
+        return ConvertHelper.convert(oauthLdap, OauthLdapDTO.class);
+    }
+
+    private void validateLdap(OauthLdapDTO ldapDTO) {
+        String customFilter = ldapDTO.getCustomFilter();
+        if (!StringUtils.isEmpty(customFilter) && !Pattern.matches("\\(.*\\)", customFilter)) {
+            throw new IamAppCommException("error.sagaTask.ldap.customFilter");
+        }
+        if (ldapDTO.getSagaBatchSize() < 1) {
+            ldapDTO.setSagaBatchSize(1);
+        }
+        if (ldapDTO.getConnectionTimeout() < 1) {
+            throw new IamAppCommException("error.sagaTask.ldap.connectionTimeout");
+        }
     }
 
 
