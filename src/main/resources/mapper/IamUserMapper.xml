@@ -195,6 +195,73 @@
         WHERE iu.email IN
         <foreach collection="emails" close=")" item="item" open="(" separator=",">#{item}</foreach>
     </select>
+        <select id="selectCountUsers" resultType="int">
+            SELECT count(1)
+            FROM (
+            SELECT DISTINCT iu.id FROM iam_user iu
+            LEFT JOIN iam_member_role imr on imr.member_id = iu.id
+            LEFT JOIN iam_role ir on ir.id = imr.role_id
+            WHERE imr.member_type = 'user'
+            AND imr.source_id = #{sourceId}
+            AND imr.source_type = #{sourceType}
+            <if test="roleAssignmentSearchDTO != null">
+                <if test="roleAssignmentSearchDTO.loginName != null">
+                    AND iu.login_name LIKE concat(concat('%',#{roleAssignmentSearchDTO.loginName}),'%')
+                </if>
+                <if test="roleAssignmentSearchDTO.realName != null">
+                    AND iu.real_name LIKE concat(concat('%',#{roleAssignmentSearchDTO.realName}),'%')
+                </if>
+                <if test="roleAssignmentSearchDTO.roleName != null">
+                    AND ir.name LIKE concat(concat('%',#{roleAssignmentSearchDTO.roleName}),'%')
+                </if>
+            </if>
+            ) t
+    </select>
+    <select id="selectUserByOption" resultMap="BaseResultMap">
+            SELECT
+                    iu.id,
+                    iu.login_name,
+                    iu.email,
+                    iu.real_name,
+                    iu.is_enabled
+            FROM (SELECT DISTINCT
+                  imr.MEMBER_ID
+                FROM iam_member_role imr
+                  LEFT JOIN iam_role ir
+                    ON ir.id = imr.role_id
+                WHERE imr.member_type = 'user'
+                AND imr.source_id = #{sourceId}
+                AND imr.source_type = #{sourceType}
+                <if test="roleAssignmentSearchDTO != null and roleAssignmentSearchDTO.roleName != null">
+                    AND ir.name LIKE concat(concat('%',#{roleAssignmentSearchDTO.roleName}),'%')
+                </if>
+                ) temp
+               LEFT JOIN iam_user iu
+                ON temp.member_id = iu.id
+        <if test="roleAssignmentSearchDTO != null">
+            <if test="roleAssignmentSearchDTO.loginName != null">
+                AND iu.login_name LIKE concat(concat('%',#{roleAssignmentSearchDTO.loginName}),'%')
+            </if>
+            <if test="roleAssignmentSearchDTO.realName != null">
+                AND iu.real_name LIKE concat(concat('%',#{roleAssignmentSearchDTO.realName}),'%')
+            </if>
+        </if>
+    </select>
+    <select id="selectUserWithRolesByOption" resultType="com.crc.crcloud.steam.iam.model.dto.IamRoleDTO">
+                SELECT
+                role.id ,
+                role.name,
+                role.code,
+                role.is_enabled,
+                role.is_built_in,
+                imr.member_id AS user_id
+                FROM iam_member_role imr
+                LEFT JOIN iam_role role ON imr.role_id = role.id
+                WHERE imr.member_type = 'user'
+                AND imr.source_id = #{sourceId}
+                AND imr.source_type = #{sourceType}
+                AND imr.member_id IN <foreach collection="userIds" close=")" item="item" open="(" separator=",">#{item}</foreach>
+    </select>
 
 
     <update id="updateLdapUser">

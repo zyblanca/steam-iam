@@ -1,9 +1,6 @@
 package com.crc.crcloud.steam.iam.web;
 
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
-import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
 import com.crc.crcloud.steam.iam.service.IamProjectService;
@@ -14,11 +11,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 
 /**
@@ -57,6 +51,10 @@ public class IamProjectController {
      * 修改项目信息
      * 项目code和组织,可用标志不可修改
      * 启用禁用使用额外的接口
+     * note：原始行云有两套项目管理
+     * 一套为组织级别管理项目 OrganizationProjectController
+     * 一套为项目自身管理     ProjectController
+     * 现对接 OrganizationProjectController
      */
     @Permission(level = ResourceLevel.PROJECT, roles = InitRoleCode.PROJECT_OWNER)
     @ApiOperation(value = "修改项目")
