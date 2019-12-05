@@ -278,8 +278,8 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
 				});
 		//获取组织后根据参数是否去除掉禁用项
 		ToLongFunction<IamOrganizationDTO> keyExtractor = o -> Optional.ofNullable(o.getCreationDate()).map(Date::getTime).orElse(0L);
-		List<IamOrganizationDTO> organizations = getByIds(organizationIds).stream().sorted(Comparator.comparingLong(keyExtractor)).collect(Collectors.toList());
-		return organizations.stream().filter(t -> includeDisable ? true : t.getIsEnabled()).collect(Collectors.toList());
+		List<IamOrganizationDTO> organizations = getByIds(organizationIds);
+		return organizations.stream().filter(t -> includeDisable ? true : t.getIsEnabled()).sorted(Comparator.comparingLong(keyExtractor)).collect(Collectors.toList());
 	}
 
 	@Override
