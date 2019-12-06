@@ -6,9 +6,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.util.CollectionUtils;
 
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.Function;
 
 /**
  * 对象拷贝
@@ -59,5 +58,23 @@ public class CopyUtil {
             throw new IamAppCommException("copy.init.error", targetClass.getName());
         }
     }
+
+
+    public static <K, V> Map<K, List<V>> listToMapList(List<V> data, Function<V, K> function) {
+        Map<K, List<V>> map = new HashMap<>();
+        if (CollectionUtils.isEmpty(data)) return map;
+        List<V> temp;
+        K k;
+        for (V v : data) {
+            k = function.apply(v);
+            if (Objects.isNull(temp = map.get(k))) {
+                temp = new ArrayList<>();
+                map.put(k, temp);
+            }
+            temp.add(v);
+        }
+        return map;
+    }
+
 
 }

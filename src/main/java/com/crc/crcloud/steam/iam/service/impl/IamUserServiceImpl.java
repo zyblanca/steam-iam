@@ -26,8 +26,11 @@ import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
+import com.crc.crcloud.steam.iam.model.dto.iam.RoleAssignmentSearchDTO;
+import com.crc.crcloud.steam.iam.model.dto.iam.UserWithRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.user.SearchDTO;
 import com.crc.crcloud.steam.iam.model.event.IamUserManualCreateEvent;
+import com.crc.crcloud.steam.iam.model.feign.role.RoleDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamOrganizationUserPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamUserCreateRequestVO;
@@ -323,5 +326,77 @@ public class IamUserServiceImpl implements IamUserService {
         Assert.notNull(userId);
         ApplicationContextHelper.getContext().getBean(IamOrganizationService.class).get(currentOrganizationId)
                 .ifPresent(org -> iamUserMapper.updateById(IamUser.builder().id(userId).currentOrganizationId(currentOrganizationId).build()));
+    }
+
+    @Override
+    public IPage<UserWithRoleDTO> pagingQueryUsersWithProjectLevelRoles(PageUtil pageUtil, RoleAssignmentSearchDTO roleAssignmentSearchDTO, Long sourceId, boolean doPage) {
+        List<UserWithRoleDTO> result;
+        long total;
+        long size;
+        if (doPage) {
+            long page = pageUtil.getCurrent();
+            size = pageUtil.getSize();
+            long start = page * size;
+            total = iamUserMapper.selectCountUsers(roleAssignmentSearchDTO, sourceId, ResourceLevel.PROJECT.value());
+            if (total > 0) {
+                result = getUserRoleData(roleAssignmentSearchDTO, sourceId, ResourceLevel.PROJECT.value(), start, size);
+            } else {
+                result = new ArrayList<>();
+            }
+        } else {
+            result = getUserRoleData(roleAssignmentSearchDTO, sourceId, ResourceLevel.PROJECT.value(), null, null);
+            size = result.size();
+            total = result.size();
+        }
+
+        IPage<UserWithRoleDTO> page = new Page<>();
+        page.setRecords(result);
+        page.setSize(size);
+        page.setTotal(total);
+        return page;
+    }
+
+    private List<UserWithRoleDTO> getUserRoleData(RoleAssignmentSearchDTO roleAssignmentSearchDTO, Long sourceId, String value, Long start, Long size) {
+        List<UserWithRoleDTO> result = new ArrayList<>();
+        //查询用户
+        List<IamUser> users = iamUserMapper.selectUserByOption(roleAssignmentSearchDTO, sourceId, ResourceLevel.PROJECT.value(), start, size);
+        if (CollectionUtils.isEmpty(users)) return new ArrayList<>();
+        //查询用户下的权限
+        List<Long> userIds = users.stream().map(IamUser::getId).collect(Collectors.toList());
+        List<IamRoleDTO> roles = iamUserMapper.selectUserWithRolesByOption(sourceId, ResourceLevel.PROJECT.value(), userIds);
+        Map<Long, List<IamRoleDTO>> map = CopyUtil.listToMapList(roles, IamRoleDTO::getUserId);
+        //类型转换
+        UserWithRoleDTO userWithRoleDTO;
+        List<RoleDTO> roleDTOS;
+        RoleDTO roleDTO;
+        List<IamRoleDTO> iamRoleDTOS;
+
+        for (IamUser user : users) {
+            userWithRoleDTO = new UserWithRoleDTO();
+            userWithRoleDTO.setLoginName(user.getLoginName());
+            userWithRoleDTO.setEmail(user.getEmail());
+            userWithRoleDTO.setRealName(user.getRealName());
+            userWithRoleDTO.setEnabled(user.getIsEnabled());
+            userWithRoleDTO.setId(user.getId());
+            result.add(userWithRoleDTO);
+            if (CollectionUtils.isEmpty(iamRoleDTOS = map.get(user.getId()))) {
+                continue;
+            }
+            roleDTOS = new ArrayList<>();
+            userWithRoleDTO.setRoles(roleDTOS);
+
+            for (IamRoleDTO iamRole : iamRoleDTOS) {
+                roleDTO = new RoleDTO();
+                roleDTO.setId(iamRole.getId());
+                roleDTO.setName(iamRole.getName());
+                roleDTO.setCode(iamRole.getCode());
+                roleDTO.setBuiltIn(iamRole.getIsBuiltIn());
+                roleDTO.setEnabled(iamRole.getIsEnabled());
+                roleDTOS.add(roleDTO);
+            }
+
+        }
+        return result;
+
     }
 }

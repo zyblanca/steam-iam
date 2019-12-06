@@ -28,6 +28,8 @@ public class IamRoleDTO {
     */
     private String name;
 
+    private Long userId;
+
     /**
     * 角色编码
     */
