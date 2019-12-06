@@ -1,12 +1,14 @@
 package com.crc.crcloud.steam.iam.service;
 
 
+import cn.hutool.core.collection.CollUtil;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import io.choerodon.core.iam.ResourceLevel;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -62,4 +64,13 @@ public interface IamRoleService {
      */
     @NotNull
     List<IamRoleDTO> getRolesByCode(@Nullable Set<String> codes);
+
+    /**
+     * 获取角色
+     * @param code 角色编码
+     * @return 角色
+     */
+    default Optional<IamRoleDTO> getRoleByCode(@NotNull String code) {
+        return getRolesByCode(CollUtil.newHashSet(code)).stream().findFirst();
+    }
 }

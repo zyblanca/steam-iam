@@ -34,6 +34,7 @@ import io.choerodon.asgard.saga.producer.StartSagaBuilder;
 import io.choerodon.asgard.saga.producer.TransactionalProducer;
 import io.choerodon.core.convertor.ApplicationContextHelper;
 import io.choerodon.core.convertor.ConvertHelper;
+import io.choerodon.core.iam.InitRoleCode;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.core.oauth.DetailsHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -224,6 +225,15 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
 		entity.setImageUrl(vo.getImageUrl());
 		entity.setName(vo.getName());
 		this.iamOrganizationMapper.insert(entity);
+		//创建完后需要将该创建者设置为该组织管理员
+		Optional.ofNullable(entity.getCreatedBy()).ifPresent(userId -> {
+			ApplicationContextHelper.getContext().getBean(IamRoleService.class)
+					.getRoleByCode(InitRoleCode.ORGANIZATION_ADMINISTRATOR)
+					.ifPresent(role -> {
+						ApplicationContextHelper.getContext().getBean(IamMemberRoleService.class)
+								.grantUserRole(userId, CollUtil.newHashSet(role.getId()), entity.getId(), ResourceLevel.ORGANIZATION);
+					});
+		});
 		IamOrganizationDTO iamOrganizationDTO = ConvertHelper.convert(entity, IamOrganizationDTO.class);
 		createOrganizationSaga(iamOrganizationDTO);
 		return iamOrganizationDTO;
