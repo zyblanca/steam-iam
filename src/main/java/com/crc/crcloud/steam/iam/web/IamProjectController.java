@@ -11,6 +11,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,5 +67,18 @@ public class IamProjectController {
         return new ResponseEntity<>(iamProjectService.update(iamProjectVO));
     }
 
+    /**
+     * 按照Id查询项目
+     * 只有单纯的项目信息，不是详情数据
+     * 老行云迁移过来
+     * @param id 要查询的项目ID
+     * @return 查询到的项目
+     */
+    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_OWNER})
+    @GetMapping(value = "/{project_id}")
+    @ApiOperation(value = "通过id查询项目(只是单表数据，不是详情)")
+    public ResponseEntity<IamProjectVO> query(@PathVariable(name = "project_id") Long id) {
+        return new ResponseEntity<>(iamProjectService.queryProjectById(id));
+    }
 
 }

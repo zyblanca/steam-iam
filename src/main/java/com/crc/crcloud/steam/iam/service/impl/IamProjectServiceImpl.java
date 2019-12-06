@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.enums.RoleLabelEnum;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
+import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.UserDetail;
 import com.crc.crcloud.steam.iam.dao.IamLabelMapper;
 import com.crc.crcloud.steam.iam.dao.IamOrganizationMapper;
@@ -263,5 +264,38 @@ public class IamProjectServiceImpl implements IamProjectService {
             return new ArrayList<>();
         }
         return iamProjectMapper.selectBatchIds(ids).stream().map(t -> ConvertHelper.convert(t, IamProjectDTO.class)).collect(Collectors.toList());
+    }
+
+    @Override
+    public IPage<IamProjectVO> pagingQuery(IamProjectVO projectVO, PageUtil pageUtil) {
+        IamProjectDTO iamProjectDTO = CopyUtil.copy(projectVO, IamProjectDTO.class);
+        IPage<IamProject> projects = iamProjectMapper.page(pageUtil, iamProjectDTO);
+
+        IPage<IamProjectVO> result = new Page<>();
+        result.setTotal(projects.getTotal());
+        result.setSize(projects.getSize());
+        if (CollectionUtils.isEmpty(projects.getRecords())) return result;
+        List<IamProjectVO> projectList = new ArrayList<>();
+        for (IamProject project : projects.getRecords()) {
+            IamProjectVO iamProjectVO = new IamProjectVO();
+            BeanUtils.copyProperties(project, iamProjectVO);
+            //兼容老行云字段
+            iamProjectVO.setEnabled(project.getIsEnabled());
+            projectList.add(iamProjectVO);
+        }
+        result.setRecords(projectList);
+        return result;
+    }
+
+    @Override
+    public IamProjectVO queryProjectById(Long id) {
+        IamProject iamProject = iamProjectMapper.selectById(id);
+        if (Objects.isNull(iamProject)) {
+            throw new IamAppCommException("project.data.null");
+        }
+        IamProjectVO iamProjectVO = CopyUtil.copy(iamProject, IamProjectVO.class);
+        //兼容老行云
+        iamProjectVO.setEnabled(iamProject.getIsEnabled());
+        return iamProjectVO;
     }
 }
