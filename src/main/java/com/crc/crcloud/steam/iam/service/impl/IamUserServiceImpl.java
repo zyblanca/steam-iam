@@ -327,6 +327,7 @@ public class IamUserServiceImpl implements IamUserService {
         ApplicationContextHelper.getContext().getBean(IamOrganizationService.class).get(currentOrganizationId)
                 .ifPresent(org -> iamUserMapper.updateById(IamUser.builder().id(userId).currentOrganizationId(currentOrganizationId).build()));
     }
+
     @Override
     public IPage<UserWithRoleDTO> pagingQueryUsersWithProjectLevelRoles(PageUtil pageUtil, RoleAssignmentSearchDTO roleAssignmentSearchDTO, Long sourceId, boolean doPage) {
         List<UserWithRoleDTO> result;
@@ -369,13 +370,15 @@ public class IamUserServiceImpl implements IamUserService {
         List<RoleDTO> roleDTOS;
         RoleDTO roleDTO;
         List<IamRoleDTO> iamRoleDTOS;
-        Byte flag = Byte.valueOf("1");//1:true :0 false
+
         for (IamUser user : users) {
             userWithRoleDTO = new UserWithRoleDTO();
             userWithRoleDTO.setLoginName(user.getLoginName());
             userWithRoleDTO.setEmail(user.getEmail());
             userWithRoleDTO.setRealName(user.getRealName());
             userWithRoleDTO.setEnabled(user.getIsEnabled());
+            userWithRoleDTO.setId(user.getId());
+            result.add(userWithRoleDTO);
             if (CollectionUtils.isEmpty(iamRoleDTOS = map.get(user.getId()))) {
                 continue;
             }
@@ -387,8 +390,8 @@ public class IamUserServiceImpl implements IamUserService {
                 roleDTO.setId(iamRole.getId());
                 roleDTO.setName(iamRole.getName());
                 roleDTO.setCode(iamRole.getCode());
-                roleDTO.setBuiltIn(Objects.equals(flag, iamRole.getIsBuiltIn()));
-                roleDTO.setEnabled(Objects.equals(flag, iamRole.getIsEnabled()));
+                roleDTO.setBuiltIn(iamRole.getIsBuiltIn());
+                roleDTO.setEnabled(iamRole.getIsEnabled());
                 roleDTOS.add(roleDTO);
             }
 

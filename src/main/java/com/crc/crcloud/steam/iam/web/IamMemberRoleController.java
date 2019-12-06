@@ -10,7 +10,6 @@ import com.crc.crcloud.steam.iam.service.IamMemberRoleService;
 import com.crc.crcloud.steam.iam.service.IamUserService;
 import io.choerodon.core.iam.InitRoleCode;
 import io.choerodon.core.iam.ResourceLevel;
-import io.choerodon.swagger.annotation.CustomPageRequest;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -50,7 +49,6 @@ public class IamMemberRoleController {
      */
     @Permission(level = ResourceLevel.PROJECT, roles = InitRoleCode.PROJECT_OWNER)
     @ApiOperation(value = "项目层查询用户列表以及该用户拥有的角色")
-    @CustomPageRequest
     @PostMapping(value = "/projects/{project_id}/role_members/users/roles")
     public ResponseEntity<IPage<UserWithRoleDTO>> pagingQueryUsersWithProjectLevelRoles(
             @ApiIgnore
