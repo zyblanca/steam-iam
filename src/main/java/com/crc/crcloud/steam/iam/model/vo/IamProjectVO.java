@@ -52,7 +52,7 @@ public class IamProjectVO {
     @ApiModelProperty("是否启用")
     private Boolean isEnabled;
 
-    //兼容老行云，新行云勿用此字段
+    @ApiModelProperty("兼容老行云，新行云勿用此字段")
     private Boolean enabled;
 
 

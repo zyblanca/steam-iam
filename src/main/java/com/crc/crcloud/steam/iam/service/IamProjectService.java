@@ -80,4 +80,12 @@ public interface IamProjectService {
      * @return
      */
     IPage<IamProjectVO> pagingQuery(IamProjectVO project, PageUtil pageUtil);
+
+    /**
+     * 单纯查询项目信息，不存在额外信息
+     * 不是详情数据
+     * @param id
+     * @return
+     */
+    IamProjectVO queryProjectById(Long id);
 }

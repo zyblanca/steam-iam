@@ -286,4 +286,16 @@ public class IamProjectServiceImpl implements IamProjectService {
         result.setRecords(projectList);
         return result;
     }
+
+    @Override
+    public IamProjectVO queryProjectById(Long id) {
+        IamProject iamProject = iamProjectMapper.selectById(id);
+        if (Objects.isNull(iamProject)) {
+            throw new IamAppCommException("project.data.null");
+        }
+        IamProjectVO iamProjectVO = CopyUtil.copy(iamProject, IamProjectVO.class);
+        //兼容老行云
+        iamProjectVO.setEnabled(iamProject.getIsEnabled());
+        return iamProjectVO;
+    }
 }
