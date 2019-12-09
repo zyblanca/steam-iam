@@ -3,6 +3,7 @@ package com.crc.crcloud.steam.iam.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
+import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.iam.RoleAssignmentSearchDTO;
@@ -113,4 +114,5 @@ public interface IamUserService {
 
     IPage<UserWithRoleDTO> pagingQueryUsersWithProjectLevelRoles(PageUtil pageUtil, RoleAssignmentSearchDTO roleAssignmentSearchDTO, Long sourceId, boolean doPage);
 
+    IamUserVO querySelf();
 }
