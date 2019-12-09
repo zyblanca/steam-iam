@@ -25,5 +25,7 @@ public class UserSearchDTO {
 
     private Long id;
 
+    private String email;
+
     private String param;
 }

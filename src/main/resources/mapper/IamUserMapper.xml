@@ -133,8 +133,17 @@
 
           and  iu.real_name like concat('%',concat(#{userSearch.realName},'%'))
         </if>
+        <if test="userSearch.email != null">
+            AND iu.email LIKE concat(concat('%',#{userSearch.email}),'%')
+        </if>
         <if test="userSearch.loginName != null and userSearch.loginName != '' ">
          and   iu.login_name like concat('%',concat(#{userSearch.loginName},'%'))
+        </if>
+        <if test="userSearch.param != null">
+            AND (
+            id.login_name LIKE concat(concat('%',#{userSearch.param}),'%') OR
+            id.real_name LIKE concat(concat('%',#{userSearch.param}),'%')
+            )
         </if>
 
     </select>
