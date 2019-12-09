@@ -5,6 +5,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.crc.crcloud.steam.iam.api.feign.FileFeignClient;
@@ -130,7 +131,8 @@ public class IamOrganizationController {
         if (!matchExtName) {
             throw new IamAppCommException("organization.image.file.illegal");
         }
-        String imageUrl = fileFeignClient.uploadFile(IamConstant.BUCKET_NAME, IdWorker.getIdStr() + "." + extName, file).getBody();
+        final String fileName = StrUtil.format("file_{}.{}", IdWorker.getIdStr(), extName);
+        String imageUrl = fileFeignClient.uploadFile(IamConstant.BUCKET_NAME, fileName, file).getBody();
         log.info("upload file imageUrl: {}", imageUrl);
         return new ResponseEntity<>(imageUrl);
     }
