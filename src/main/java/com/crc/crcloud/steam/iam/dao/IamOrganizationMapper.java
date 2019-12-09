@@ -7,6 +7,8 @@ import com.crc.crcloud.steam.iam.model.dto.organization.IamOrganizationWithProje
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationPageRequestVO;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 
 /**
  * @Author:
@@ -21,4 +23,6 @@ public interface IamOrganizationMapper extends BaseMapper<IamOrganization> {
      * @return 分页结果数据
      */
     IPage<IamOrganizationWithProjectCountDTO> page(@Param("page") IPage<IamOrganizationWithProjectCountDTO> page, @Param("vo") IamOrganizationPageRequestVO vo);
+
+    List<IamOrganization> queryAllOrganization(@Param("userId") Long userId,@Param("roleId") Long roleId);
 }

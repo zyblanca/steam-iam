@@ -14,9 +14,12 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
+import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.UserDetail;
 import com.crc.crcloud.steam.iam.dao.IamOrganizationMapper;
+import com.crc.crcloud.steam.iam.dao.IamRoleMapper;
 import com.crc.crcloud.steam.iam.entity.IamOrganization;
+import com.crc.crcloud.steam.iam.entity.IamRole;
 import com.crc.crcloud.steam.iam.entity.IamUserOrganizationRel;
 import com.crc.crcloud.steam.iam.model.dto.IamMemberRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamOrganizationDTO;
@@ -69,240 +72,251 @@ import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.Organization.ORG_
 @Service
 public class IamOrganizationServiceImpl implements IamOrganizationService {
 
-	@Autowired
-	private IamOrganizationMapper iamOrganizationMapper;
-	@Autowired
-	private IamUserOrganizationRelService userOrganizationRelService;
-	@Autowired
-	private ChoerodonDevOpsProperties choerodonDevOpsProperties;
-	@Autowired
-	private TransactionalProducer producer;
+    @Autowired
+    private IamOrganizationMapper iamOrganizationMapper;
+    @Autowired
+    private IamUserOrganizationRelService userOrganizationRelService;
+    @Autowired
+    private ChoerodonDevOpsProperties choerodonDevOpsProperties;
+    @Autowired
+    private IamRoleMapper iamRoleMapper;
 
-	@Override
-	public @NotNull List<IamOrganizationDTO> getUserOrganizations(@NotNull Long userId) {
-		@NotNull List<IamUserOrganizationRel> userOrganizations = userOrganizationRelService.getUserOrganizations(userId);
-		if (CollUtil.isNotEmpty(userOrganizations)) {
-			List<Long> organizationIds = userOrganizations.stream().map(IamUserOrganizationRel::getOrganizationId).collect(Collectors.toList());
-			return get(organizationIds);
-		}
-		return new ArrayList<>();
-	}
+    @Autowired
+    private TransactionalProducer producer;
 
-	/**
-	 * 通过ID查找，按照查找顺序排序
-	 * @param organizationIds 组织编号
-	 * @return 组织列表
-	 */
-	public List<IamOrganizationDTO> get(@Nullable List<Long> organizationIds) {
-		List<IamOrganizationDTO> results = new ArrayList<>();
-		if (CollUtil.isNotEmpty(organizationIds)) {
-			Map<Long, IamOrganizationDTO> organizationMap = iamOrganizationMapper.selectBatchIds(CollUtil.newHashSet(organizationIds)).stream().collect(Collectors.toMap(IamOrganization::getId, t -> ConvertHelper.convert(t, IamOrganizationDTO.class)));
-			for (Long organizationId : organizationIds) {
-				if (organizationMap.containsKey(organizationId)) {
-					results.add(organizationMap.get(organizationId));
-				}
-			}
-		}
-		return results;
-	}
+    @Override
+    public @NotNull List<IamOrganizationDTO> getUserOrganizations(@NotNull Long userId) {
+        @NotNull List<IamUserOrganizationRel> userOrganizations = userOrganizationRelService.getUserOrganizations(userId);
+        if (CollUtil.isNotEmpty(userOrganizations)) {
+            List<Long> organizationIds = userOrganizations.stream().map(IamUserOrganizationRel::getOrganizationId).collect(Collectors.toList());
+            return get(organizationIds);
+        }
+        return new ArrayList<>();
+    }
 
-	@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
-	@Override
-	public IamOrganizationDTO updateBySite(@NotNull @Min(1) Long id, @NotNull @Valid IamOrganizationUpdateRequestVO vo) {
-		return updateByLevel(id, vo, startSagaBuilder -> startSagaBuilder.withLevel(ResourceLevel.SITE).withSourceId(0L));
-	}
+    /**
+     * 通过ID查找，按照查找顺序排序
+     *
+     * @param organizationIds 组织编号
+     * @return 组织列表
+     */
+    public List<IamOrganizationDTO> get(@Nullable List<Long> organizationIds) {
+        List<IamOrganizationDTO> results = new ArrayList<>();
+        if (CollUtil.isNotEmpty(organizationIds)) {
+            Map<Long, IamOrganizationDTO> organizationMap = iamOrganizationMapper.selectBatchIds(CollUtil.newHashSet(organizationIds)).stream().collect(Collectors.toMap(IamOrganization::getId, t -> ConvertHelper.convert(t, IamOrganizationDTO.class)));
+            for (Long organizationId : organizationIds) {
+                if (organizationMap.containsKey(organizationId)) {
+                    results.add(organizationMap.get(organizationId));
+                }
+            }
+        }
+        return results;
+    }
 
-	@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
-	@Override
-	public @NotNull IamOrganizationDTO updateByOrganization(@NotNull @Min(1) Long id, @NotNull @Valid IamOrganizationUpdateRequestVO vo) {
-		return updateByLevel(id, vo, startSagaBuilder -> startSagaBuilder.withLevel(ResourceLevel.ORGANIZATION).withSourceId(id));
-	}
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
+    @Override
+    public IamOrganizationDTO updateBySite(@NotNull @Min(1) Long id, @NotNull @Valid IamOrganizationUpdateRequestVO vo) {
+        return updateByLevel(id, vo, startSagaBuilder -> startSagaBuilder.withLevel(ResourceLevel.SITE).withSourceId(0L));
+    }
 
-	@Saga(code = ORG_UPDATE, description = "steam-iam更新组织", inputSchemaClass = OrganizationPayload.class)
-	private IamOrganizationDTO updateByLevel(@NotNull @Min(1) Long id, @NotNull @Valid IamOrganizationUpdateRequestVO vo, Consumer<StartSagaBuilder> consumer) {
-		final IamOrganizationDTO organization = getAndThrow(id);
-		IamOrganization entity = IamOrganization.builder()
-				.id(id)
-				.name(vo.getName())
-				.imageUrl(vo.getImageUrl())
-				.description(vo.getDescription())
-				.build();
-		this.iamOrganizationMapper.updateById(entity);
-		BeanUtil.copyProperties(entity, organization, CopyOptions.create().ignoreNullValue());
-		final String logTitle = StrUtil.format("更新组织[{}|{}]", id, organization.getCode());
-		log.info("{};完成", logTitle);
-		if (choerodonDevOpsProperties.isMessage()) {
-			final OrganizationPayload organizationPayload = new OrganizationPayload();
-			BeanUtil.copyProperties(organization, organizationPayload);
-			log.info("{};开始发送Saga事件[{code:{}}],内容: {}", logTitle, ORG_UPDATE, JSONUtil.toJsonStr(organizationPayload));
-			StartSagaBuilder sagaBuilder = StartSagaBuilder.newBuilder();
-			consumer.accept(sagaBuilder);
-			producer.apply(sagaBuilder, startSagaBuilder -> {
-				startSagaBuilder.withSagaCode(ORG_UPDATE).withPayloadAndSerialize(organizationPayload)
-						.withRefType("organization")
-						.withRefId(Objects.toString(id));
-			});
-		}
-		if (Objects.nonNull(vo.getIsEnabled())) {
-			toggleEnable(id, vo.getIsEnabled(), DetailsHelper.getUserDetails().getUserId());
-			organization.setIsEnabled(vo.getIsEnabled());
-		}
-		return organization;
-	}
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
+    @Override
+    public @NotNull IamOrganizationDTO updateByOrganization(@NotNull @Min(1) Long id, @NotNull @Valid IamOrganizationUpdateRequestVO vo) {
+        return updateByLevel(id, vo, startSagaBuilder -> startSagaBuilder.withLevel(ResourceLevel.ORGANIZATION).withSourceId(id));
+    }
 
-	@Override
-	public Optional<IamOrganizationDTO> get(@NotNull @Min(1) Long id) {
-		return Optional.ofNullable(this.iamOrganizationMapper.selectById(id)).map(t -> ConvertHelper.convert(t, IamOrganizationDTO.class));
-	}
+    @Saga(code = ORG_UPDATE, description = "steam-iam更新组织", inputSchemaClass = OrganizationPayload.class)
+    private IamOrganizationDTO updateByLevel(@NotNull @Min(1) Long id, @NotNull @Valid IamOrganizationUpdateRequestVO vo, Consumer<StartSagaBuilder> consumer) {
+        final IamOrganizationDTO organization = getAndThrow(id);
+        IamOrganization entity = IamOrganization.builder()
+                .id(id)
+                .name(vo.getName())
+                .imageUrl(vo.getImageUrl())
+                .description(vo.getDescription())
+                .build();
+        this.iamOrganizationMapper.updateById(entity);
+        BeanUtil.copyProperties(entity, organization, CopyOptions.create().ignoreNullValue());
+        final String logTitle = StrUtil.format("更新组织[{}|{}]", id, organization.getCode());
+        log.info("{};完成", logTitle);
+        if (choerodonDevOpsProperties.isMessage()) {
+            final OrganizationPayload organizationPayload = new OrganizationPayload();
+            BeanUtil.copyProperties(organization, organizationPayload);
+            log.info("{};开始发送Saga事件[{code:{}}],内容: {}", logTitle, ORG_UPDATE, JSONUtil.toJsonStr(organizationPayload));
+            StartSagaBuilder sagaBuilder = StartSagaBuilder.newBuilder();
+            consumer.accept(sagaBuilder);
+            producer.apply(sagaBuilder, startSagaBuilder -> {
+                startSagaBuilder.withSagaCode(ORG_UPDATE).withPayloadAndSerialize(organizationPayload)
+                        .withRefType("organization")
+                        .withRefId(Objects.toString(id));
+            });
+        }
+        if (Objects.nonNull(vo.getIsEnabled())) {
+            toggleEnable(id, vo.getIsEnabled(), DetailsHelper.getUserDetails().getUserId());
+            organization.setIsEnabled(vo.getIsEnabled());
+        }
+        return organization;
+    }
 
-	@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
-	@Override
-	public void toggleEnable(@NotNull Long id, @NotNull Boolean isEnable, Long userId) {
-		final IamOrganizationDTO organization = getAndThrow(id);
-		Assert.notNull(isEnable);
-		String display = isEnable ? "启用" : "禁用";
-		log.info("{}组织[{}|{}]", display, id, organization.getCode());
-		if (Objects.equals(organization.getIsEnabled(), isEnable)) {
-			log.warn("组织[{}|{}]当前已经是{}状态,不做处理", id, organization.getCode(), display);
-			return;
-		}
-		IamOrganization iamOrganization = IamOrganization.builder().id(organization.getId()).isEnabled(isEnable).build();
-		this.iamOrganizationMapper.updateById(iamOrganization);
-		BeanUtil.copyProperties(iamOrganization, organization, CopyOptions.create().ignoreNullValue());
-		ApplicationContextHelper.getContext().publishEvent(new IamOrganizationToggleEnableEvent(organization, userId));
-	}
+    @Override
+    public Optional<IamOrganizationDTO> get(@NotNull @Min(1) Long id) {
+        return Optional.ofNullable(this.iamOrganizationMapper.selectById(id)).map(t -> ConvertHelper.convert(t, IamOrganizationDTO.class));
+    }
 
-	@Saga(code = ORG_CREATE, description = "steam-iam创建组织", inputSchemaClass = OrganizationPayload.class)
-	public void createOrganizationSaga(IamOrganizationDTO iamOrganizationDTO) {
-		Long organizationId = iamOrganizationDTO.getId();
-		final String logTitle = StrUtil.format("创建组织[{}|{}]", organizationId, iamOrganizationDTO.getCode());
-		if (choerodonDevOpsProperties.isMessage()) {
-			OrganizationPayload organizationPayload = new OrganizationPayload();
-			BeanUtils.copyProperties(iamOrganizationDTO, organizationPayload);
-			log.info("{};开始发送Saga事件[{code:{}}],内容: {}", logTitle, ORG_CREATE, JSONUtil.toJsonStr(organizationPayload));
-			producer.applyAndReturn(StartSagaBuilder.newBuilder()
-							.withSagaCode(ORG_CREATE)
-							.withLevel(ResourceLevel.ORGANIZATION)
-							.withSourceId(organizationId),
-					builder -> {
-						builder.withPayloadAndSerialize(organizationPayload)
-								.withRefType("organization")
-								.withSourceId(organizationId);
-						return organizationPayload;
-					});
-		}
-	}
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
+    @Override
+    public void toggleEnable(@NotNull Long id, @NotNull Boolean isEnable, Long userId) {
+        final IamOrganizationDTO organization = getAndThrow(id);
+        Assert.notNull(isEnable);
+        String display = isEnable ? "启用" : "禁用";
+        log.info("{}组织[{}|{}]", display, id, organization.getCode());
+        if (Objects.equals(organization.getIsEnabled(), isEnable)) {
+            log.warn("组织[{}|{}]当前已经是{}状态,不做处理", id, organization.getCode(), display);
+            return;
+        }
+        IamOrganization iamOrganization = IamOrganization.builder().id(organization.getId()).isEnabled(isEnable).build();
+        this.iamOrganizationMapper.updateById(iamOrganization);
+        BeanUtil.copyProperties(iamOrganization, organization, CopyOptions.create().ignoreNullValue());
+        ApplicationContextHelper.getContext().publishEvent(new IamOrganizationToggleEnableEvent(organization, userId));
+    }
 
-	@Override
-	public @NotNull IPage<IamOrganizationWithProjectCountDTO> page(@NotNull @Valid IamOrganizationPageRequestVO vo) {
-		Page<IamOrganizationWithProjectCountDTO> page = new Page<>(vo.getCurrent(), vo.getSize());
-		if (StrUtil.isNotBlank(vo.getAsc())) {
-			page.setAsc(StrUtil.toUnderlineCase(vo.getAsc()));
-		}
-		if (StrUtil.isNotBlank(vo.getDesc())) {
-			page.setDesc(StrUtil.toUnderlineCase(vo.getDesc()));
-		}
-		return this.iamOrganizationMapper.page(page, vo);
-	}
+    @Saga(code = ORG_CREATE, description = "steam-iam创建组织", inputSchemaClass = OrganizationPayload.class)
+    public void createOrganizationSaga(IamOrganizationDTO iamOrganizationDTO) {
+        Long organizationId = iamOrganizationDTO.getId();
+        final String logTitle = StrUtil.format("创建组织[{}|{}]", organizationId, iamOrganizationDTO.getCode());
+        if (choerodonDevOpsProperties.isMessage()) {
+            OrganizationPayload organizationPayload = new OrganizationPayload();
+            BeanUtils.copyProperties(iamOrganizationDTO, organizationPayload);
+            log.info("{};开始发送Saga事件[{code:{}}],内容: {}", logTitle, ORG_CREATE, JSONUtil.toJsonStr(organizationPayload));
+            producer.applyAndReturn(StartSagaBuilder.newBuilder()
+                            .withSagaCode(ORG_CREATE)
+                            .withLevel(ResourceLevel.ORGANIZATION)
+                            .withSourceId(organizationId),
+                    builder -> {
+                        builder.withPayloadAndSerialize(organizationPayload)
+                                .withRefType("organization")
+                                .withSourceId(organizationId);
+                        return organizationPayload;
+                    });
+        }
+    }
 
-	@Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
-	@Override
-	public IamOrganizationDTO create(@NotNull @Valid IamOrganizationCreateRequestVO vo) {
-		//只能以字母和数字开头，且长度不能少于2，内容可以包含字母数字.-
-		Predicate<String> matchCode = code -> ReUtil.isMatch("^[a-z][a-z0-9-]+$", code);
-		//不能以"-结尾"
-		matchCode = matchCode.and(code -> !StrUtil.endWithAny(code, "-"));
-		//不能连续出现两个"-"
-		matchCode = matchCode.and(code -> !StrUtil.containsAny(code, "--"));
-		if (matchCode.negate().test(vo.getCode())) {
-			throw new IamAppCommException("organization.code.illegal");
-		}
-		if (this.iamOrganizationMapper.selectCount(Wrappers.<IamOrganization>lambdaQuery().eq(IamOrganization::getCode, vo.getCode())) > 0) {
-			throw new IamAppCommException("organization.code.exist");
-		}
-		IamOrganization entity = new IamOrganization();
-		initOrganization(entity);
-		entity.setCode(vo.getCode());
-		entity.setImageUrl(vo.getImageUrl());
-		entity.setName(vo.getName());
-		this.iamOrganizationMapper.insert(entity);
-		//创建完后需要将该创建者设置为该组织管理员
-		Optional.ofNullable(entity.getCreatedBy()).ifPresent(userId -> {
-			ApplicationContextHelper.getContext().getBean(IamRoleService.class)
-					.getRoleByCode(InitRoleCode.ORGANIZATION_ADMINISTRATOR)
-					.ifPresent(role -> {
-						ApplicationContextHelper.getContext().getBean(IamMemberRoleService.class)
-								.grantUserRole(userId, CollUtil.newHashSet(role.getId()), entity.getId(), ResourceLevel.ORGANIZATION);
-					});
-		});
-		IamOrganizationDTO iamOrganizationDTO = ConvertHelper.convert(entity, IamOrganizationDTO.class);
-		createOrganizationSaga(iamOrganizationDTO);
-		return iamOrganizationDTO;
-	}
+    @Override
+    public @NotNull IPage<IamOrganizationWithProjectCountDTO> page(@NotNull @Valid IamOrganizationPageRequestVO vo) {
+        Page<IamOrganizationWithProjectCountDTO> page = new Page<>(vo.getCurrent(), vo.getSize());
+        if (StrUtil.isNotBlank(vo.getAsc())) {
+            page.setAsc(StrUtil.toUnderlineCase(vo.getAsc()));
+        }
+        if (StrUtil.isNotBlank(vo.getDesc())) {
+            page.setDesc(StrUtil.toUnderlineCase(vo.getDesc()));
+        }
+        return this.iamOrganizationMapper.page(page, vo);
+    }
 
-	/**
-	 * 初始化参数
-	 * <p>当必要参数不存在时，填充数据</p>
-	 * @param entity 组织数据
-	 */
-	public void initOrganization(IamOrganization entity) {
-		IamOrganization init = IamOrganization.builder()
-				.isEnabled(Boolean.TRUE)
-				.isRegister(Boolean.FALSE)
-				.userId(UserDetail.getUserId())
-				.build();
-		Map<String, Object> initField = BeanUtil.beanToMap(init, false, true);
-		BeanDesc beanDesc = BeanUtil.getBeanDesc(IamOrganization.class);
-		initField.forEach((k, v) -> {
-			BeanDesc.PropDesc prop = beanDesc.getProp(k);
-			Object value = prop.getValue(entity);
-			if (Objects.isNull(value)) {
-				prop.setValue(entity, v);
-			}
-		});
-	}
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
+    @Override
+    public IamOrganizationDTO create(@NotNull @Valid IamOrganizationCreateRequestVO vo) {
+        //只能以字母和数字开头，且长度不能少于2，内容可以包含字母数字.-
+        Predicate<String> matchCode = code -> ReUtil.isMatch("^[a-z][a-z0-9-]+$", code);
+        //不能以"-结尾"
+        matchCode = matchCode.and(code -> !StrUtil.endWithAny(code, "-"));
+        //不能连续出现两个"-"
+        matchCode = matchCode.and(code -> !StrUtil.containsAny(code, "--"));
+        if (matchCode.negate().test(vo.getCode())) {
+            throw new IamAppCommException("organization.code.illegal");
+        }
+        if (this.iamOrganizationMapper.selectCount(Wrappers.<IamOrganization>lambdaQuery().eq(IamOrganization::getCode, vo.getCode())) > 0) {
+            throw new IamAppCommException("organization.code.exist");
+        }
+        IamOrganization entity = new IamOrganization();
+        initOrganization(entity);
+        entity.setCode(vo.getCode());
+        entity.setImageUrl(vo.getImageUrl());
+        entity.setName(vo.getName());
+        this.iamOrganizationMapper.insert(entity);
+        //创建完后需要将该创建者设置为该组织管理员
+        Optional.ofNullable(entity.getCreatedBy()).ifPresent(userId -> {
+            ApplicationContextHelper.getContext().getBean(IamRoleService.class)
+                    .getRoleByCode(InitRoleCode.ORGANIZATION_ADMINISTRATOR)
+                    .ifPresent(role -> {
+                        ApplicationContextHelper.getContext().getBean(IamMemberRoleService.class)
+                                .grantUserRole(userId, CollUtil.newHashSet(role.getId()), entity.getId(), ResourceLevel.ORGANIZATION);
+                    });
+        });
+        IamOrganizationDTO iamOrganizationDTO = ConvertHelper.convert(entity, IamOrganizationDTO.class);
+        createOrganizationSaga(iamOrganizationDTO);
+        return iamOrganizationDTO;
+    }
 
-	@Override
-	public @NotNull List<IamOrganizationDTO> getUserAuthOrganizations(@NotNull final Long userId, final boolean includeDisable) {
-		final IamUserService iamUserService = ApplicationContextHelper.getContext().getBean(IamUserService.class);
-		final IamMemberRoleService iamMemberRoleService = ApplicationContextHelper.getContext().getBean(IamMemberRoleService.class);
-		final IamRoleService iamRoleService = ApplicationContextHelper.getContext().getBean(IamRoleService.class);
-		final IamProjectService iamProjectService = ApplicationContextHelper.getContext().getBean(IamProjectService.class);
-		final IamUserDTO iamUser = iamUserService.getAndThrow(userId);
-		@NotNull List<IamRoleDTO> userRoles = iamRoleService.getUserRoles(userId, ResourceLevel.ORGANIZATION, ResourceLevel.PROJECT)
-				//判断是否需要过滤掉禁用的
-				.stream().filter(role -> includeDisable ? true : role.getIsEnabled()).collect(Collectors.toList());
-		final Set<Long> roleIds = userRoles.stream().map(IamRoleDTO::getId).collect(Collectors.toSet());
-		@NotNull List<IamMemberRoleDTO> sourceByOrg = iamMemberRoleService.getUserMemberRoleBySourceType(userId, ResourceLevel.ORGANIZATION);
-		//剔除掉不属于上面用户角色项（禁用的）
-		sourceByOrg = sourceByOrg.stream().filter(t -> roleIds.contains(t.getRoleId())).collect(Collectors.toList());
-		@NotNull List<IamMemberRoleDTO> sourceByPro = iamMemberRoleService.getUserMemberRoleBySourceType(userId, ResourceLevel.PROJECT);
-		sourceByPro = sourceByPro.stream().filter(t -> roleIds.contains(t.getRoleId())).collect(Collectors.toList());
-		//转换为组织ID
-		final Set<Long> organizationIds = sourceByOrg.stream().map(IamMemberRoleDTO::getSourceId).collect(Collectors.toSet());
-		//将项目根据参数是否去除掉禁用项之后转为组织
-		iamProjectService.getByIds(sourceByPro.stream().map(IamMemberRoleDTO::getSourceId).collect(Collectors.toSet()))
-				.forEach(pro -> {
-					if (includeDisable ? true : pro.getIsEnabled()) {
-						organizationIds.add(pro.getOrganizationId());
-					}
-				});
-		//获取组织后根据参数是否去除掉禁用项
-		ToLongFunction<IamOrganizationDTO> keyExtractor = o -> Optional.ofNullable(o.getCreationDate()).map(Date::getTime).orElse(0L);
-		List<IamOrganizationDTO> organizations = getByIds(organizationIds);
-		return organizations.stream().filter(t -> includeDisable ? true : t.getIsEnabled()).sorted(Comparator.comparingLong(keyExtractor)).collect(Collectors.toList());
-	}
+    /**
+     * 初始化参数
+     * <p>当必要参数不存在时，填充数据</p>
+     *
+     * @param entity 组织数据
+     */
+    public void initOrganization(IamOrganization entity) {
+        IamOrganization init = IamOrganization.builder()
+                .isEnabled(Boolean.TRUE)
+                .isRegister(Boolean.FALSE)
+                .userId(UserDetail.getUserId())
+                .build();
+        Map<String, Object> initField = BeanUtil.beanToMap(init, false, true);
+        BeanDesc beanDesc = BeanUtil.getBeanDesc(IamOrganization.class);
+        initField.forEach((k, v) -> {
+            BeanDesc.PropDesc prop = beanDesc.getProp(k);
+            Object value = prop.getValue(entity);
+            if (Objects.isNull(value)) {
+                prop.setValue(entity, v);
+            }
+        });
+    }
 
-	@Override
-	public List<IamOrganizationDTO> getByIds(@Nullable Set<Long> organizationIds) {
-		if (CollUtil.isEmpty(organizationIds)) {
-			return new ArrayList<>();
-		}
-		return this.iamOrganizationMapper.selectBatchIds(organizationIds).stream().map(t -> ConvertHelper.convert(t, IamOrganizationDTO.class)).collect(Collectors.toList());
-	}
+    @Override
+    public @NotNull List<IamOrganizationDTO> getUserAuthOrganizations(@NotNull final Long userId, final boolean includeDisable) {
+        final IamUserService iamUserService = ApplicationContextHelper.getContext().getBean(IamUserService.class);
+        final IamMemberRoleService iamMemberRoleService = ApplicationContextHelper.getContext().getBean(IamMemberRoleService.class);
+        final IamRoleService iamRoleService = ApplicationContextHelper.getContext().getBean(IamRoleService.class);
+        final IamProjectService iamProjectService = ApplicationContextHelper.getContext().getBean(IamProjectService.class);
+        final IamUserDTO iamUser = iamUserService.getAndThrow(userId);
+        @NotNull List<IamRoleDTO> userRoles = iamRoleService.getUserRoles(userId, ResourceLevel.ORGANIZATION, ResourceLevel.PROJECT)
+                //判断是否需要过滤掉禁用的
+                .stream().filter(role -> includeDisable ? true : role.getIsEnabled()).collect(Collectors.toList());
+        final Set<Long> roleIds = userRoles.stream().map(IamRoleDTO::getId).collect(Collectors.toSet());
+        @NotNull List<IamMemberRoleDTO> sourceByOrg = iamMemberRoleService.getUserMemberRoleBySourceType(userId, ResourceLevel.ORGANIZATION);
+        //剔除掉不属于上面用户角色项（禁用的）
+        sourceByOrg = sourceByOrg.stream().filter(t -> roleIds.contains(t.getRoleId())).collect(Collectors.toList());
+        @NotNull List<IamMemberRoleDTO> sourceByPro = iamMemberRoleService.getUserMemberRoleBySourceType(userId, ResourceLevel.PROJECT);
+        sourceByPro = sourceByPro.stream().filter(t -> roleIds.contains(t.getRoleId())).collect(Collectors.toList());
+        //转换为组织ID
+        final Set<Long> organizationIds = sourceByOrg.stream().map(IamMemberRoleDTO::getSourceId).collect(Collectors.toSet());
+        //将项目根据参数是否去除掉禁用项之后转为组织
+        iamProjectService.getByIds(sourceByPro.stream().map(IamMemberRoleDTO::getSourceId).collect(Collectors.toSet()))
+                .forEach(pro -> {
+                    if (includeDisable ? true : pro.getIsEnabled()) {
+                        organizationIds.add(pro.getOrganizationId());
+                    }
+                });
+        //获取组织后根据参数是否去除掉禁用项
+        ToLongFunction<IamOrganizationDTO> keyExtractor = o -> Optional.ofNullable(o.getCreationDate()).map(Date::getTime).orElse(0L);
+        List<IamOrganizationDTO> organizations = getByIds(organizationIds);
+        return organizations.stream().filter(t -> includeDisable ? true : t.getIsEnabled()).sorted(Comparator.comparingLong(keyExtractor)).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<IamOrganizationDTO> getByIds(@Nullable Set<Long> organizationIds) {
+        if (CollUtil.isEmpty(organizationIds)) {
+            return new ArrayList<>();
+        }
+        return this.iamOrganizationMapper.selectBatchIds(organizationIds).stream().map(t -> ConvertHelper.convert(t, IamOrganizationDTO.class)).collect(Collectors.toList());
+    }
 
     @Override
     public List<IamOrganizationVO> queryAllOrganization(Long userId) {
-        return null;
+
+        IamRole iamRole = iamRoleMapper.selectOne(Wrappers.<IamRole>lambdaQuery().eq(IamRole::getFdLevel, ResourceLevel.ORGANIZATION).eq(IamRole::getCode, InitRoleCode.ORGANIZATION_ADMINISTRATOR).eq(IamRole::getIsEnabled, true));
+        //迁移脚本，业务不清晰，不做修改，照搬
+        List<IamOrganization> organizations = iamOrganizationMapper.queryAllOrganization(userId, iamRole.getId());
+
+
+        return CopyUtil.copyList(organizations, IamOrganizationVO.class);
     }
 }
