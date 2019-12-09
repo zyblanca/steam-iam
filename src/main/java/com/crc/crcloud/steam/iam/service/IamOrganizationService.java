@@ -6,6 +6,7 @@ import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.model.dto.IamOrganizationDTO;
 import com.crc.crcloud.steam.iam.model.dto.organization.IamOrganizationWithProjectCountDTO;
+import com.crc.crcloud.steam.iam.model.vo.IamOrganizationVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationCreateRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationUpdateRequestVO;
@@ -118,4 +119,6 @@ public interface IamOrganizationService {
      * @return 组织列表
      */
     List<IamOrganizationDTO> getByIds(@Nullable Set<Long> organizationIds);
+
+    List<IamOrganizationVO> queryAllOrganization(Long userId);
 }

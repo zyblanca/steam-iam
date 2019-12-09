@@ -17,12 +17,9 @@ import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
-import com.crc.crcloud.steam.iam.dao.IamProjectMapper;
-import com.crc.crcloud.steam.iam.dao.IamRoleMapper;
-import com.crc.crcloud.steam.iam.dao.IamUserMapper;
-import com.crc.crcloud.steam.iam.entity.IamProject;
-import com.crc.crcloud.steam.iam.entity.IamRole;
-import com.crc.crcloud.steam.iam.entity.IamUser;
+import com.crc.crcloud.steam.iam.common.utils.UserDetail;
+import com.crc.crcloud.steam.iam.dao.*;
+import com.crc.crcloud.steam.iam.entity.*;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
@@ -31,6 +28,7 @@ import com.crc.crcloud.steam.iam.model.dto.iam.UserWithRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.user.SearchDTO;
 import com.crc.crcloud.steam.iam.model.event.IamUserManualCreateEvent;
 import com.crc.crcloud.steam.iam.model.feign.role.RoleDTO;
+import com.crc.crcloud.steam.iam.model.vo.IamOrganizationVO;
 import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamOrganizationUserPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamUserCreateRequestVO;
@@ -82,6 +80,11 @@ public class IamUserServiceImpl implements IamUserService {
     private IamProjectMapper iamProjectMapper;
     @Autowired
     private IamRoleMapper iamRoleMapper;
+    @Autowired
+    private IamUserOrganizationRelMapper iamUserOrganizationRelMapper;
+    @Autowired
+    private IamOrganizationMapper iamOrganizationMapper;
+
     /**
      * 线程安全
      */
@@ -354,6 +357,25 @@ public class IamUserServiceImpl implements IamUserService {
         page.setSize(size);
         page.setTotal(total);
         return page;
+    }
+
+    @Override
+    public IamUserVO querySelf() {
+        Long userId = UserDetail.getUserId();
+        IamUser user = iamUserMapper.selectById(userId);
+        user.setHashPassword(null);
+        IamUserVO iamUserVO = CopyUtil.copy(user, IamUserVO.class);
+
+        List<IamUserOrganizationRel> rels = iamUserOrganizationRelMapper.selectList(Wrappers.<IamUserOrganizationRel>lambdaQuery().eq(IamUserOrganizationRel::getUserId, userId));
+        if (CollectionUtils.isEmpty(rels)) return iamUserVO;
+        List<IamOrganization> organizations = iamOrganizationMapper.selectBatchIds(rels.stream().map(IamUserOrganizationRel::getOrganizationId).collect(Collectors.toList()));
+        List<IamOrganizationVO> organizationVOS = new ArrayList<>();
+        for (IamOrganization organization : organizations) {
+            organizationVOS.add(IamOrganizationVO.builder().name(organization.getName())
+                    .code(organization.getCode()).id(organization.getId()).build());
+        }
+        iamUserVO.setOrganizations(organizationVOS);
+        return iamUserVO;
     }
 
     private List<UserWithRoleDTO> getUserRoleData(RoleAssignmentSearchDTO roleAssignmentSearchDTO, Long sourceId, String value, Long start, Long size) {
