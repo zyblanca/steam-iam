@@ -378,6 +378,11 @@ public class IamUserServiceImpl implements IamUserService {
         return iamUserVO;
     }
 
+    @Override
+    public Long[] listUserIds() {
+        return iamUserMapper.selectAllIds();
+    }
+
     private List<UserWithRoleDTO> getUserRoleData(RoleAssignmentSearchDTO roleAssignmentSearchDTO, Long sourceId, String value, Long start, Long size) {
         List<UserWithRoleDTO> result = new ArrayList<>();
         //查询用户

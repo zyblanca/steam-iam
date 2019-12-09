@@ -115,4 +115,6 @@ public interface IamUserService {
     IPage<UserWithRoleDTO> pagingQueryUsersWithProjectLevelRoles(PageUtil pageUtil, RoleAssignmentSearchDTO roleAssignmentSearchDTO, Long sourceId, boolean doPage);
 
     IamUserVO querySelf();
+
+    Long[] listUserIds();
 }

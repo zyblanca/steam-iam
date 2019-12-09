@@ -279,5 +279,10 @@ public class IamUserController {
             @RequestParam("user_id") Long userId) {
         return new ResponseEntity<>(organizationService.queryAllOrganization(userId));
     }
-
+    @Permission(permissionWithin = true)
+    @ApiOperation("得到所有用户id")
+    @GetMapping("/ids")
+    public ResponseEntity<Long[]> getUserIds() {
+        return new ResponseEntity<>(iamUserService.listUserIds());
+    }
 }

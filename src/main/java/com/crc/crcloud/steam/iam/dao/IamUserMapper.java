@@ -123,4 +123,6 @@ public interface IamUserMapper extends BaseMapper<IamUser> {
 
 
     List<IamRoleDTO> selectUserWithRolesByOption(@Param("sourceId")Long sourceId,@Param("sourceType")  String sourceType, @Param("userIds") List<Long> userIds);
+
+    Long[] selectAllIds();
 }
