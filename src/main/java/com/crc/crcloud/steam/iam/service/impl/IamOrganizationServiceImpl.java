@@ -15,6 +15,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
+import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
 import com.crc.crcloud.steam.iam.common.utils.UserDetail;
 import com.crc.crcloud.steam.iam.dao.IamOrganizationMapper;
 import com.crc.crcloud.steam.iam.dao.IamRoleMapper;
@@ -55,6 +56,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
@@ -204,11 +206,15 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
     @Override
     public @NotNull IPage<IamOrganizationWithProjectCountDTO> page(@NotNull @Valid IamOrganizationPageRequestVO vo) {
         Page<IamOrganizationWithProjectCountDTO> page = new Page<>(vo.getCurrent(), vo.getSize());
+        Function<String, String> gbkConvert = orderField -> {
+            orderField = StrUtil.toUnderlineCase(orderField);
+            return Objects.equals(orderField, EntityUtil.getSimpleField(IamOrganization::getName)) ? StrUtil.format("CONVERT({} USING gbk)", orderField) : orderField;
+        };
         if (StrUtil.isNotBlank(vo.getAsc())) {
-            page.setAsc(StrUtil.toUnderlineCase(vo.getAsc()));
+            page.setAsc(gbkConvert.apply(vo.getAsc()));
         }
         if (StrUtil.isNotBlank(vo.getDesc())) {
-            page.setDesc(StrUtil.toUnderlineCase(vo.getDesc()));
+            page.setDesc(gbkConvert.apply(vo.getDesc()));
         }
         return this.iamOrganizationMapper.page(page, vo);
     }
