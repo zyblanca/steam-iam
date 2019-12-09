@@ -42,6 +42,10 @@ public class IamProjectDTO {
     * 组织编号
     */
     private Long organizationId;
+    /**
+     * 组织编号
+     */
+    private String organizationName;
 
     /**
     * 是否启用。1启用，0未启用

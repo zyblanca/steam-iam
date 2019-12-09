@@ -47,7 +47,8 @@ public class IamProjectVO {
 
     @ApiModelProperty("组织编号")
     private Long organizationId;
-
+    @ApiModelProperty("组织名称")
+    private String organizationName;
 
     @ApiModelProperty("是否启用")
     private Boolean isEnabled;
