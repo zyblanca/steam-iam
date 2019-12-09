@@ -10,9 +10,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 
-/**
- * @author wuguokai
- */
+
 public class JsonUtils {
 
     private static ObjectMapper om = new ObjectMapper();

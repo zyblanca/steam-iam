@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.entity.IamUser;
+import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserMatchLdapDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
+import com.crc.crcloud.steam.iam.model.dto.iam.RoleAssignmentSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.user.SearchDTO;
 import org.apache.ibatis.annotations.Param;
 
@@ -107,4 +109,18 @@ public interface IamUserMapper extends BaseMapper<IamUser> {
      * @return
      */
     int batchUpdateLdapPassword(@Param("userIds") Set<Long> userIds,@Param("password") String password);
+
+    int selectCountUsers(@Param("roleAssignmentSearchDTO")
+                                 RoleAssignmentSearchDTO roleAssignmentSearchDTO,
+                         @Param("sourceId") Long sourceId,
+                         @Param("sourceType") String sourceType);
+
+    List<IamUser> selectUserByOption( @Param("roleAssignmentSearchDTO") RoleAssignmentSearchDTO roleAssignmentSearchDTO,
+                                      @Param("sourceId") Long sourceId,
+                                      @Param("sourceType") String sourceType,
+                                      @Param("start") Long start,
+                                      @Param("size") Long size);
+
+
+    List<IamRoleDTO> selectUserWithRolesByOption(@Param("sourceId")Long sourceId,@Param("sourceType")  String sourceType, @Param("userIds") List<Long> userIds);
 }

@@ -3,6 +3,7 @@ package com.crc.crcloud.steam.iam.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.entity.IamProject;
 import com.crc.crcloud.steam.iam.model.dto.IamProjectDTO;
 import org.apache.ibatis.annotations.Param;
@@ -24,4 +25,6 @@ public interface IamProjectMapper extends BaseMapper<IamProject> {
      * @return
      */
     int updateBySql(@Param("project") IamProjectDTO project);
+
+    IPage<IamProjectDTO> queryAllProject(PageUtil pageUtil,@Param("iamProject") IamProjectDTO iamProjectDTO);
 }

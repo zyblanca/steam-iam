@@ -34,6 +34,7 @@ import io.choerodon.asgard.saga.producer.StartSagaBuilder;
 import io.choerodon.asgard.saga.producer.TransactionalProducer;
 import io.choerodon.core.convertor.ApplicationContextHelper;
 import io.choerodon.core.convertor.ConvertHelper;
+import io.choerodon.core.iam.InitRoleCode;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.core.oauth.DetailsHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -224,6 +225,15 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
 		entity.setImageUrl(vo.getImageUrl());
 		entity.setName(vo.getName());
 		this.iamOrganizationMapper.insert(entity);
+		//创建完后需要将该创建者设置为该组织管理员
+		Optional.ofNullable(entity.getCreatedBy()).ifPresent(userId -> {
+			ApplicationContextHelper.getContext().getBean(IamRoleService.class)
+					.getRoleByCode(InitRoleCode.ORGANIZATION_ADMINISTRATOR)
+					.ifPresent(role -> {
+						ApplicationContextHelper.getContext().getBean(IamMemberRoleService.class)
+								.grantUserRole(userId, CollUtil.newHashSet(role.getId()), entity.getId(), ResourceLevel.ORGANIZATION);
+					});
+		});
 		IamOrganizationDTO iamOrganizationDTO = ConvertHelper.convert(entity, IamOrganizationDTO.class);
 		createOrganizationSaga(iamOrganizationDTO);
 		return iamOrganizationDTO;
@@ -278,8 +288,8 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
 				});
 		//获取组织后根据参数是否去除掉禁用项
 		ToLongFunction<IamOrganizationDTO> keyExtractor = o -> Optional.ofNullable(o.getCreationDate()).map(Date::getTime).orElse(0L);
-		List<IamOrganizationDTO> organizations = getByIds(organizationIds).stream().sorted(Comparator.comparingLong(keyExtractor)).collect(Collectors.toList());
-		return organizations.stream().filter(t -> includeDisable ? true : t.getIsEnabled()).collect(Collectors.toList());
+		List<IamOrganizationDTO> organizations = getByIds(organizationIds);
+		return organizations.stream().filter(t -> includeDisable ? true : t.getIsEnabled()).sorted(Comparator.comparingLong(keyExtractor)).collect(Collectors.toList());
 	}
 
 	@Override

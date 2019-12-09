@@ -48,6 +48,9 @@ public class IamProjectDTO {
     */
     private Boolean isEnabled;
 
+
+
+
     /**
     * 项目图标url
     */
@@ -88,5 +91,9 @@ public class IamProjectDTO {
     */
     private String category;
 
+
+    private Long userId;
+
+    private String realName;
 
 }

@@ -3,6 +3,8 @@ package com.crc.crcloud.steam.iam.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.crc.crcloud.steam.iam.common.utils.PageUtil;
+import com.crc.crcloud.steam.iam.entity.IamProject;
 import com.crc.crcloud.steam.iam.model.dto.IamProjectDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
 
@@ -23,8 +25,8 @@ public interface IamProjectService {
     /**
      * 新增项目
      *
-     * @param organizationId  组织id
-     * @param iamProject 项目信息
+     * @param organizationId 组织id
+     * @param iamProject     项目信息
      * @return
      */
     IamProjectVO insert(Long organizationId, IamProjectVO iamProject);
@@ -65,9 +67,30 @@ public interface IamProjectService {
 
     /**
      * 获取项目
+     *
      * @param ids 项目编号
      * @return 项目集合
      */
     @NotNull
     List<IamProjectDTO> getByIds(@Nullable Set<Long> ids);
+
+    /**
+     * 分页查询项目信息
+     *
+     * @param project
+     * @param pageUtil
+     * @return
+     */
+    IPage<IamProjectVO> pagingQuery(IamProjectVO project, PageUtil pageUtil);
+
+    /**
+     * 单纯查询项目信息，不存在额外信息
+     * 不是详情数据
+     *
+     * @param id
+     * @return
+     */
+    IamProjectVO queryProjectById(Long id);
+
+    IPage<IamProjectVO> queryAllProject(PageUtil pageUtil, IamProjectVO iamProjectVO);
 }

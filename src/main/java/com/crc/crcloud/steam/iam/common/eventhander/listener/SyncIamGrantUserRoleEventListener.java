@@ -89,23 +89,15 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
             return;
         }
         Map<ResourceLevel, Function<List<IamMemberRoleDTO>, List<MemberRoleDTO>>> grantConsumer = new HashMap<>(3);
+        final List<Long> memberIds = CollUtil.newArrayList(iamServerUser.getId());
         grantConsumer.put(ResourceLevel.ORGANIZATION, items -> {
-            IamMemberRoleDTO first = CollUtil.getFirst(items);
-            Long sourceId = first.getSourceId();
-            List<Long> memberIds = CollUtil.newArrayList(iamServerUser.getId());
-            return this.grantRole(items, list -> this.iamServiceClient.createOrUpdateOnOrganizationLevel(false, sourceId, MemberType.USER.getValue(), memberIds, list));
+            return this.grantRole(items, list -> this.iamServiceClient.createOrUpdateOnOrganizationLevel(false, CollUtil.getFirst(list).getSourceId(), MemberType.USER.getValue(), memberIds, list));
         });
         grantConsumer.put(ResourceLevel.PROJECT, items -> {
-            IamMemberRoleDTO first = CollUtil.getFirst(items);
-            Long sourceId = first.getSourceId();
-            List<Long> memberIds = CollUtil.newArrayList(iamServerUser.getId());
-            return this.grantRole(items, list -> this.iamServiceClient.createOrUpdateOnProjectLevel(false, sourceId, MemberType.USER.getValue(), memberIds, list));
+            return this.grantRole(items, list -> this.iamServiceClient.createOrUpdateOnProjectLevel(false, CollUtil.getFirst(list).getSourceId(), MemberType.USER.getValue(), memberIds, list));
         });
 
         grantConsumer.put(ResourceLevel.SITE, items -> {
-            IamMemberRoleDTO first = CollUtil.getFirst(items);
-            Long sourceId = first.getSourceId();
-            List<Long> memberIds = CollUtil.newArrayList(first.getMemberId());
             return this.grantRole(items, list -> this.iamServiceClient.createOrUpdateOnSiteLevel(false, MemberType.USER.getValue(), memberIds, list));
         });
 

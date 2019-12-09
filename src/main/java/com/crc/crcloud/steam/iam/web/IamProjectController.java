@@ -2,7 +2,6 @@ package com.crc.crcloud.steam.iam.web;
 
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
@@ -17,8 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 
 /**
@@ -57,6 +54,10 @@ public class IamProjectController {
      * 修改项目信息
      * 项目code和组织,可用标志不可修改
      * 启用禁用使用额外的接口
+     * note：原始行云有两套项目管理
+     * 一套为组织级别管理项目 OrganizationProjectController
+     * 一套为项目自身管理     ProjectController
+     * 现对接 OrganizationProjectController
      */
     @Permission(level = ResourceLevel.PROJECT, roles = InitRoleCode.PROJECT_OWNER)
     @ApiOperation(value = "修改项目")
@@ -66,6 +67,37 @@ public class IamProjectController {
         iamProjectVO.setId(id);
 
         return new ResponseEntity<>(iamProjectService.update(iamProjectVO));
+    }
+
+    /**
+     * 按照Id查询项目
+     * 只有单纯的项目信息，不是详情数据
+     * 老行云迁移过来
+     *
+     * @param id 要查询的项目ID
+     * @return 查询到的项目
+     */
+    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_OWNER})
+    @GetMapping(value = "/{project_id}")
+    @ApiOperation(value = "通过id查询项目(只是单表数据，不是详情)")
+    public ResponseEntity<IamProjectVO> query(@PathVariable(name = "project_id") Long id) {
+        return new ResponseEntity<>(iamProjectService.queryProjectById(id));
+    }
+
+
+    /**
+     * 查询所有项目
+     *
+     * @return
+     */
+    @Permission(permissionLogin = true)
+    @ApiOperation(value = "查询所有项目")
+    @PostMapping()
+    public ResponseEntity<IPage<IamProjectVO>> queryAllProject(
+            PageUtil pageUtil,
+            @RequestBody(required = false) IamProjectVO iamProjectVO) {
+
+        return new ResponseEntity<>(iamProjectService.queryAllProject(pageUtil, iamProjectVO));
     }
 
 

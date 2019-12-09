@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
+import com.crc.crcloud.steam.iam.model.dto.iam.RoleAssignmentSearchDTO;
+import com.crc.crcloud.steam.iam.model.dto.iam.UserWithRoleDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamOrganizationUserPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamUserCreateRequestVO;
@@ -108,4 +110,7 @@ public interface IamUserService {
      * @param currentOrganizationId 当前组织编号
      */
     void updateUserCurrentOrganization(@NotNull Long userId, @NotNull Long currentOrganizationId);
+
+    IPage<UserWithRoleDTO> pagingQueryUsersWithProjectLevelRoles(PageUtil pageUtil, RoleAssignmentSearchDTO roleAssignmentSearchDTO, Long sourceId, boolean doPage);
+
 }
