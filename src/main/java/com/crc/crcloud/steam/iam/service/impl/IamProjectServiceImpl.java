@@ -317,4 +317,11 @@ public class IamProjectServiceImpl implements IamProjectService {
         result.setRecords(CopyUtil.copyList(projectPage.getRecords(), IamProjectVO.class));
         return result;
     }
+
+    @Override
+    public List<IamProjectVO> queryByCategory(String category) {
+
+        List<IamProjectDTO> projects = iamProjectMapper.queryByCategory(category);
+        return CopyUtil.copyList(projects,IamProjectVO.class);
+    }
 }

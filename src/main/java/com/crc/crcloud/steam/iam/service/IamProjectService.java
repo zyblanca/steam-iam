@@ -93,4 +93,6 @@ public interface IamProjectService {
     IamProjectVO queryProjectById(Long id);
 
     IPage<IamProjectVO> queryAllProject(PageUtil pageUtil, IamProjectVO iamProjectVO);
+
+    List<IamProjectVO> queryByCategory(String category);
 }
