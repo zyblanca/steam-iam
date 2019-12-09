@@ -137,8 +137,9 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
 			log.info("{};开始发送Saga事件[{code:{}}],内容: {}", logTitle, ORG_UPDATE, JSONUtil.toJsonStr(organizationPayload));
 			StartSagaBuilder sagaBuilder = StartSagaBuilder.newBuilder();
 			consumer.accept(sagaBuilder);
+			sagaBuilder.withSagaCode(ORG_UPDATE);
 			producer.apply(sagaBuilder, startSagaBuilder -> {
-				startSagaBuilder.withSagaCode(ORG_UPDATE).withPayloadAndSerialize(organizationPayload)
+				startSagaBuilder.withPayloadAndSerialize(organizationPayload)
 						.withRefType("organization")
 						.withRefId(Objects.toString(id));
 			});
