@@ -298,4 +298,23 @@ public class IamProjectServiceImpl implements IamProjectService {
         iamProjectVO.setEnabled(iamProject.getIsEnabled());
         return iamProjectVO;
     }
+
+    @Override
+    public IPage<IamProjectVO> queryAllProject(PageUtil pageUtil, IamProjectVO iamProjectVO) {
+        if (Objects.isNull(iamProjectVO.getOrganizationId())) {
+            throw new IamAppCommException("project.organization.id.null");
+        }
+        IamProjectDTO iamProjectDTO = CopyUtil.copy(iamProjectVO, IamProjectDTO.class);
+
+        iamProjectDTO.setUserId(UserDetail.getUserId());
+
+        IPage<IamProjectDTO> projectPage = iamProjectMapper.queryAllProject(pageUtil, iamProjectDTO);
+
+
+        IPage<IamProjectVO> result = new Page<>();
+        result.setSize(pageUtil.getSize());
+        result.setTotal(projectPage.getTotal());
+        result.setRecords(CopyUtil.copyList(projectPage.getRecords(), IamProjectVO.class));
+        return result;
+    }
 }

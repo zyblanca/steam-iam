@@ -1,6 +1,8 @@
 package com.crc.crcloud.steam.iam.web;
 
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
 import com.crc.crcloud.steam.iam.service.IamProjectService;
@@ -71,6 +73,7 @@ public class IamProjectController {
      * 按照Id查询项目
      * 只有单纯的项目信息，不是详情数据
      * 老行云迁移过来
+     *
      * @param id 要查询的项目ID
      * @return 查询到的项目
      */
@@ -80,5 +83,22 @@ public class IamProjectController {
     public ResponseEntity<IamProjectVO> query(@PathVariable(name = "project_id") Long id) {
         return new ResponseEntity<>(iamProjectService.queryProjectById(id));
     }
+
+
+    /**
+     * 查询所有项目
+     *
+     * @return
+     */
+    @Permission(permissionLogin = true)
+    @ApiOperation(value = "查询所有项目")
+    @PostMapping()
+    public ResponseEntity<IPage<IamProjectVO>> queryAllProject(
+            PageUtil pageUtil,
+            @RequestBody(required = false) IamProjectVO iamProjectVO) {
+
+        return new ResponseEntity<>(iamProjectService.queryAllProject(pageUtil, iamProjectVO));
+    }
+
 
 }

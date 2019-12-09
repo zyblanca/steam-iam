@@ -126,6 +126,9 @@
         ON tmp.member_id = iu.id
         where 1=1
         and iu.is_enabled =1
+        <if test="userSearch.id != null">
+            AND iu.id = #{userId}
+        </if>
         <if test="userSearch.realName != null and userSearch.realName != '' ">
 
           and  iu.real_name like concat('%',concat(#{userSearch.realName},'%'))

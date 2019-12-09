@@ -92,4 +92,8 @@ public class IamProjectDTO {
     private String category;
 
 
+    private Long userId;
+
+    private String realName;
+
 }
