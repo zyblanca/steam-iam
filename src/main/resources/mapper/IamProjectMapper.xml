@@ -73,6 +73,28 @@
             AND category = #{iamProject.category}
         </if>
     </select>
+    <select id="queryAllProject" resultType="com.crc.crcloud.steam.iam.model.dto.IamProjectDTO">
+        SELECT DISTINCT fd.id as id,
+        fd.code as code,
+        fd.organization_id as organization_id,
+        fd.is_enabled as is_enabled ,
+        fd.image_url as image_url,
+        fd.name as name ,
+        fd.created_by,
+        fd.category as category,
+        fd.creation_date as creation_date,
+        iu.real_name as real_name
+        FROM iam_project fd
+        INNER JOIN iam_member_role imr on imr.source_id = fd.id
+        INNER JOIN iam_role iro on iro.is_enabled = 1 and iro.id = imr.role_id and
+        imr.source_type = 'project'
+        LEFT JOIN iam_user iu on fd.created_by = iu.id
+        WHERE  imr.member_id = #{iamProject.userId}
+        AND fd.organization_id = #{iamProject.organizationId}
+        <if test="iamProject.name != null and iamProject.name != ''">
+            and fd.name LIKE CONCAT(CONCAT('%', #{iamProject.name}),'%')
+        </if>
+    </select>
 
 
 </mapper>

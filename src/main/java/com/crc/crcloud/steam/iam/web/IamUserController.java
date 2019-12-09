@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.model.dto.*;
+import com.crc.crcloud.steam.iam.model.vo.IamOrganizationVO;
 import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamUserCurrentOrganizationUpdateRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamUserOrganizationsResponseVO;
@@ -65,7 +66,9 @@ public class IamUserController {
         this.iamUserService = iamUserService;
     }
 
-    /**用户是否为对应level管理员，缓存10s*/
+    /**
+     * 用户是否为对应level管理员，缓存10s
+     */
     private final Cache<String, Boolean> isOrganizationAdminCache = new LRUCache<>(1000, DateUnit.SECOND.getMillis() * 10);
     private final BiFunction<ResourceLevel, Object, String> getCacheKey = (level, keyId) -> StrUtil.format("{}#{}", level, keyId.toString());
 
@@ -81,7 +84,7 @@ public class IamUserController {
     //简易权限，后续需要根据实际情况做校验
     @Permission(level = ResourceLevel.PROJECT)
     @ApiOperation(value = "项目人员列表", notes = "项目人员列表", response = IamUserVO.class)
-    @GetMapping("/projects/{project_id}/iam_user")
+    @GetMapping("/projects/{project_id}/users")
     public ResponseEntity<IPage<IamUserVO>> pageProjectUser(@ApiParam(value = "项目ID", required = true)
                                                             @PathVariable(name = "project_id") Long projectId,
                                                             UserSearchDTO userSearchDTO,
@@ -132,7 +135,7 @@ public class IamUserController {
      * 项目绑定用户
      *
      * @param projectId 项目id
-     * @param iamUserVO   用户信息
+     * @param iamUserVO 用户信息
      * @return 绑定结果
      */
     //简易权限，后续需要根据实际情况做校验
@@ -165,6 +168,14 @@ public class IamUserController {
     }
 
     @Permission(level = ResourceLevel.SITE, permissionLogin = true)
+    @ApiOperation(value = "查询当前用户信息")
+    @GetMapping(value = "/self")
+    public ResponseEntity<IamUserVO> querySelf() {
+        return new ResponseEntity<>(iamUserService.querySelf());
+    }
+
+
+    @Permission(level = ResourceLevel.SITE, permissionLogin = true)
     @ApiOperation("查询用户是否为平台管理员")
     @GetMapping("users/site/admin")
     public ResponseEntity<Boolean> isSiteAdmin(@RequestParam(value = "user_id", required = false) Long userId) {
@@ -194,6 +205,7 @@ public class IamUserController {
 
     /**
      * 根据用户查询所有组织并且用户角色为组织管理员
+     *
      * @param userId 用户编号
      * @return Boolean
      */
@@ -254,5 +266,18 @@ public class IamUserController {
         return new ResponseEntity<>(Boolean.TRUE);
     }
 
+    /**
+     * 根据用户查询所有组织并且用户角色为组织管理员
+     *
+     * @param userId
+     * @return
+     */
+    @Permission(permissionWithin = true)
+    @ApiOperation(value = "查询用户所在的所有组织，并前用户角色是组织管理员")
+    @GetMapping("query_organizations")
+    public ResponseEntity<List<IamOrganizationVO>> queryOrganizations(
+            @RequestParam("user_id") Long userId) {
+        return new ResponseEntity<>(organizationService.queryAllOrganization(userId));
+    }
 
 }

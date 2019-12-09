@@ -122,6 +122,9 @@ public class IamUserVO {
     private Date lastUpdateDate;
     @ApiModelProperty("用户id数组")
     private List<Long> userIds;
+    @ApiModelProperty("人员归属组织信息")
+    private List<IamOrganizationVO> organizations;
+
 
 
 }

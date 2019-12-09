@@ -25,6 +25,7 @@ import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.organization.IamOrganizationWithProjectCountDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.OrganizationPayload;
 import com.crc.crcloud.steam.iam.model.event.IamOrganizationToggleEnableEvent;
+import com.crc.crcloud.steam.iam.model.vo.IamOrganizationVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationCreateRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamOrganizationUpdateRequestVO;
@@ -299,4 +300,9 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
 		}
 		return this.iamOrganizationMapper.selectBatchIds(organizationIds).stream().map(t -> ConvertHelper.convert(t, IamOrganizationDTO.class)).collect(Collectors.toList());
 	}
+
+    @Override
+    public List<IamOrganizationVO> queryAllOrganization(Long userId) {
+        return null;
+    }
 }

@@ -91,5 +91,9 @@ public class IamProjectVO {
     @NotEmpty(message = "project.category.empty")
     private String category;
 
+    private Long userId;
+
+    private String realName;
+
 
 }

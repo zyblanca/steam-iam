@@ -22,4 +22,10 @@ public class UserSearchDTO {
     private String memberType;
 
     private Long organizationId;
+
+    private Long id;
+
+    private String email;
+
+    private String param;
 }
