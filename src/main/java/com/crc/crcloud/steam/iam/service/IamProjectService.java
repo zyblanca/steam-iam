@@ -94,6 +94,10 @@ public interface IamProjectService {
 
     IPage<IamProjectVO> queryAllProject(PageUtil pageUtil, IamProjectVO iamProjectVO);
 
+    List<IamProjectVO> queryByCategory(String category);
+
+    void check(IamProjectVO projectVO);
+
     /**
      * 获取项目通过ID-禁用项目也会被查询
      * @param projectId 项目ID

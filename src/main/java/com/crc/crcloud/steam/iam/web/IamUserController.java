@@ -12,6 +12,7 @@ import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.model.dto.*;
 import com.crc.crcloud.steam.iam.model.vo.IamOrganizationVO;
+import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
 import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamUserCurrentOrganizationUpdateRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamUserOrganizationsResponseVO;
@@ -169,7 +170,7 @@ public class IamUserController {
 
     @Permission(level = ResourceLevel.SITE, permissionLogin = true)
     @ApiOperation(value = "查询当前用户信息")
-    @GetMapping(value = "/self")
+    @GetMapping(value = "/users/self")
     public ResponseEntity<IamUserVO> querySelf() {
         return new ResponseEntity<>(iamUserService.querySelf());
     }
@@ -242,7 +243,7 @@ public class IamUserController {
     @Permission(level = ResourceLevel.ORGANIZATION, permissionLogin = true)
     @ApiOperation(value = "获取用户已授权的组织列表", notes = "包括只授权了项目，但是没有授权组织,也需要被包含进来")
     @GetMapping("users/{user_id}/organizations")
-    public ResponseEntity<IamUserOrganizationsResponseVO> getUserOrganizations(@RequestParam(value = "user_id") Long userId) {
+    public ResponseEntity<IamUserOrganizationsResponseVO> getUserOrganizations(@PathVariable(value = "user_id") Long userId) {
         final IamUserDTO iamUser = iamUserService.getAndThrow(userId);
         List<IamOrganizationDTO> organizations = organizationService.getUserAuthOrganizations(userId, false);
         List<IamUserOrganizationsResponseVO.IamUserOrganizationResponse> userOrganizations = organizations.stream().map(IamUserOrganizationsResponseVO::instance).collect(Collectors.toList());
@@ -258,7 +259,7 @@ public class IamUserController {
     @Permission(level = ResourceLevel.ORGANIZATION, permissionLogin = true)
     @ApiOperation(value = "记录用户当前组织")
     @PutMapping("users/{user_id}/current_organization")
-    public ResponseEntity<Boolean> updateUserCurrentOrganization(@RequestParam(value = "user_id") Long userId, @RequestBody @Valid IamUserCurrentOrganizationUpdateRequestVO vo) {
+    public ResponseEntity<Boolean> updateUserCurrentOrganization(@PathVariable(value = "user_id") Long userId, @RequestBody @Valid IamUserCurrentOrganizationUpdateRequestVO vo) {
         final IamUserDTO iamUser = iamUserService.getAndThrow(userId);
         if (!Objects.equals(iamUser.getCurrentOrganizationId(), vo.getCurrentOrganizationId())) {
             iamUserService.updateUserCurrentOrganization(userId, vo.getCurrentOrganizationId());
@@ -274,10 +275,50 @@ public class IamUserController {
      */
     @Permission(permissionWithin = true)
     @ApiOperation(value = "查询用户所在的所有组织，并前用户角色是组织管理员")
-    @GetMapping("query_organizations")
+    @GetMapping("/users/query_organizations")
     public ResponseEntity<List<IamOrganizationVO>> queryOrganizations(
             @RequestParam("user_id") Long userId) {
         return new ResponseEntity<>(organizationService.queryAllOrganization(userId));
     }
 
+    @Permission(permissionWithin = true)
+    @ApiOperation("得到所有用户id")
+    @GetMapping("/users/ids")
+    public ResponseEntity<Long[]> getUserIds() {
+        return new ResponseEntity<>(iamUserService.listUserIds());
+    }
+
+    /**
+     * 分页查询所有的用户
+     *
+     * @param pageUtil 分页信息
+     * @return 分页的用户
+     */
+    @Permission(permissionLogin = true, permissionWithin = true)
+    @ApiOperation(value = "分页模糊查询用户列表")
+    @GetMapping("users/all")
+    public ResponseEntity<IPage<IamUserVO>> pagingQueryUsers(
+            PageUtil pageUtil,
+            @RequestParam(required = false, name = "realName") String realName) {
+        IamUserDTO userDTO = new IamUserDTO();
+        userDTO.setRealName(realName);
+        return new ResponseEntity<>(iamUserService.pagingQueryUsers(pageUtil, userDTO));
+    }
+
+
+    /**
+     * 怀疑为临时解决方案，由老行云iam迁移过来
+     * 不做逻辑修改
+     * @param id
+     * @param includedDisabled
+     * @return
+     */
+    @Permission(level = ResourceLevel.ORGANIZATION, permissionLogin = true)
+    @ApiOperation(value = "新行云查询用户所在项目列表")
+    @GetMapping(value = "users/{id}/projects/new")
+    public ResponseEntity<List<IamProjectVO>> queryProjectsNew(@PathVariable Long id,
+                                                               @RequestParam(required = false, name = "included_disabled")
+                                                                     boolean includedDisabled) {
+        return new ResponseEntity<>(iamUserService.queryProjectsNew(id, includedDisabled));
+    }
 }

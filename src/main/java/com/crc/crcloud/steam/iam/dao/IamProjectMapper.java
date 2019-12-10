@@ -8,6 +8,8 @@ import com.crc.crcloud.steam.iam.entity.IamProject;
 import com.crc.crcloud.steam.iam.model.dto.IamProjectDTO;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 
 /**
  * @Author:
@@ -27,4 +29,9 @@ public interface IamProjectMapper extends BaseMapper<IamProject> {
     int updateBySql(@Param("project") IamProjectDTO project);
 
     IPage<IamProjectDTO> queryAllProject(PageUtil pageUtil,@Param("iamProject") IamProjectDTO iamProjectDTO);
+
+    List<IamProjectDTO> queryByCategory(@Param("category") String category);
+
+    List<IamProject> selectProjectsByUserIdAndCurrentOrgId(@Param("userId") Long userId,
+                                                          @Param("project") IamProjectDTO project);
 }

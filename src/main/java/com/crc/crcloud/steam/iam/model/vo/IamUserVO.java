@@ -1,5 +1,6 @@
 package com.crc.crcloud.steam.iam.model.vo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -39,6 +40,7 @@ public class IamUserVO {
 
 
     @ApiModelProperty("hash后的用户密码")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String hashPassword;
 
 

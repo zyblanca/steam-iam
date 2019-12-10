@@ -11,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -93,6 +95,20 @@ public class IamControllerExceptionHandler {
                 HttpStatus.OK);
     }
 
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<IamExceptionResponse> process(HttpRequestMethodNotSupportedException exception) {
+        log.info("exception info {}", exception.getMessage());
+        return new ResponseEntity<>(
+                new IamExceptionResponse(true, BUSINESS_ERROR_CODE, "请求方式异常"),
+                HttpStatus.OK);
+    }
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<IamExceptionResponse> process(MissingServletRequestParameterException exception) {
+        log.info("exception info {}", exception.getMessage());
+        return new ResponseEntity<>(
+                new IamExceptionResponse(true, BUSINESS_ERROR_CODE, "缺少必须参数"),
+                HttpStatus.OK);
+    }
 
     /**
      * 返回用户的语言类型
