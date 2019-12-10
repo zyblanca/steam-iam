@@ -298,9 +298,9 @@ public class IamProjectServiceImpl implements IamProjectService {
 
     @Override
     public IPage<IamProjectVO> queryAllProject(PageUtil pageUtil, IamProjectVO iamProjectVO) {
-        if (Objects.isNull(iamProjectVO.getOrganizationId())) {
-            throw new IamAppCommException("project.organization.id.null");
-        }
+//        if (Objects.isNull(iamProjectVO.getOrganizationId())) {
+//            throw new IamAppCommException("project.organization.id.null");
+//        }
         IamProjectDTO iamProjectDTO = CopyUtil.copy(iamProjectVO, IamProjectDTO.class);
 
         iamProjectDTO.setUserId(UserDetail.getUserId());

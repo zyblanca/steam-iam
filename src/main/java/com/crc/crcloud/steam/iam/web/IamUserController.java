@@ -243,7 +243,7 @@ public class IamUserController {
     @Permission(level = ResourceLevel.ORGANIZATION, permissionLogin = true)
     @ApiOperation(value = "获取用户已授权的组织列表", notes = "包括只授权了项目，但是没有授权组织,也需要被包含进来")
     @GetMapping("users/{user_id}/organizations")
-    public ResponseEntity<IamUserOrganizationsResponseVO> getUserOrganizations(@RequestParam(value = "user_id") Long userId) {
+    public ResponseEntity<IamUserOrganizationsResponseVO> getUserOrganizations(@PathVariable(value = "user_id") Long userId) {
         final IamUserDTO iamUser = iamUserService.getAndThrow(userId);
         List<IamOrganizationDTO> organizations = organizationService.getUserAuthOrganizations(userId, false);
         List<IamUserOrganizationsResponseVO.IamUserOrganizationResponse> userOrganizations = organizations.stream().map(IamUserOrganizationsResponseVO::instance).collect(Collectors.toList());
@@ -259,7 +259,7 @@ public class IamUserController {
     @Permission(level = ResourceLevel.ORGANIZATION, permissionLogin = true)
     @ApiOperation(value = "记录用户当前组织")
     @PutMapping("users/{user_id}/current_organization")
-    public ResponseEntity<Boolean> updateUserCurrentOrganization(@RequestParam(value = "user_id") Long userId, @RequestBody @Valid IamUserCurrentOrganizationUpdateRequestVO vo) {
+    public ResponseEntity<Boolean> updateUserCurrentOrganization(@PathVariable(value = "user_id") Long userId, @RequestBody @Valid IamUserCurrentOrganizationUpdateRequestVO vo) {
         final IamUserDTO iamUser = iamUserService.getAndThrow(userId);
         if (!Objects.equals(iamUser.getCurrentOrganizationId(), vo.getCurrentOrganizationId())) {
             iamUserService.updateUserCurrentOrganization(userId, vo.getCurrentOrganizationId());
