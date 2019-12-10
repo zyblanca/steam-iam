@@ -54,6 +54,7 @@ choerodon:
       poll-interval-ms: 1000 # 拉取间隔，默认1000毫秒
   devops:
     message: true # 开启事务信息
+    conditionDate: 2019-12-10 14:59 # ChoerodonDevOpsProperties#conditionDate
 services:
   attachment:
     url: http://minio.steamsit.crcloud.com/iam-service/

@@ -3,27 +3,30 @@ package com.crc.crcloud.steam.iam.common.eventhander.listener;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.json.JSONUtil;
 import com.crc.crcloud.steam.iam.api.feign.IamServiceClient;
+import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
 import com.crc.crcloud.steam.iam.common.enums.MemberType;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
-import com.crc.crcloud.steam.iam.model.dto.IamMemberRoleDTO;
-import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
-import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
+import com.crc.crcloud.steam.iam.model.dto.*;
 import com.crc.crcloud.steam.iam.model.dto.user.IamMemberRoleWithRoleDTO;
 import com.crc.crcloud.steam.iam.model.event.IamGrantUserRoleEvent;
 import com.crc.crcloud.steam.iam.model.feign.role.MemberRoleDTO;
 import com.crc.crcloud.steam.iam.model.feign.role.RoleDTO;
 import com.crc.crcloud.steam.iam.model.feign.user.UserDTO;
+import com.crc.crcloud.steam.iam.service.IamOrganizationService;
+import com.crc.crcloud.steam.iam.service.IamProjectService;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.core.validator.ValidList;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.policy.SimpleRetryPolicy;
@@ -50,7 +53,12 @@ import java.util.stream.Collectors;
 public class SyncIamGrantUserRoleEventListener implements ApplicationListener<IamGrantUserRoleEvent> {
     @Autowired
     private IamServiceClient iamServiceClient;
-
+    @Autowired
+    private ChoerodonDevOpsProperties properties;
+    @Autowired
+    private IamOrganizationService iamOrganizationService;
+    @Autowired
+    private IamProjectService iamProjectService;
     @Override
     public void onApplicationEvent(IamGrantUserRoleEvent event) {
         TimeInterval timer = DateUtil.timer();
@@ -66,7 +74,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
 
     /**
      * 该接口全量增量同步均支持
-     * todo 需要检查用户是否在老行云那边存在， 检查组织是否在老行云存在
+     * <p>会忽略掉项目或者组织创建时间在{@link ChoerodonDevOpsProperties#getConditionDate()}之后的数据</p>
      * @param user 用户
      * @param roles 授权的角色
      */
@@ -90,11 +98,25 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
         }
         Map<ResourceLevel, Function<List<IamMemberRoleDTO>, List<MemberRoleDTO>>> grantConsumer = new HashMap<>(3);
         final List<Long> memberIds = CollUtil.newArrayList(iamServerUser.getId());
+        final DateTime conditionDate = DateTime.of(properties.getConditionDate());
+        log.info("新老数据判定时间conditionDate: {}", conditionDate);
         grantConsumer.put(ResourceLevel.ORGANIZATION, items -> {
-            return this.grantRole(items, list -> this.iamServiceClient.createOrUpdateOnOrganizationLevel(false, CollUtil.getFirst(list).getSourceId(), MemberType.USER.getValue(), memberIds, list));
+            return this.grantRole(items, list -> {
+                Long organizationId = CollUtil.getFirst(list).getSourceId();
+                if (iamOrganizationService.get(organizationId).map(IamOrganizationDTO::getCreationDate).filter(conditionDate::isAfter).isPresent()) {
+                    return this.iamServiceClient.createOrUpdateOnOrganizationLevel(false, organizationId, MemberType.USER.getValue(), memberIds, list);
+                }
+                return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
+            });
         });
         grantConsumer.put(ResourceLevel.PROJECT, items -> {
-            return this.grantRole(items, list -> this.iamServiceClient.createOrUpdateOnProjectLevel(false, CollUtil.getFirst(list).getSourceId(), MemberType.USER.getValue(), memberIds, list));
+            return this.grantRole(items, list -> {
+                Long projectId = CollUtil.getFirst(list).getSourceId();
+                if (iamProjectService.get(projectId).map(IamProjectDTO::getCreationDate).filter(conditionDate::isAfter).isPresent()) {
+                    return this.iamServiceClient.createOrUpdateOnProjectLevel(false, projectId, MemberType.USER.getValue(), memberIds, list);
+                }
+                return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
+            });
         });
 
         grantConsumer.put(ResourceLevel.SITE, items -> {

@@ -317,4 +317,9 @@ public class IamProjectServiceImpl implements IamProjectService {
         result.setRecords(CopyUtil.copyList(projectPage.getRecords(), IamProjectVO.class));
         return result;
     }
+
+    @Override
+    public Optional<IamProjectDTO> get(@NotNull Long projectId) {
+        return Optional.ofNullable(this.iamProjectMapper.selectById(projectId)).map(t -> ConvertHelper.convert(t, IamProjectDTO.class));
+    }
 }
