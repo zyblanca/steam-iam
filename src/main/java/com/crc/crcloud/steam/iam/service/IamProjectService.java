@@ -95,4 +95,6 @@ public interface IamProjectService {
     IPage<IamProjectVO> queryAllProject(PageUtil pageUtil, IamProjectVO iamProjectVO);
 
     List<IamProjectVO> queryByCategory(String category);
+
+    void check(IamProjectVO projectVO);
 }

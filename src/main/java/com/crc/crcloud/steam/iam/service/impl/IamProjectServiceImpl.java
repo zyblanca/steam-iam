@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -69,7 +70,8 @@ public class IamProjectServiceImpl implements IamProjectService {
     @Override
     public IamProjectVO insert(Long organizationId, IamProjectVO iamProjectVO) {
         IamOrganization organization = getOrThrow(organizationId);
-        //验证 项目名称，项目编码是否存在
+        iamProjectVO.setOrganizationId(organizationId);
+        //验证项目编码是否存在
         validDuplicate(iamProjectVO);
 
         IamProject iamProject = new IamProject();
@@ -136,11 +138,14 @@ public class IamProjectServiceImpl implements IamProjectService {
     }
 
     private void validDuplicate(IamProjectVO iamProjectVO) {
-        IamProject iamProject = iamProjectMapper.selectOne(Wrappers.<IamProject>lambdaQuery().eq(IamProject::getName, iamProjectVO.getName()));
-        if (Objects.nonNull(iamProject)) {
-            throw new IamAppCommException("project.name.duplicated");
-        }
-        iamProject = iamProjectMapper.selectOne(Wrappers.<IamProject>lambdaQuery().eq(IamProject::getCode, iamProjectVO.getCode()));
+        //名字允许相同
+//        IamProject iamProject = iamProjectMapper.selectOne(Wrappers.<IamProject>lambdaQuery().eq(IamProject::getName, iamProjectVO.getName()));
+//        if (Objects.nonNull(iamProject)) {
+//            throw new IamAppCommException("project.name.duplicated");
+//        }
+        IamProject iamProject = iamProjectMapper.selectOne(Wrappers.<IamProject>lambdaQuery()
+                .eq(IamProject::getCode, iamProjectVO.getCode())
+                .eq(IamProject::getOrganizationId, iamProjectVO.getOrganizationId()));
         if (Objects.nonNull(iamProject)) {
             throw new IamAppCommException("project.code.duplicated");
         }
@@ -172,7 +177,6 @@ public class IamProjectServiceImpl implements IamProjectService {
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     @Override
     public IamProjectVO update(IamProjectVO iamProjectVO) {
-        checkName(iamProjectVO);
         IamProjectDTO iamProjectDTO = CopyUtil.copy(iamProjectVO, IamProjectDTO.class);
         iamProjectDTO.setLastUpdateDate(new Date());
         iamProjectDTO.setLastUpdatedBy(UserDetail.getUserId());
@@ -205,13 +209,6 @@ public class IamProjectServiceImpl implements IamProjectService {
         return projectEventPayload;
     }
 
-    //修改的时候 验证名称是否被其他项目拥有
-    private void checkName(IamProjectVO iamProjectVO) {
-        IamProject project = iamProjectMapper.selectOne(Wrappers.<IamProject>lambdaQuery().eq(IamProject::getName, iamProjectVO.getName()));
-        if (Objects.nonNull(project) && !Objects.equals(project.getId(), iamProjectVO.getId())) {
-            throw new IamAppCommException("project.name.duplicated");
-        }
-    }
 
     /**
      * 查询单个详情
@@ -322,6 +319,38 @@ public class IamProjectServiceImpl implements IamProjectService {
     public List<IamProjectVO> queryByCategory(String category) {
 
         List<IamProjectDTO> projects = iamProjectMapper.queryByCategory(category);
-        return CopyUtil.copyList(projects,IamProjectVO.class);
+        return CopyUtil.copyList(projects, IamProjectVO.class);
+    }
+
+    @Override
+    public void check(IamProjectVO projectVO) {
+        Boolean checkCode = !StringUtils.isEmpty(projectVO.getCode());
+        if (!checkCode) {
+            throw new IamAppCommException("project.code.name");
+        } else {
+            checkCode(projectVO);
+        }
+    }
+
+    private void checkCode(IamProjectVO iamProjectVO) {
+        Boolean createCheck = StringUtils.isEmpty(iamProjectVO.getId());
+        IamProject project = new IamProject();
+        project.setOrganizationId(iamProjectVO.getOrganizationId());
+        project.setCode(iamProjectVO.getCode());
+        IamProject oldProject = iamProjectMapper.selectOne(Wrappers.<IamProject>lambdaQuery()
+                .eq(IamProject::getOrganizationId, project.getOrganizationId())
+                .eq(IamProject::getCode, project.getCode()));
+        if (createCheck) {
+            if (Objects.nonNull(oldProject)) {
+                throw new IamAppCommException("project.code.duplicated");
+            }
+        } else {
+            Long id = iamProjectVO.getId();
+
+            Boolean existed = Objects.nonNull(oldProject) && !id.equals(oldProject.getId());
+            if (existed) {
+                throw new IamAppCommException("project.code.duplicated");
+            }
+        }
     }
 }
