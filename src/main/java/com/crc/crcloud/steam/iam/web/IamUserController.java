@@ -12,6 +12,7 @@ import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.model.dto.*;
 import com.crc.crcloud.steam.iam.model.vo.IamOrganizationVO;
+import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
 import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamUserCurrentOrganizationUpdateRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.organization.IamUserOrganizationsResponseVO;
@@ -302,5 +303,22 @@ public class IamUserController {
         IamUserDTO userDTO = new IamUserDTO();
         userDTO.setRealName(realName);
         return new ResponseEntity<>(iamUserService.pagingQueryUsers(pageUtil, userDTO));
+    }
+
+
+    /**
+     * 怀疑为临时解决方案，由老行云iam迁移过来
+     * 不做逻辑修改
+     * @param id
+     * @param includedDisabled
+     * @return
+     */
+    @Permission(level = ResourceLevel.ORGANIZATION, permissionLogin = true)
+    @ApiOperation(value = "新行云查询用户所在项目列表")
+    @GetMapping(value = "users/{id}/projects/new")
+    public ResponseEntity<List<IamProjectVO>> queryProjectsNew(@PathVariable Long id,
+                                                               @RequestParam(required = false, name = "included_disabled")
+                                                                     boolean includedDisabled) {
+        return new ResponseEntity<>(iamUserService.queryProjectsNew(id, includedDisabled));
     }
 }

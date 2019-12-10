@@ -3,11 +3,13 @@ package com.crc.crcloud.steam.iam.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
+import com.crc.crcloud.steam.iam.entity.IamProject;
 import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.iam.RoleAssignmentSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.iam.UserWithRoleDTO;
+import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
 import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamOrganizationUserPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamUserCreateRequestVO;
@@ -119,4 +121,6 @@ public interface IamUserService {
     Long[] listUserIds();
 
     IPage<IamUserVO> pagingQueryUsers(PageUtil pageUtil, IamUserDTO userDTO);
+
+    List<IamProjectVO> queryProjectsNew(Long id, boolean includedDisabled);
 }

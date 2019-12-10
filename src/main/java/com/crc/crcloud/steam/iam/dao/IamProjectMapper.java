@@ -31,4 +31,7 @@ public interface IamProjectMapper extends BaseMapper<IamProject> {
     IPage<IamProjectDTO> queryAllProject(PageUtil pageUtil,@Param("iamProject") IamProjectDTO iamProjectDTO);
 
     List<IamProjectDTO> queryByCategory(@Param("category") String category);
+
+    List<IamProject> selectProjectsByUserIdAndCurrentOrgId(@Param("userId") Long userId,
+                                                          @Param("project") IamProjectDTO project);
 }
