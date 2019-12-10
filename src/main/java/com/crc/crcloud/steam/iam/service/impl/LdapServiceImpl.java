@@ -322,6 +322,7 @@ public class LdapServiceImpl implements LdapService {
         oauthLdapHistory.setNewUserCount(oauthLdapHistory.getNewUserCount() + insertUser.size());
         oauthLdapHistory.setUpdateUserCount(oauthLdapHistory.getUpdateUserCount() + updateUser.size());
         List<OauthLdapErrorUser> insertError = insertLdapUser(oauthLdapHistory.getId(), insertUser, oauthLdapDTO.getOrganizationId());
+        oauthLdapHistory.setNewUserCount(oauthLdapHistory.getNewUserCount() - insertError.size());
         oauthLdapHistory.setErrorUserCount(oauthLdapHistory.getErrorUserCount() + insertError.size());
         errorUsers.addAll(insertError);
         updateLdapUser(updateUser);
@@ -416,9 +417,9 @@ public class LdapServiceImpl implements LdapService {
             iamMemberRoleService.grantUserRole(new HashSet<>(insertIds), roleIds, organizationId, ResourceLevel.ORGANIZATION);
         }
         //发起用户创建saga服务
-        applicationEventPublisher.publishEvent(new IamUserLdapBatchCreateEvent(organizationId,insertUser.stream().filter(v->insertIds.contains(v.getId())).collect(Collectors.toList())));
+        applicationEventPublisher.publishEvent(new IamUserLdapBatchCreateEvent(organizationId, insertUser.stream().filter(v -> insertIds.contains(v.getId())).collect(Collectors.toList())));
         //密码字段需要单独处理
-        iamUserMapper.batchUpdateLdapPassword(insertIds,"ldap users do not have password");
+        iamUserMapper.batchUpdateLdapPassword(insertIds, "ldap users do not have password");
         return errorUsers;
     }
 
