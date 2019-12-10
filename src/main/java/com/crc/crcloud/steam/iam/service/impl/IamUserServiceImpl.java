@@ -383,6 +383,12 @@ public class IamUserServiceImpl implements IamUserService {
         return iamUserMapper.selectAllIds();
     }
 
+    @Override
+    public IPage<IamUserVO> pagingQueryUsers(PageUtil pageUtil, IamUserDTO userDTO) {
+
+        return CopyUtil.copyPage(iamUserMapper.pagingQueryUsers(pageUtil, userDTO), IamUserVO.class);
+    }
+
     private List<UserWithRoleDTO> getUserRoleData(RoleAssignmentSearchDTO roleAssignmentSearchDTO, Long sourceId, String value, Long start, Long size) {
         List<UserWithRoleDTO> result = new ArrayList<>();
         //查询用户

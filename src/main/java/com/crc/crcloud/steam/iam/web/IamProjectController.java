@@ -4,7 +4,6 @@ package com.crc.crcloud.steam.iam.web;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
-import com.crc.crcloud.steam.iam.entity.IamProject;
 import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
 import com.crc.crcloud.steam.iam.service.IamProjectService;
 import io.choerodon.core.iam.InitRoleCode;
@@ -14,7 +13,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -102,16 +100,17 @@ public class IamProjectController {
 
         return new ResponseEntity<>(iamProjectService.queryAllProject(pageUtil, iamProjectVO));
     }
+
     /**
      * 适用于查询指定项目类型，按照创建时间降序排序
      *
      * @param category 项目类型
      * @return 组织与项目的分组信息
      */
-    @Permission(permissionLogin = true,permissionWithin = true)
+    @Permission(permissionLogin = true, permissionWithin = true)
     @ApiOperation(value = "通过项目类型查询所有的项目id")
     @GetMapping("/category")
-   public ResponseEntity<List<IamProjectVO>> queryByCategory(@RequestParam(name = "category") String category) {
+    public ResponseEntity<List<IamProjectVO>> queryByCategory(@RequestParam(name = "category") String category) {
 
 
         return new ResponseEntity<>(iamProjectService.queryByCategory(category));

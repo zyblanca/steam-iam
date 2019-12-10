@@ -169,7 +169,7 @@ public class IamUserController {
 
     @Permission(level = ResourceLevel.SITE, permissionLogin = true)
     @ApiOperation(value = "查询当前用户信息")
-    @GetMapping(value = "/self")
+    @GetMapping(value = "/users/self")
     public ResponseEntity<IamUserVO> querySelf() {
         return new ResponseEntity<>(iamUserService.querySelf());
     }
@@ -274,15 +274,33 @@ public class IamUserController {
      */
     @Permission(permissionWithin = true)
     @ApiOperation(value = "查询用户所在的所有组织，并前用户角色是组织管理员")
-    @GetMapping("query_organizations")
+    @GetMapping("/users/query_organizations")
     public ResponseEntity<List<IamOrganizationVO>> queryOrganizations(
             @RequestParam("user_id") Long userId) {
         return new ResponseEntity<>(organizationService.queryAllOrganization(userId));
     }
+
     @Permission(permissionWithin = true)
     @ApiOperation("得到所有用户id")
-    @GetMapping("/ids")
+    @GetMapping("/users/ids")
     public ResponseEntity<Long[]> getUserIds() {
         return new ResponseEntity<>(iamUserService.listUserIds());
+    }
+
+    /**
+     * 分页查询所有的用户
+     *
+     * @param pageUtil 分页信息
+     * @return 分页的用户
+     */
+    @Permission(permissionLogin = true, permissionWithin = true)
+    @ApiOperation(value = "分页模糊查询用户列表")
+    @GetMapping("users/all")
+    public ResponseEntity<IPage<IamUserVO>> pagingQueryUsers(
+            PageUtil pageUtil,
+            @RequestParam(required = false, name = "realName") String realName) {
+        IamUserDTO userDTO = new IamUserDTO();
+        userDTO.setRealName(realName);
+        return new ResponseEntity<>(iamUserService.pagingQueryUsers(pageUtil, userDTO));
     }
 }

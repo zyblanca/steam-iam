@@ -1,5 +1,7 @@
 package com.crc.crcloud.steam.iam.common.utils;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -74,6 +76,19 @@ public class CopyUtil {
             temp.add(v);
         }
         return map;
+    }
+
+
+    public static <T> IPage<T> copyPage(@NotNull IPage<?> sourcePage, @NotNull Class<T> targetClass) {
+        IPage<T> page = new Page<>();
+
+        page.setTotal(sourcePage.getTotal());
+        page.setSize(sourcePage.getSize());
+        page.setCurrent(sourcePage.getCurrent());
+
+        page.setRecords(copyList(sourcePage.getRecords(), targetClass));
+
+        return page;
     }
 
 

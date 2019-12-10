@@ -117,4 +117,6 @@ public interface IamUserService {
     IamUserVO querySelf();
 
     Long[] listUserIds();
+
+    IPage<IamUserVO> pagingQueryUsers(PageUtil pageUtil, IamUserDTO userDTO);
 }

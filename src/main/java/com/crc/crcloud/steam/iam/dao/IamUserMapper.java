@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
+import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserMatchLdapDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.iam.RoleAssignmentSearchDTO;
@@ -125,4 +126,6 @@ public interface IamUserMapper extends BaseMapper<IamUser> {
     List<IamRoleDTO> selectUserWithRolesByOption(@Param("sourceId")Long sourceId,@Param("sourceType")  String sourceType, @Param("userIds") List<Long> userIds);
 
     Long[] selectAllIds();
+
+    IPage<IamUser> pagingQueryUsers(PageUtil pageUtil,@Param("user") IamUserDTO user);
 }
