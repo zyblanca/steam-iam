@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -38,6 +39,7 @@ public class IamUserOrganizationsResponseVO {
     public static IamUserOrganizationResponse instance(IamOrganizationDTO iamOrganization) {
         IamUserOrganizationResponse entity = new IamUserOrganizationResponse();
         BeanUtil.copyProperties(iamOrganization, entity, CopyOptions.create().ignoreNullValue());
+        entity.setCurrent(BigDecimal.ZERO.toPlainString());
         return entity;
     }
 
@@ -55,6 +57,6 @@ public class IamUserOrganizationsResponseVO {
 
         private String current;
 
-        private Boolean isEnable;
+        private Boolean isEnabled;
     }
 }
