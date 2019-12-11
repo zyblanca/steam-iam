@@ -20,6 +20,7 @@ import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.UserDetail;
 import com.crc.crcloud.steam.iam.dao.*;
 import com.crc.crcloud.steam.iam.entity.*;
+import com.crc.crcloud.steam.iam.model.dto.IamProjectDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
@@ -29,6 +30,7 @@ import com.crc.crcloud.steam.iam.model.dto.user.SearchDTO;
 import com.crc.crcloud.steam.iam.model.event.IamUserManualCreateEvent;
 import com.crc.crcloud.steam.iam.model.feign.role.RoleDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamOrganizationVO;
+import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
 import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamOrganizationUserPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamUserCreateRequestVO;
@@ -38,8 +40,11 @@ import com.crc.crcloud.steam.iam.service.IamUserOrganizationRelService;
 import com.crc.crcloud.steam.iam.service.IamUserService;
 import io.choerodon.core.convertor.ApplicationContextHelper;
 import io.choerodon.core.convertor.ConvertHelper;
+import io.choerodon.core.exception.CommonException;
 import io.choerodon.core.iam.InitRoleCode;
 import io.choerodon.core.iam.ResourceLevel;
+import io.choerodon.core.oauth.CustomUserDetails;
+import io.choerodon.core.oauth.DetailsHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -376,6 +381,79 @@ public class IamUserServiceImpl implements IamUserService {
         }
         iamUserVO.setOrganizations(organizationVOS);
         return iamUserVO;
+    }
+
+    @Override
+    public Long[] listUserIds() {
+        return iamUserMapper.selectAllIds();
+    }
+
+    @Override
+    public IPage<IamUserVO> pagingQueryUsers(PageUtil pageUtil, IamUserDTO userDTO) {
+
+        return CopyUtil.copyPage(iamUserMapper.pagingQueryUsers(pageUtil, userDTO), IamUserVO.class);
+    }
+
+    @Override
+    public List<IamProjectVO> queryProjectsNew(Long id, boolean includedDisabled) {
+        CustomUserDetails customUserDetails = checkLoginUser(id);
+        boolean isAdmin = customUserDetails.getAdmin() == null ? false : customUserDetails.getAdmin();
+        //superAdmin例外处理
+        if (isAdmin) {
+            return CopyUtil.copyList(iamProjectMapper.selectList(null), IamProjectVO.class);
+        } else {
+            IamProjectDTO project = new IamProjectDTO();
+            if (!includedDisabled) {
+                project.setIsEnabled(true);
+            }
+            //查询用户当前使用的组织,用户没有当前使用组织,默认初始化第一个组织
+            checkCurrentOrganization(id);
+
+            return CopyUtil.copyList(iamProjectMapper
+                            .selectProjectsByUserIdAndCurrentOrgId(id, project), IamProjectVO.class);
+        }
+    }
+
+    /**
+     * 1.检查当前组织是否存在
+     * 2.检查当前组织是否有权限
+     *
+     * @param userId
+     * @return
+     */
+    private Long checkCurrentOrganization(Long userId) {
+        // 查询当前用户使用的组织
+        Long currentOrganization = iamUserMapper.selectById(userId).getCurrentOrganizationId();
+        // 查询当前用户有权限的组织(1.组织有权限 2.组织下项目有权限)
+        List<IamOrganization> organizationDOS = iamOrganizationMapper.selectProjectOrganizationListByUser(userId, false);
+
+        // 没有任何组织
+        if (organizationDOS.size() <= 0) {
+            return null;
+        }
+
+        // 有组织权限
+        for (IamOrganization organizationDO : organizationDOS) {
+            if (organizationDO.getId().equals(currentOrganization)) {
+                return currentOrganization;
+            }
+        }
+
+        // 没有组织权限,当前组织不存在时,默认选中第一个有权限的组织
+        Long orgId = organizationDOS.get(0).getId();
+        this.updateUserCurrentOrganization(userId, orgId);
+        return orgId;
+    }
+
+    private CustomUserDetails checkLoginUser(Long id) {
+        CustomUserDetails customUserDetails = DetailsHelper.getUserDetails();
+        if (customUserDetails == null) {
+            throw new CommonException("user.not.login");
+        }
+        if (!id.equals(customUserDetails.getUserId())) {
+            throw new CommonException("user.id.not.equals");
+        }
+        return customUserDetails;
     }
 
     private List<UserWithRoleDTO> getUserRoleData(RoleAssignmentSearchDTO roleAssignmentSearchDTO, Long sourceId, String value, Long start, Long size) {

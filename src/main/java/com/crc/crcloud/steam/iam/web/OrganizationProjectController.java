@@ -46,5 +46,13 @@ public class OrganizationProjectController {
         project.setCategory(category);
         return new ResponseEntity<>(iamProjectService.pagingQuery(project, pageUtil));
     }
-
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @ApiOperation(value = "项目信息校验")
+    @PostMapping(value = "/check")
+    public ResponseEntity check(@PathVariable(name = "organization_id") Long organizationId,
+                                @RequestBody IamProjectVO projectVO) {
+        projectVO.setOrganizationId(organizationId);
+        iamProjectService.check(projectVO);
+        return ResponseEntity.ok();
+    }
 }

@@ -274,6 +274,18 @@
                 AND imr.source_type = #{sourceType}
                 AND imr.member_id IN <foreach collection="userIds" close=")" item="item" open="(" separator=",">#{item}</foreach>
     </select>
+    <select id="selectAllIds" resultType="java.lang.Long">
+        SELECT id from iam_user where is_enabled = 1
+    </select>
+    <select id="pagingQueryUsers" resultMap="BaseResultMap">
+
+        SELECT * FROM iam_user WHERE 1 = 1
+
+        <if test="user.realName != null">
+            AND real_name LIKE concat(concat('%',#{user.realName}),'%')
+        </if>
+
+    </select>
 
 
     <update id="updateLdapUser">

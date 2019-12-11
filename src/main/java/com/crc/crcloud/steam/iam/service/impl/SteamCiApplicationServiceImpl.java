@@ -24,6 +24,7 @@ public class SteamCiApplicationServiceImpl implements SteamCiApplicationService 
     @Override
     public void processName(ApplicationPayload payload) {
         IamApplication rawApplication = convert2Application(payload);
+        // 根据 projectId 和 code 查询
         IamApplication legacyApplication = applicationMapper.selectOne(new QueryWrapper(rawApplication));
         if (Objects.isNull(legacyApplication)) {
             throw new CommonException(String.format("找不到应用, applicationCode=%s, projectId=%d", payload.getApplicationCode(), payload.getSteamProjectId()));
@@ -35,15 +36,21 @@ public class SteamCiApplicationServiceImpl implements SteamCiApplicationService 
     @Override
     public void processStatus(ApplicationPayload payload) {
         IamApplication raeApplication = convert2Application(payload);
+        // 根据 projectId 和 code 查询
         IamApplication legacyApplication = applicationMapper.selectOne(new QueryWrapper<>(raeApplication));
         if (Objects.isNull(legacyApplication)) {
             throw new CommonException(String.format("找不到应用, applicationCode=%s, projectId=%d", payload.getApplicationCode(), payload.getSteamProjectId()));
         }
         boolean active = payload.getStatus().intValue() == APPLICATION_ENABLE.intValue();
         log.info("更新应用状态，applicationId={}，oldStatus={}, updatedStatus={}", legacyApplication.getId(), legacyApplication.getEnabled(), active);
-        applicationMapper.updateApplicationEnabled(legacyApplication.getId(), payload.getStatus().intValue());
+        applicationMapper.updateApplicationEnabled(legacyApplication.getId(), payload.getStatus());
     }
 
+    /**
+     * 将 ApplicationPayload 转化为 IamApplication
+     * @param payload 更新对象
+     * @return 返回的 IamApplication 只有 projectId 和 code
+     */
     private IamApplication convert2Application(ApplicationPayload payload){
         return IamApplication.builder()
                 .projectId(payload.getSteamProjectId())
