@@ -66,4 +66,26 @@ public final class SagaTopic {
         public static final String ORG_UPDATE = "steam-iam-update-organization";
     }
 
+    public static class Application {
+        private Application() {
+        }
+
+        // 创建应用
+        public static final String APP_CREATE = "steam-iam-create-application";
+        // 更新应用
+        public static final String APP_UPDATE = "steam-iam-update-application";
+        // 禁用应用
+        public static final String APP_DISABLE = "steam-iam-disable-application";
+        // 启用应用
+        public static final String APP_ENABLE = "steam-iam-enable-application";
+
+        /**
+         * SagaTask
+         */
+
+        public static final String APP_SYNC = "devops-sync-application";
+        public static final String IAM_SYNC_APP = "iam-sync-application";
+
+    }
+
 }
