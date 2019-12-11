@@ -252,7 +252,10 @@ public class IamUserController {
         //处理当前组织
         Optional.ofNullable(iamUser.getCurrentOrganizationId()).flatMap(id -> {
             return userOrganizations.stream().filter(t -> Objects.equals(t.getId(), id)).findFirst();
-        }).ifPresent(t -> responseBuilder.currentOrganization(t.getId()).currentOrganizationName(t.getName()));
+        }).ifPresent(t -> {
+            responseBuilder.currentOrganization(t.getId()).currentOrganizationName(t.getName());
+            t.setCurrent(BigDecimal.ONE.toPlainString());
+        });
         return new ResponseEntity<>(responseBuilder.build());
     }
 
