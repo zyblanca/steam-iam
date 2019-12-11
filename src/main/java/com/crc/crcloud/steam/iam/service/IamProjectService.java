@@ -4,13 +4,13 @@ package com.crc.crcloud.steam.iam.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
-import com.crc.crcloud.steam.iam.entity.IamProject;
 import com.crc.crcloud.steam.iam.model.dto.IamProjectDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -97,4 +97,11 @@ public interface IamProjectService {
     List<IamProjectVO> queryByCategory(String category);
 
     void check(IamProjectVO projectVO);
+
+    /**
+     * 获取项目通过ID-禁用项目也会被查询
+     * @param projectId 项目ID
+     * @return 数据
+     */
+    Optional<IamProjectDTO> get(@NotNull Long projectId);
 }

@@ -353,4 +353,9 @@ public class IamProjectServiceImpl implements IamProjectService {
             }
         }
     }
+
+    @Override
+    public Optional<IamProjectDTO> get(@NotNull Long projectId) {
+        return Optional.ofNullable(this.iamProjectMapper.selectById(projectId)).map(t -> ConvertHelper.convert(t, IamProjectDTO.class));
+    }
 }
