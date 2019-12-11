@@ -123,4 +123,12 @@ public interface IamUserService {
     IPage<IamUserVO> pagingQueryUsers(PageUtil pageUtil, IamUserDTO userDTO);
 
     List<IamProjectVO> queryProjectsNew(Long id, boolean includedDisabled);
+
+    /**
+     * 查询项目下的人员信息
+     * @param projectId
+     * @param userSearchDTO
+     * @return
+     */
+    List<IamUserVO> listByProject(Long projectId, UserSearchDTO userSearchDTO);
 }

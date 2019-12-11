@@ -410,8 +410,20 @@ public class IamUserServiceImpl implements IamUserService {
             checkCurrentOrganization(id);
 
             return CopyUtil.copyList(iamProjectMapper
-                            .selectProjectsByUserIdAndCurrentOrgId(id, project), IamProjectVO.class);
+                    .selectProjectsByUserIdAndCurrentOrgId(id, project), IamProjectVO.class);
         }
+    }
+
+    @Override
+    public List<IamUserVO> listByProject(Long projectId, UserSearchDTO userSearchDTO) {
+        userSearchDTO.setProjectId(projectId);
+        userSearchDTO.setMemberSourceType(ResourceLevel.PROJECT.value());
+        userSearchDTO.setMemberType(MemberType.USER.getValue());
+        //查询项目下的人
+        List<IamUser> users = iamUserMapper.listByProject(userSearchDTO);
+
+
+        return CopyUtil.copyList(users, IamUserVO.class);
     }
 
     /**

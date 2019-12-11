@@ -128,4 +128,6 @@ public interface IamUserMapper extends BaseMapper<IamUser> {
     Long[] selectAllIds();
 
     IPage<IamUser> pagingQueryUsers(PageUtil pageUtil,@Param("user") IamUserDTO user);
+
+    List<IamUser> listByProject(@Param("userSearch")UserSearchDTO user);
 }
