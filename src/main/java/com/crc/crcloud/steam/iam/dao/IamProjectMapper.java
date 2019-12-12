@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * @Author:
  * @Date: 2019-11-12
- * @Description: 
+ * @Description:
  */
 public interface IamProjectMapper extends BaseMapper<IamProject> {
 
@@ -33,5 +33,5 @@ public interface IamProjectMapper extends BaseMapper<IamProject> {
     List<IamProjectDTO> queryByCategory(@Param("category") String category);
 
     List<IamProject> selectProjectsByUserIdAndCurrentOrgId(@Param("userId") Long userId,
-                                                          @Param("project") IamProjectDTO project);
+                                                           @Param("project") IamProjectDTO project, @Param("organizationId") Long organizationId);
 }

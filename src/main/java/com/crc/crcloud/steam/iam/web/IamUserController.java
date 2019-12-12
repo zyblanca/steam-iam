@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -333,16 +334,23 @@ public class IamUserController {
     /**
      * 怀疑为临时解决方案，由老行云iam迁移过来
      * 不做逻辑修改
-     * @param id
-     * @param includedDisabled
-     * @return
+     * <p>左上角下拉框项目列表</p>
+     * @param id 用户编号
+     * @param includedDisabled 是否包含禁用
      */
     @Permission(level = ResourceLevel.ORGANIZATION, permissionLogin = true)
     @ApiOperation(value = "新行云查询用户所在项目列表")
     @GetMapping(value = "users/{id}/projects/new")
     public ResponseEntity<List<IamProjectVO>> queryProjectsNew(@PathVariable Long id,
                                                                @RequestParam(required = false, name = "included_disabled")
-                                                                     boolean includedDisabled) {
-        return new ResponseEntity<>(iamUserService.queryProjectsNew(id, includedDisabled));
+                                                                       boolean includedDisabled
+            , @RequestParam(value = "organization_id", required = false) Long organizationId) {
+        IamUserDTO iamUser = iamUserService.getAndThrow(id);
+        organizationId = Optional.ofNullable(organizationId).orElse(iamUser.getCurrentOrganizationId());
+        if (Objects.isNull(organizationId)) {
+            log.warn("当前不存在组织编号,返回空项目列表");
+            return new ResponseEntity<>(new ArrayList<>());
+        }
+        return new ResponseEntity<>(iamUserService.queryProjectsNew(id, organizationId, includedDisabled));
     }
 }
