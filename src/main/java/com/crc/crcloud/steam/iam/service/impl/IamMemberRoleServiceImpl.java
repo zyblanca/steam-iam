@@ -60,13 +60,11 @@ public class IamMemberRoleServiceImpl extends ServiceImpl<IamMemberRoleMapper, I
 		IamUserDTO iamUser = iamUserService.getAndThrow(userId);
 		//todo 校验资源有效性
 		IamRoleService iamRoleService = ApplicationContextHelper.getContext().getBean(IamRoleService.class);
-
-		@NotNull List<IamRoleDTO> userRoles = iamRoleService.getUserRoles(iamUser.getId(), resourceLevel);
-
+		@NotNull List<IamMemberRoleDTO> memberRoles = this.getUserMemberRoleByBySource(iamUser.getId(), resourceLevel, sourceId);
 		//需要授权的角色
 		Set<Long> needGrantRoles = CollUtil.newHashSet(roleIds);
 		//从待授权列表中移除已经授权过的角色
-		userRoles.forEach(r -> needGrantRoles.remove(r.getId()));
+		memberRoles.forEach(r -> needGrantRoles.remove(r.getRoleId()));
 		if (needGrantRoles.isEmpty()) {
 			log.warn("没有需要增量授权的角色");
 			return;
