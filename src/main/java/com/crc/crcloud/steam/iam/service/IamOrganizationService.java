@@ -120,5 +120,11 @@ public interface IamOrganizationService {
      */
     List<IamOrganizationDTO> getByIds(@Nullable Set<Long> organizationIds);
 
+    /**
+     * @deprecated 废弃不使用
+     * @param userId
+     * @return
+     */
+    @Deprecated
     List<IamOrganizationVO> queryAllOrganization(Long userId);
 }

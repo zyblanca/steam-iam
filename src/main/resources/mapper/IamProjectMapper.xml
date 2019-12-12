@@ -90,7 +90,7 @@
         imr.source_type = 'project'
         LEFT JOIN iam_user iu on fd.created_by = iu.id
         WHERE  imr.member_id = #{iamProject.userId}
-        AND fd.organization_id =  (SELECT iu.current_organization_id FROM iam_user iu WHERE iu.id = #{iamProject.userId})
+        AND fd.organization_id =  #{iamProject.organizationId}
         <if test="iamProject.name != null and iamProject.name != ''">
             and fd.name LIKE CONCAT(CONCAT('%', #{iamProject.name}),'%')
         </if>
@@ -110,7 +110,7 @@
         INNER JOIN iam_role ON iam_role.is_enabled = 1 and iam_role.id = iam_member_role.role_id AND
         iam_member_role.source_type = 'project'
         WHERE iam_member_role.member_id = #{userId}
-        AND iam_project.organization_id = (SELECT iu.current_organization_id FROM iam_user iu WHERE iu.id = #{userId})
+        AND iam_project.organization_id = #{organizationId}
         <if test="project != null">
             <if test="project.name != null">
                 AND iam_project.name LIKE concat(concat('%',#{project.name}),'%')

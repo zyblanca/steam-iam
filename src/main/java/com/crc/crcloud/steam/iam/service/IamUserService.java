@@ -3,8 +3,6 @@ package com.crc.crcloud.steam.iam.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
-import com.crc.crcloud.steam.iam.entity.IamProject;
-import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.iam.RoleAssignmentSearchDTO;
@@ -122,7 +120,14 @@ public interface IamUserService {
 
     IPage<IamUserVO> pagingQueryUsers(PageUtil pageUtil, IamUserDTO userDTO);
 
-    List<IamProjectVO> queryProjectsNew(Long id, boolean includedDisabled);
+    /**
+     * 页面左上角用户项目列表
+     * <p>如果是管理员，则显示该项目下所有应用</p>
+     * @param id 用户编号
+     * @param includedDisabled 是否包含禁用项目 已废弃
+     * @return 项目列表
+     */
+    List<IamProjectVO> queryProjectsNew(Long id, @NotNull Long organizationId, boolean includedDisabled);
 
     /**
      * 查询项目下的人员信息

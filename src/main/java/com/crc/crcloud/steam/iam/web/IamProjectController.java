@@ -4,8 +4,11 @@ package com.crc.crcloud.steam.iam.web;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
+import com.crc.crcloud.steam.iam.common.utils.UserDetail;
+import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
 import com.crc.crcloud.steam.iam.service.IamProjectService;
+import com.crc.crcloud.steam.iam.service.IamUserService;
 import io.choerodon.core.iam.InitRoleCode;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.swagger.annotation.Permission;
@@ -17,6 +20,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -31,7 +35,8 @@ public class IamProjectController {
 
     @Autowired
     private IamProjectService iamProjectService;
-
+    @Autowired
+    private IamUserService iamUserService;
     /**
      * 新增项目
      * 项目不同步到老行云
@@ -88,8 +93,8 @@ public class IamProjectController {
 
     /**
      * 查询所有项目
-     *
-     * @return
+     * todo 此处需要重构，条件查询与排序有误
+     * <p>切换完组织之后的项目列表</p>
      */
     @Permission(permissionLogin = true)
     @ApiOperation(value = "查询所有项目")
@@ -97,7 +102,10 @@ public class IamProjectController {
     public ResponseEntity<IPage<IamProjectVO>> queryAllProject(
             PageUtil pageUtil,
             @RequestBody(required = false) IamProjectVO iamProjectVO) {
-
+        if (Objects.isNull(iamProjectVO.getOrganizationId())) {
+            IamUserDTO iamUser = iamUserService.getAndThrow(UserDetail.getUserId());
+            iamProjectVO.setOrganizationId(iamUser.getCurrentOrganizationId());
+        }
         return new ResponseEntity<>(iamProjectService.queryAllProject(pageUtil, iamProjectVO));
     }
 

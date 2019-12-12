@@ -395,12 +395,15 @@ public class IamUserServiceImpl implements IamUserService {
     }
 
     @Override
-    public List<IamProjectVO> queryProjectsNew(Long id, boolean includedDisabled) {
+    public List<IamProjectVO> queryProjectsNew(Long id, @NotNull Long organizationId, boolean includedDisabled) {
         CustomUserDetails customUserDetails = checkLoginUser(id);
         boolean isAdmin = customUserDetails.getAdmin() == null ? false : customUserDetails.getAdmin();
         //superAdmin例外处理
         if (isAdmin) {
-            return CopyUtil.copyList(iamProjectMapper.selectList(null), IamProjectVO.class);
+            LambdaQueryWrapper<IamProject> queryWrapper = Wrappers.<IamProject>lambdaQuery()
+                    .eq(IamProject::getOrganizationId, organizationId)
+                    .eq(IamProject::getIsEnabled, true);
+            return CopyUtil.copyList(iamProjectMapper.selectList(queryWrapper), IamProjectVO.class);
         } else {
             IamProjectDTO project = new IamProjectDTO();
             if (!includedDisabled) {
@@ -410,7 +413,7 @@ public class IamUserServiceImpl implements IamUserService {
             checkCurrentOrganization(id);
 
             return CopyUtil.copyList(iamProjectMapper
-                    .selectProjectsByUserIdAndCurrentOrgId(id, project), IamProjectVO.class);
+                    .selectProjectsByUserIdAndCurrentOrgId(id, project, organizationId), IamProjectVO.class);
         }
     }
 
