@@ -98,7 +98,7 @@ public class PageUtil<T> extends Page<T> {
         }
         //当前只有简单的字段排序功能
         if (order.trim().contains(" ") || order.contains("(")) {
-            throw new IamAppCommException("错误的排序字段");
+            throw new IamAppCommException("comm.sort.error");
         }
 
     }
