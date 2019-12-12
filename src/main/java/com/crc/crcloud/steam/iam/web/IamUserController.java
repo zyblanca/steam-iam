@@ -293,8 +293,10 @@ public class IamUserController {
      * 根据用户查询所有组织并且用户角色为组织管理员
      *
      * @param userId
+     * @deprecated 已废弃
      * @return
      */
+    @Deprecated
     @Permission(permissionWithin = true)
     @ApiOperation(value = "查询用户所在的所有组织，并前用户角色是组织管理员")
     @GetMapping("/users/query_organizations")
