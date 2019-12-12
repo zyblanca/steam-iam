@@ -55,8 +55,13 @@ public class IamUserOrganizationsResponseVO {
         @ApiModelProperty("组织编码")
         private String code;
 
+        @ApiModelProperty("是否为当前：1是当前组织,反之0")
         private String current;
 
+        @ApiModelProperty("是否启用;true启用")
         private Boolean isEnabled;
+
+        @ApiModelProperty("组织图标")
+        private String imageUrl;
     }
 }
