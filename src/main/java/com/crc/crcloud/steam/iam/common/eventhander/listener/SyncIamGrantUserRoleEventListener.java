@@ -192,7 +192,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
             RetryCallback<RoleDTO, RuntimeException> retryCallback = retryContext -> {
                 ResponseEntity<RoleDTO> responseEntity = iamServiceClient.queryByCode(role.getCode());
                 if (isSuccess.get().negate().test(responseEntity)) {
-                    throw new IamAppCommException("不满足接口成功条件");
+                    throw new IamAppCommException("other.unable.success");
                 }
                 return responseEntity.getBody();
             };
@@ -221,7 +221,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
         RetryCallback<UserDTO, RuntimeException> retryCallback = retryContext -> {
             ResponseEntity<UserDTO> responseEntity = iamServiceClient.queryByLoginName(loginName);
             if (isSuccess.get().negate().test(responseEntity)) {
-                throw new IamAppCommException("不满足接口成功条件");
+                throw new IamAppCommException("other.unable.success");
             }
             return responseEntity.getBody();
         };
