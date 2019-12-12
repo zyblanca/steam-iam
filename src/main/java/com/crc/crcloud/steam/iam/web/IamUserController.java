@@ -75,7 +75,7 @@ public class IamUserController {
 
     /**
      * 分页查询指定项目下的成员信息
-     * 当前只有id loginName realName 三个属性 后续可以根据需要添加
+     * 当前只有id loginName realName email四个属性 后续可以根据需要添加
      *
      * @param projectId     项目id
      * @param userSearchDTO 人员查询参数
@@ -93,6 +93,25 @@ public class IamUserController {
 
 
         return new ResponseEntity<>(iamUserService.pageByProject(projectId, userSearchDTO, page));
+    }
+    /**
+     * 查询指定项目下的所有成员信息
+     * 当前只有id loginName realName email 四个属性 后续可以根据需要添加
+     *
+     * @param projectId     项目id
+     * @param userSearchDTO 人员查询参数
+     * @return 人员信息
+     */
+    //简易权限，后续需要根据实际情况做校验
+    @Permission(level = ResourceLevel.PROJECT)
+    @ApiOperation(value = "项目人员列表", notes = "项目人员列表", response = IamUserVO.class)
+    @GetMapping("/projects/{project_id}/list/users")
+    public ResponseEntity<List<IamUserVO>> listProjectUser(@ApiParam(value = "项目ID", required = true)
+                                                            @PathVariable(name = "project_id") Long projectId,
+                                                            UserSearchDTO userSearchDTO) {
+
+
+        return new ResponseEntity<>(iamUserService.listByProject(projectId, userSearchDTO));
     }
 
     /**
@@ -318,7 +337,7 @@ public class IamUserController {
      */
     @Permission(level = ResourceLevel.ORGANIZATION, permissionLogin = true)
     @ApiOperation(value = "新行云查询用户所在项目列表")
-    @GetMapping(value = "users/{id}/projects/new")
+    @GetMapping(value = "users/{id}/projects")
     public ResponseEntity<List<IamProjectVO>> queryProjectsNew(@PathVariable Long id,
                                                                @RequestParam(required = false, name = "included_disabled")
                                                                      boolean includedDisabled) {

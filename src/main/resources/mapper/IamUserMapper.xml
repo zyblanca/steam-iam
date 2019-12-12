@@ -116,7 +116,8 @@
         SELECT
         iu.id,
         iu.login_name,
-        iu.real_name
+        iu.real_name,
+        iu.email
         FROM (select DISTINCT imr.member_id
         FROM iam_member_role imr
         WHERE imr.member_type = #{userSearch.memberType}
@@ -285,6 +286,41 @@
             AND real_name LIKE concat(concat('%',#{user.realName}),'%')
         </if>
 
+    </select>
+    <select id="listByProject" resultMap="BaseResultMap">
+        SELECT
+        iu.id,
+        iu.login_name,
+        iu.real_name,
+        iu.email
+        FROM (select DISTINCT imr.member_id
+        FROM iam_member_role imr
+        WHERE imr.member_type = #{userSearch.memberType}
+        AND imr.source_type = #{userSearch.memberSourceType}
+        AND imr.source_id = #{userSearch.projectId})tmp
+        INNER JOIN iam_user iu
+        ON tmp.member_id = iu.id
+        where 1=1
+        and iu.is_enabled =1
+        <if test="userSearch.id != null">
+            AND iu.id = #{userId}
+        </if>
+        <if test="userSearch.realName != null and userSearch.realName != '' ">
+
+            and  iu.real_name like concat('%',concat(#{userSearch.realName},'%'))
+        </if>
+        <if test="userSearch.email != null">
+            AND iu.email LIKE concat(concat('%',#{userSearch.email}),'%')
+        </if>
+        <if test="userSearch.loginName != null and userSearch.loginName != '' ">
+            and   iu.login_name like concat('%',concat(#{userSearch.loginName},'%'))
+        </if>
+        <if test="userSearch.param != null">
+            AND (
+            id.login_name LIKE concat(concat('%',#{userSearch.param}),'%') OR
+            id.real_name LIKE concat(concat('%',#{userSearch.param}),'%')
+            )
+        </if>
     </select>
 
 
