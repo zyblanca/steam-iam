@@ -90,6 +90,7 @@
         imr.source_type = 'project'
         LEFT JOIN iam_user iu on fd.created_by = iu.id
         WHERE  imr.member_id = #{iamProject.userId}
+        AND fd.is_enabled = 1
         AND fd.organization_id =  #{iamProject.organizationId}
         <if test="iamProject.name != null and iamProject.name != ''">
             and fd.name LIKE CONCAT(CONCAT('%', #{iamProject.name}),'%')
