@@ -340,7 +340,7 @@ public class IamUserController {
      */
     @Permission(level = ResourceLevel.ORGANIZATION, permissionLogin = true)
     @ApiOperation(value = "新行云查询用户所在项目列表")
-    @GetMapping(value = "users/{id}/projects")
+    @GetMapping(value = "users/{id}/projects/new")
     public ResponseEntity<List<IamProjectVO>> queryProjectsNew(@PathVariable Long id,
                                                                @RequestParam(required = false, name = "included_disabled")
                                                                        boolean includedDisabled
