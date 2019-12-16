@@ -20,4 +20,10 @@ public interface IamApplicationService {
      */
     IamApplicationVO disableApplication(Long applicationId);
 
+    /**
+     * 创建应用
+     * @param iamApplicationVO
+     * @return
+     */
+    IamApplicationVO createApplication(IamApplicationVO iamApplicationVO);
 }

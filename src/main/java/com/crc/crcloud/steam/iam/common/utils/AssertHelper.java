@@ -15,29 +15,44 @@ import org.springframework.util.ObjectUtils;
 @Component
 public class AssertHelper {
 
+    /**
+     * 检查组织是否存在
+     * @param organizationId
+     * @return
+     */
     public IamOrganization organizationNotExisted(Long organizationId) {
         IamOrganizationMapper iamOrganizationMapper = ApplicationContextHelper.getContext().getBean(IamOrganizationMapper.class);
         IamOrganization organization = iamOrganizationMapper.selectById(organizationId);
         if (ObjectUtils.isEmpty(organization)) {
-            throw new IamAppCommException("error.iamOrganization.notFound", organizationId);
+            throw new IamAppCommException("error.steam-iamOrganization.notFound", organizationId);
         }
         return organization;
     }
 
+    /**
+     * 检查项目是否存在
+     * @param projectId
+     * @return
+     */
     public IamProject projectNotExisted(Long projectId) {
         IamProjectMapper iamProjectMapper = ApplicationContextHelper.getContext().getBean(IamProjectMapper.class);
         IamProject project = iamProjectMapper.selectById(projectId);
         if (ObjectUtils.isEmpty(project)) {
-            throw new IamAppCommException("error.project.not.exist", projectId);
+            throw new IamAppCommException("error.steam-iamProject.not.exist", projectId);
         }
         return project;
     }
 
+    /**
+     * 检查应用是否存在
+     * @param applicationId
+     * @return
+     */
     public IamApplication applicationNotExisted(Long applicationId){
         IamApplicationMapper iamApplicationMapper = ApplicationContextHelper.getContext().getBean(IamApplicationMapper.class);
         IamApplication iamApplication = iamApplicationMapper.selectById(applicationId);
         if (ObjectUtils.isEmpty(iamApplication)) {
-            throw new CommonException("error.application.not.exist");
+            throw new CommonException("error.steam-iamApplication.not.exist");
         }
         return iamApplication;
     }

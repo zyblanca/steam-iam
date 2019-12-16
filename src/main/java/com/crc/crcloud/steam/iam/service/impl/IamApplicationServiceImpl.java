@@ -2,11 +2,13 @@ package com.crc.crcloud.steam.iam.service.impl;
 
 import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
 import com.crc.crcloud.steam.iam.common.enums.ApplicationCategory;
+import com.crc.crcloud.steam.iam.common.enums.ApplicationType;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.AssertHelper;
 import com.crc.crcloud.steam.iam.dao.IamApplicationExplorationMapper;
 import com.crc.crcloud.steam.iam.dao.IamApplicationMapper;
 import com.crc.crcloud.steam.iam.entity.IamApplication;
+import com.crc.crcloud.steam.iam.entity.IamApplicationExploration;
 import com.crc.crcloud.steam.iam.model.dto.IamApplicationDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamApplicationVO;
 import com.crc.crcloud.steam.iam.service.IamApplicationService;
@@ -17,14 +19,19 @@ import io.choerodon.core.convertor.ConvertHelper;
 import io.choerodon.core.iam.ResourceLevel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
-import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.Application.APP_DISABLE;
-import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.Application.APP_ENABLE;
+
+import java.util.Objects;
+
+import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.Application.*;
 
 @Service
 public class IamApplicationServiceImpl implements IamApplicationService {
 
     private static final Long PROJECT_DOES_NOT_EXIST_ID = 0L;
+    private static final String SEPARATOR = "/";
 
     @Autowired
     private IamApplicationMapper iamApplicationMapper;
@@ -37,12 +44,86 @@ public class IamApplicationServiceImpl implements IamApplicationService {
     @Autowired
     private ChoerodonDevOpsProperties choerodonDevOpsProperties;
 
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
+    @Saga(code = APP_CREATE, description = "steam-iam 创建应用", inputSchemaClass = IamApplication.class)
+    @Override
+    public IamApplicationVO createApplication(IamApplicationVO iamApplicationVO) {
+        assertHelper.organizationNotExisted(iamApplicationVO.getOrganizationId());
+        validate(iamApplicationVO);
+        if (Objects.isNull(iamApplicationVO.getProjectId())){
+            iamApplicationVO.setProjectId(PROJECT_DOES_NOT_EXIST_ID);
+        }
+        IamApplication iamApplication = voToEntity(iamApplicationVO);
+        Long projectId = iamApplication.getProjectId();
+        if (!Objects.equals(PROJECT_DOES_NOT_EXIST_ID, projectId)) {
+            assertHelper.projectNotExisted(projectId);
+        }
+
+        String combination = ApplicationCategory.COMBINATION.code();
+        boolean sendSagaEvent =
+                (!combination.equals(iamApplication.getApplicationCategory())
+                        && !PROJECT_DOES_NOT_EXIST_ID.equals(projectId)
+                        && choerodonDevOpsProperties.isMessage());
+        IamApplication returnEntity;
+        if (sendSagaEvent) {
+            returnEntity = insertAndGet(iamApplication);
+            insertExploration(returnEntity.getId());
+            sendSagaEvent(returnEntity, APP_CREATE);
+
+        } else {
+            returnEntity = insertAndGet(iamApplication);
+            insertExploration(returnEntity.getId());
+        }
+        returnEntity.setObjectVersionNumber(1L);
+        return entityToVo(returnEntity);
+    }
+
+    private void insertExploration(Long applicationId) {
+        IamApplicationExploration example = new IamApplicationExploration();
+        example.setApplicationId(applicationId);
+        String path = generatePath(applicationId);
+        example.setPath(path);
+        example.setApplicationEnabled(true);
+        example.setRootId(applicationId);
+        example.setHashcode(String.valueOf(path.hashCode()));
+        iamApplicationExplorationMapper.insert(example);
+    }
+
+    private String generatePath(Long applicationId) {
+        StringBuilder builder = new StringBuilder();
+        return builder.append(SEPARATOR).append(applicationId).append(SEPARATOR).toString();
+    }
+
+    private IamApplication insertAndGet(IamApplication iamApplication) {
+        if (1 != iamApplicationMapper.insert(iamApplication)){
+            throw  new IamAppCommException("error.steam-iam.application.insert");
+        }
+        return iamApplication;
+    }
+
+    /**
+     * 检验 创建对象 的 category 和 type 是否符合规范
+     * @param iamApplicationVO
+     */
+    private void validate(IamApplicationVO iamApplicationVO) {
+        String applicationCategory = iamApplicationVO.getApplicationCategory();
+        String applicationType = iamApplicationVO.getApplicationType();
+        if (!ApplicationCategory.matchCode(applicationCategory)){
+            throw new IamAppCommException("error.steam-iam.application.applicationCategory.illegal");
+        }
+        if (!ApplicationType.matchCode(applicationType)) {
+            throw new IamAppCommException("error.steam-iam.application.applicationType.illegal");
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     @Saga(code = APP_ENABLE, description = "steam-iam 启用应用", inputSchemaClass = IamApplication.class)
     @Override
     public IamApplicationVO enableApplication(Long applicationId) {
         return toggleStatus(applicationId, true, APP_ENABLE);
     }
 
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     @Saga(code = APP_DISABLE, description = "steam-iam 禁用应用", inputSchemaClass = IamApplication.class)
     @Override
     public IamApplicationVO disableApplication(Long applicationId) {
@@ -72,6 +153,11 @@ public class IamApplicationServiceImpl implements IamApplicationService {
         return ConvertHelper.convert(dto, IamApplicationVO.class);
     }
 
+    private IamApplication voToEntity(IamApplicationVO iamApplicationVO){
+        IamApplicationDTO dto = ConvertHelper.convert(iamApplicationVO, IamApplicationDTO.class);
+        return ConvertHelper.convert(dto, IamApplication.class);
+    }
+
 
     /**
      * 发送 Saga 事务
@@ -84,13 +170,13 @@ public class IamApplicationServiceImpl implements IamApplicationService {
                 StartSagaBuilder
                         .newBuilder()
                         .withLevel(ResourceLevel.ORGANIZATION)
-                        .withRefType("application")
+                        .withSourceId(iamApplication.getOrganizationId())
                         .withSagaCode(sagaCode),
                 builder -> {
                     builder
                             .withPayloadAndSerialize(iamApplication)
                             .withRefId(String.valueOf(iamApplication.getId()))
-                            .withSourceId(iamApplication.getOrganizationId());
+                            .withRefType("application");
                     return iamApplication;
                 });
     }
