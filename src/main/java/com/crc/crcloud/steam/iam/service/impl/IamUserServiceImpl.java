@@ -252,7 +252,7 @@ public class IamUserServiceImpl implements IamUserService {
         userSearchDTO.setMemberSourceType(ResourceLevel.PROJECT.value());
         userSearchDTO.setMemberType(MemberType.USER.getValue());
         //查询项目下的人
-        IPage<IamUser> userPage = iamUserMapper.pageByProject(page, userSearchDTO);
+        IPage<IamUserDTO> userPage = iamUserMapper.pageByProject(page, userSearchDTO);
 
         IPage<IamUserVO> result = new Page<>();
         result.setTotal(userPage.getTotal());
@@ -286,8 +286,12 @@ public class IamUserServiceImpl implements IamUserService {
     }
 
     @Override
-    public void projectBindUsers(Long projectId, List<Long> userIds) {
-        if (CollectionUtils.isEmpty(userIds)) return;
+    public void projectBindUsers(Long projectId, IamUserVO iamUserVO) {
+        List<Long> userIds, roleIds;
+        if (CollectionUtils.isEmpty(userIds = iamUserVO.getUserIds()) || CollectionUtils.isEmpty(roleIds = iamUserVO.getRoleIds())) {
+            throw new IamAppCommException("");
+        }
+
         //当前写死项目拥有者权限
         //获取项目拥有者权限id
         IamRole iamRole = iamRoleMapper.selectOne(Wrappers.<IamRole>lambdaQuery()
@@ -295,10 +299,9 @@ public class IamUserServiceImpl implements IamUserService {
         if (Objects.isNull(iamRole)) {
             throw new IamAppCommException("project.invalid.owner.role");
         }
-        Set<Long> roleIds = new HashSet<>();
         roleIds.add(iamRole.getId());
         //公共授权通道
-        iamMemberRoleService.grantUserRole(new HashSet<>(userIds), roleIds, projectId, ResourceLevel.PROJECT);
+        iamMemberRoleService.grantUserRole(new HashSet<>(userIds), new HashSet<>(roleIds), projectId, ResourceLevel.PROJECT);
 
     }
 

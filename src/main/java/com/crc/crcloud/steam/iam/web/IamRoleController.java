@@ -1,6 +1,7 @@
 package com.crc.crcloud.steam.iam.web;
 
 
+import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamRoleVO;
@@ -41,5 +42,14 @@ public class IamRoleController {
         @NotNull List<IamRoleDTO> rolesByOrganization = iamRoleService.getRolesByOrganization();
         return new ResponseEntity<>(ConvertHelper.convertList(rolesByOrganization, IamRoleVO.class));
     }
+
+
+    @Permission(level = ResourceLevel.ORGANIZATION, permissionLogin = true)
+    @ApiOperation("获取项目角色列表")
+    @GetMapping("project")
+    public ResponseEntity<List<IamRoleVO>> getProjectRoles() {
+        return new ResponseEntity<>(CopyUtil.copyList(iamRoleService.getProjectRoles(), IamRoleVO.class));
+    }
+
 
 }
