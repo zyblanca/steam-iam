@@ -19,9 +19,9 @@ public class SagaSteamCiApplicationListener {
     @Autowired
     private SteamCiApplicationService steamCiApplicationService;
 
-    /*@SagaTask(code = "steam-iam-ServiceApplicationStatusSync", description = "CI应用 状态 同步服务",
+    @SagaTask(code = "steam-iam-ServiceApplicationStatusSync", description = "CI应用 状态 同步服务",
             sagaCode = APPLICATION_STATUS_SAGA_CODE,
-            maxRetryCount = 1, seq = 2)*/
+            maxRetryCount = 1, seq = 2)
     public void processStatus(String data){
         log.info("CI应用状态同步服务请求参数：{}", data);
         ApplicationPayload payload = JsonUtils.parse(data, ApplicationPayload.class);
@@ -29,9 +29,9 @@ public class SagaSteamCiApplicationListener {
         log.info("完成CI应用状态同步服务");
     }
 
-    /*@SagaTask(code = "steam-iam-ServiceApplicationNameSync", description = "CI应用 名称 同步服务",
+    @SagaTask(code = "steam-iam-ServiceApplicationNameSync", description = "CI应用 名称 同步服务",
             sagaCode = APPLICATION_NAME_SAGA_CODE,
-            maxRetryCount = 1, seq = 2)*/
+            maxRetryCount = 1, seq = 2)
     public void processName(String data){
         log.info("CI应用名称同步服务请求参数：{}", data);
         ApplicationPayload payload = JsonUtils.parse(data, ApplicationPayload.class);

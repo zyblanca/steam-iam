@@ -37,7 +37,7 @@ public class IamApplicationController {
     public ResponseEntity<IamApplicationVO> updateApplication(@PathVariable("organization_id") Long organizationId,
                                                               @PathVariable("id") Long applicationId,
                                                               @RequestBody @Valid IamApplicationVO iamApplicationVO){
-
+        
         return null;
     }
 

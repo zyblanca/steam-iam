@@ -64,9 +64,9 @@ public class SagaDevopsServiceApplicationListener {
     @Autowired
     private IamLabelMapper iamLabelMapper;
 
-    /*@SagaTask(code = IAM_SYNC_APP, description = "iam 接受 devops-service 同步 application 集合事件",
+    @SagaTask(code = IAM_SYNC_APP, description = "iam 接受 devops-service 同步 application 集合事件",
             sagaCode = APP_SYNC,
-            seq = 1)*/
+            seq = 1)
     public void syncApplications(String data) throws IOException {
 
         List<IamApplication> applications = objectMapper.readValue(data, new TypeReference<List<IamApplication>>() {
@@ -173,9 +173,9 @@ public class SagaDevopsServiceApplicationListener {
         return false;
     }
 
-    /*@SagaTask(code = MEMBER_ROLE_UPDATE, description = "iam接收devops平滑升级事件",
+    @SagaTask(code = MEMBER_ROLE_UPDATE, description = "iam接收devops平滑升级事件",
             sagaCode = "devops-upgrade-0.9",
-            seq = 1)*/
+            seq = 1)
     public void assignRolesOnProject(String data) {
         IamMemberRole iamMemberRole = new IamMemberRole();
         iamMemberRole.setSourceType(ResourceLevel.PROJECT.value());
