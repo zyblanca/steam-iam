@@ -1,14 +1,13 @@
 package com.crc.crcloud.steam.iam.web;
 
-import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
-import com.crc.crcloud.steam.iam.entity.IamApplication;
 import com.crc.crcloud.steam.iam.model.vo.IamApplicationVO;
 import com.crc.crcloud.steam.iam.service.IamApplicationService;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.swagger.annotation.Permission;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -44,15 +43,15 @@ public class IamApplicationController {
     @ApiOperation("启动应用")
     @PutMapping("/{id}/enable")
     public ResponseEntity<IamApplicationVO> enableApplication(@PathVariable("id") Long applicationId){
-
-        return null;
+        IamApplicationVO iamApplicationVO = iamApplicationService.enableApplication(applicationId);
+        return new ResponseEntity<>(iamApplicationVO, HttpStatus.OK);
     }
 
     @Permission(level = ResourceLevel.ORGANIZATION)
     @ApiOperation("禁用应用")
     @PutMapping("/{id}/disable")
     public ResponseEntity<IamApplicationVO> disableApplication(@PathVariable("id") Long applicationId){
-
-        return null;
+        IamApplicationVO iamApplicationVO = iamApplicationService.disableApplication(applicationId);
+        return new ResponseEntity<>(iamApplicationVO, HttpStatus.OK);
     }
 }
