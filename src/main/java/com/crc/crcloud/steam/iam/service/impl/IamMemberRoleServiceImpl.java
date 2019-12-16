@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -130,7 +131,32 @@ public class IamMemberRoleServiceImpl extends ServiceImpl<IamMemberRoleMapper, I
 	}
 
 	@Override
-	public @NotNull List<IamMemberRoleDTO> getUserMemberRoleBySourceType(@NotNull Long userId, @NotNull ResourceLevel sourceType) {
+	public @NotNull List<IamMemberRoleDTO> getUserMemberRoleBySource(@NotNull Long userId, @NotNull ResourceLevel sourceType) {
 		return getUserMemberRoleByBySource(userId, sourceType);
+	}
+
+	@Override
+	public @NotNull List<IamMemberRoleDTO> getUserMemberRoleBySource(@NotNull ResourceLevel sourceType, @Nullable Long... sourceIds) {
+		final Set<ResourceLevel> needSourceIds = CollUtil.newHashSet(ResourceLevel.ORGANIZATION, ResourceLevel.PROJECT);
+		LambdaQueryWrapper<IamMemberRole> queryWrapper = Wrappers.<IamMemberRole>lambdaQuery()
+				.eq(IamMemberRole::getMemberType, ResourceLevel.USER.value())
+				.eq(IamMemberRole::getSourceType, sourceType.value());
+		if (needSourceIds.contains(sourceType) && ArrayUtil.isNotEmpty(sourceIds)) {
+			List<Long> ids = CollUtil.toList(sourceIds).stream().filter(Objects::nonNull).collect(Collectors.toList());
+			if (CollUtil.isNotEmpty(ids)) {
+				queryWrapper.in(IamMemberRole::getSourceId, ids);
+			}
+		}
+		return this.iamMemberRoleMapper.selectList(queryWrapper).stream().map(t -> ConvertHelper.convert(t, IamMemberRoleDTO.class)).collect(Collectors.toList());
+	}
+
+	@Override
+	public List<IamMemberRoleDTO> getSiteUserMemberRoleBySource() {
+		return getUserMemberRoleBySource(ResourceLevel.SITE);
+	}
+
+	@Override
+	public void grantUserSiteRole(@NotNull Long userId, @NotEmpty Set<Long> roleIds) {
+		this.grantUserRole(userId, roleIds, 0L, ResourceLevel.SITE);
 	}
 }
