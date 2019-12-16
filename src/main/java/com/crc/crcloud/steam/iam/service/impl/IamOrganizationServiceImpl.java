@@ -288,10 +288,10 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
                 //判断是否需要过滤掉禁用的
                 .stream().filter(role -> includeDisable ? true : role.getIsEnabled()).collect(Collectors.toList());
         final Set<Long> roleIds = userRoles.stream().map(IamRoleDTO::getId).collect(Collectors.toSet());
-        @NotNull List<IamMemberRoleDTO> sourceByOrg = iamMemberRoleService.getUserMemberRoleBySourceType(userId, ResourceLevel.ORGANIZATION);
+        @NotNull List<IamMemberRoleDTO> sourceByOrg = iamMemberRoleService.getUserMemberRoleBySource(userId, ResourceLevel.ORGANIZATION);
         //剔除掉不属于上面用户角色项（禁用的）
         sourceByOrg = sourceByOrg.stream().filter(t -> roleIds.contains(t.getRoleId())).collect(Collectors.toList());
-        @NotNull List<IamMemberRoleDTO> sourceByPro = iamMemberRoleService.getUserMemberRoleBySourceType(userId, ResourceLevel.PROJECT);
+        @NotNull List<IamMemberRoleDTO> sourceByPro = iamMemberRoleService.getUserMemberRoleBySource(userId, ResourceLevel.PROJECT);
         sourceByPro = sourceByPro.stream().filter(t -> roleIds.contains(t.getRoleId())).collect(Collectors.toList());
         //转换为组织ID
         final Set<Long> organizationIds = sourceByOrg.stream().map(IamMemberRoleDTO::getSourceId).collect(Collectors.toSet());
