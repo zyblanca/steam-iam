@@ -2,7 +2,6 @@ package com.crc.crcloud.steam.iam.web;
 
 import com.crc.crcloud.steam.iam.model.vo.IamApplicationVO;
 import com.crc.crcloud.steam.iam.service.IamApplicationService;
-import com.netflix.ribbon.proxy.annotation.Http;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
@@ -37,8 +36,10 @@ public class IamApplicationController {
     public ResponseEntity<IamApplicationVO> updateApplication(@PathVariable("organization_id") Long organizationId,
                                                               @PathVariable("id") Long applicationId,
                                                               @RequestBody @Valid IamApplicationVO iamApplicationVO){
-        
-        return null;
+        iamApplicationVO.setOrganizationId(organizationId);
+        iamApplicationVO.setId(applicationId);
+        IamApplicationVO returnVO = iamApplicationService.updateApplication(iamApplicationVO);
+        return new ResponseEntity<>(returnVO, HttpStatus.OK);
     }
 
     @Permission(level = ResourceLevel.ORGANIZATION)

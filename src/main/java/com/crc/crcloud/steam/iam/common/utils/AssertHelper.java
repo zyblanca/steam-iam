@@ -56,4 +56,14 @@ public class AssertHelper {
         }
         return iamApplication;
     }
+
+    /**
+     * 检查版本号是否存在
+     * @param objectVersionNumber
+     */
+    public void objectVersionNumberNotNull(Long objectVersionNumber){
+        if (ObjectUtils.isEmpty(objectVersionNumber)) {
+            throw new CommonException("error.steam-iamObjectVersionNumber.isNull");
+        }
+    }
 }

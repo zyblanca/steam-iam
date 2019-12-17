@@ -26,4 +26,11 @@ public interface IamApplicationService {
      * @return
      */
     IamApplicationVO createApplication(IamApplicationVO iamApplicationVO);
+
+    /**
+     * 更改应用
+     * @param iamApplicationVO
+     * @return
+     */
+    IamApplicationVO updateApplication(IamApplicationVO iamApplicationVO);
 }

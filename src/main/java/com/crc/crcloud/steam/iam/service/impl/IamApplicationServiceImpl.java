@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 
 import java.util.Objects;
@@ -76,6 +77,56 @@ public class IamApplicationServiceImpl implements IamApplicationService {
         }
         returnEntity.setObjectVersionNumber(1L);
         return entityToVo(returnEntity);
+    }
+
+    @Saga(code = APP_UPDATE, description = "iam更新应用", inputSchemaClass = IamApplication.class)
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
+    @Override
+    public IamApplicationVO updateApplication(IamApplicationVO iamApplicationVO) {
+        Long originProjectId =
+                ObjectUtils.isEmpty(iamApplicationVO.getProjectId()) ? PROJECT_DOES_NOT_EXIST_ID : iamApplicationVO.getProjectId();
+        iamApplicationVO.setProjectId(originProjectId);
+        validate(iamApplicationVO);
+        IamApplication before = assertHelper.applicationNotExisted(iamApplicationVO.getId());
+        Long targetProjectId = before.getProjectId();
+        preUpdate(iamApplicationVO, before);
+        IamApplication iamApplication = voToEntity(iamApplicationVO);
+        String combination = ApplicationCategory.COMBINATION.code();
+        IamApplication result = null;
+        if (choerodonDevOpsProperties.isMessage() && !combination.equals(iamApplication.getApplicationCategory())){
+            if ( PROJECT_DOES_NOT_EXIST_ID.equals(targetProjectId)){
+                if (!PROJECT_DOES_NOT_EXIST_ID.equals(originProjectId)){
+                    result = updateAndGet(iamApplication);
+                    sendSagaEvent(iamApplication, APP_UPDATE);
+                } else {
+                    result = updateAndGet(iamApplication);
+                }
+            } else {
+                result = updateAndGet(iamApplication);
+                sendSagaEvent(iamApplication, APP_UPDATE);
+            }
+        } else {
+            result = updateAndGet(iamApplication);
+        }
+        return entityToVo(result);
+    }
+
+    /**
+     * 更新前预操作 —— 将 organizationId applicationCategory code 设置为空，调用 updateById 不会被更新
+     * @param vo
+     * @param before
+     */
+    private void preUpdate(IamApplicationVO vo, IamApplication before) {
+        if (!PROJECT_DOES_NOT_EXIST_ID.equals(before.getProjectId())) {
+            // 为空情况，调用 updateById 不会被更新
+            vo.setProjectId(null);
+        } else if (!PROJECT_DOES_NOT_EXIST_ID.equals(vo.getProjectId())){
+                assertHelper.projectNotExisted(vo.getProjectId());
+        }
+        vo.setOrganizationId(null);
+        vo.setApplicationCategory(null);
+        vo.setCode(null);
+        assertHelper.objectVersionNumberNotNull(vo.getObjectVersionNumber());
     }
 
     private void insertExploration(Long applicationId) {
