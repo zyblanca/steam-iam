@@ -64,7 +64,7 @@ public interface IamUserMapper extends BaseMapper<IamUser> {
      * @param userSearch 用户查询条件
      * @return 用户信息
      */
-    IPage<IamUser> pageByProject(PageUtil page, @Param("userSearch") UserSearchDTO userSearch);
+    IPage<IamUserDTO> pageByProject(PageUtil page, @Param("userSearch") UserSearchDTO userSearch);
 
     /**
      * 通过项目查询用户

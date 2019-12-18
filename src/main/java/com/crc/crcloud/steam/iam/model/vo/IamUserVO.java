@@ -1,7 +1,6 @@
 package com.crc.crcloud.steam.iam.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -46,6 +45,8 @@ public class IamUserVO {
 
     @ApiModelProperty("用户真实姓名")
     private String realName;
+    @ApiModelProperty("角色名称")
+    private String roleName;
 
 
     @ApiModelProperty("手机号")
@@ -127,6 +128,6 @@ public class IamUserVO {
     @ApiModelProperty("人员归属组织信息")
     private List<IamOrganizationVO> organizations;
 
-
+    private List<Long> roleIds;
 
 }
