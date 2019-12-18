@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.crc.crcloud.steam.iam.api.feign.SteamAgileServiceClient;
 import com.crc.crcloud.steam.iam.common.enums.RoleLabelEnum;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
@@ -64,6 +65,8 @@ public class IamProjectServiceImpl implements IamProjectService {
     private IamLabelMapper iamLabelMapper;
     @Autowired
     private IamMemberRoleService iamMemberRoleService;
+    @Autowired
+    private SteamAgileServiceClient steamAgileServiceClient;
 
 
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
@@ -87,6 +90,9 @@ public class IamProjectServiceImpl implements IamProjectService {
         //创建人授予项目拥有者权限
         grantCreatMember(iamProject);
 
+        if (Objects.equals("KANBAN_BGH", iamProject.getCategory()) || Objects.equals("KANBAN", iamProject.getCategory())) {
+            steamAgileServiceClient.initKanbanTemplate(iamProject.getId(), UserDetail.getUserId(), CopyUtil.copy(iamProject, IamProjectDTO.class));
+        }
         return CopyUtil.copy(iamProject, IamProjectVO.class);
     }
 
