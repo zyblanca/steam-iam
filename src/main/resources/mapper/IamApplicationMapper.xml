@@ -74,13 +74,15 @@
     <update id="updateApplicationName">
         update iam_application
         set name = #{applicationName}
-        where id = #{applicationId}
+        where id = #{applicationId},
+            last_update_date = NOW()
     </update>
 
     <update id="updateApplicationEnabled">
         update iam_application
         set is_enabled = #{enabled}
-        where id = #{applicationId}
+        where id = #{applicationId},
+            last_update_date = NOW()
     </update>
 
 </mapper>
