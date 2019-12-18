@@ -30,7 +30,9 @@ public class SteamCiApplicationServiceImpl implements SteamCiApplicationService 
             throw new CommonException(String.format("找不到应用, applicationCode=%s, projectId=%d", payload.getApplicationCode(), payload.getSteamProjectId()));
         }
         log.info("更新应用名称，applicationId={}，originalApplicationName={}, updatedApplicationName={}", legacyApplication.getId(), legacyApplication.getName(), payload.getApplicationName());
-        applicationMapper.updateApplicationName(legacyApplication.getId(), payload.getApplicationName());
+//        applicationMapper.updateApplicationName(legacyApplication.getId(), payload.getApplicationName());
+        IamApplication update = IamApplication.builder().id(legacyApplication.getId()).name(payload.getApplicationName()).build();
+        applicationMapper.updateById(update);
     }
 
     @Override
@@ -43,7 +45,9 @@ public class SteamCiApplicationServiceImpl implements SteamCiApplicationService 
         }
         boolean active = payload.getStatus().intValue() == APPLICATION_ENABLE.intValue();
         log.info("更新应用状态，applicationId={}，oldStatus={}, updatedStatus={}", legacyApplication.getId(), legacyApplication.getEnabled(), active);
-        applicationMapper.updateApplicationEnabled(legacyApplication.getId(), payload.getStatus());
+//        applicationMapper.updateApplicationEnabled(legacyApplication.getId(), payload.getStatus());
+        IamApplication update = IamApplication.builder().id(legacyApplication.getId()).enabled(active).build();
+        applicationMapper.updateById(update);
     }
 
     /**
