@@ -89,6 +89,8 @@ public class SiteController {
             responseVO.setCompany("润联科技");
             responseVO.setDepartment("华润云-开发云");
             responseVO.setPosition("高级咨询经理");
+            boolean alreadySiteRole = iamRoleService.getUserRoles(t.getId(), ResourceLevel.SITE).stream().anyMatch(role -> Objects.equals(role.getCode(), InitRoleCode.SITE_ADMINISTRATOR));
+            responseVO.setAlreadySiteRole(alreadySiteRole);
             return responseVO;
         }).orElse(null);
         return new ResponseEntity<>(response);
