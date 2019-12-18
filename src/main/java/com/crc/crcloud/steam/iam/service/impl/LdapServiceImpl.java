@@ -91,7 +91,7 @@ public class LdapServiceImpl implements LdapService {
         if (connection.getCanConnectServer() && !connection.getCanLogin()) {
             OauthLdap oauthLdap = oauthLdapMapper.selectById(oauthLdapDTO.getId());
             //如果测试账户与管理员账户一致，不进行校验，直接返回
-            if (!Objects.equals(oauthLdap.getAccount(), oauthLdap.getAccount())) {
+            if (Objects.equals(oauthLdapDTO.getAccount(), oauthLdap.getAccount())) {
                 return connection;
             }
             //寻找userDn
