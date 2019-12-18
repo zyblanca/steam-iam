@@ -53,7 +53,6 @@ public class SagaDevopsServiceApplicationListener {
     private static final String FAILED = "failed";
     private static final String SEPARATOR = "/";
     private static final String APP_SYNC = "devops-sync-application";
-    private static final String IAM_SYNC_APP = "iam-sync-application";
     @Value("${spring.application.name}")
     private String applicationName;
 
@@ -72,7 +71,7 @@ public class SagaDevopsServiceApplicationListener {
     @Autowired
     private IamLabelMapper iamLabelMapper;
 
-    @SagaTask(code = IAM_SYNC_APP, description = "iam 接受 devops-service 同步 application 集合事件",
+    @SagaTask(code = "steam-iam-sync-application", description = "iam 接受 devops-service 同步 application 集合事件",
             sagaCode = APP_SYNC,
             seq = 1)
     public void syncApplications(String data) throws IOException {
