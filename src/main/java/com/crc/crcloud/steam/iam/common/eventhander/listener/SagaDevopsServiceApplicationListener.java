@@ -15,25 +15,30 @@ import com.crc.crcloud.steam.iam.dao.IamMemberRoleMapper;
 import com.crc.crcloud.steam.iam.entity.IamApplication;
 import com.crc.crcloud.steam.iam.entity.IamApplicationExploration;
 import com.crc.crcloud.steam.iam.entity.IamMemberRole;
+import com.crc.crcloud.steam.iam.model.dto.payload.ApplicationReqPayload;
 import com.crc.crcloud.steam.iam.model.dto.payload.UserMemberEventPayload;
+import com.crc.crcloud.steam.iam.model.vo.IamApplicationVO;
+import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
+import com.crc.crcloud.steam.iam.service.IamApplicationService;
+import com.crc.crcloud.steam.iam.service.IamProjectService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.choerodon.asgard.saga.annotation.SagaTask;
 import io.choerodon.asgard.saga.producer.StartSagaBuilder;
 import io.choerodon.asgard.saga.producer.TransactionalProducer;
+import io.choerodon.core.convertor.ApplicationContextHelper;
 import io.choerodon.core.iam.ResourceLevel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.MemberRole.MEMBER_ROLE_UPDATE;
@@ -43,11 +48,13 @@ import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.Organization.ORG_
 @Component
 public class SagaDevopsServiceApplicationListener {
 
+    private static final String APPLICATION = "application";
     private static final String SUCCESSFUL = "successful";
     private static final String FAILED = "failed";
     private static final String SEPARATOR = "/";
     private static final String APP_SYNC = "devops-sync-application";
-    private static final String IAM_SYNC_APP = "iam-sync-application";
+    @Value("${spring.application.name}")
+    private String applicationName;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -64,9 +71,9 @@ public class SagaDevopsServiceApplicationListener {
     @Autowired
     private IamLabelMapper iamLabelMapper;
 
-    /*@SagaTask(code = IAM_SYNC_APP, description = "iam 接受 devops-service 同步 application 集合事件",
+    @SagaTask(code = "steam-iam-sync-application", description = "iam 接受 devops-service 同步 application 集合事件",
             sagaCode = APP_SYNC,
-            seq = 1)*/
+            seq = 1)
     public void syncApplications(String data) throws IOException {
 
         List<IamApplication> applications = objectMapper.readValue(data, new TypeReference<List<IamApplication>>() {
@@ -173,9 +180,9 @@ public class SagaDevopsServiceApplicationListener {
         return false;
     }
 
-    /*@SagaTask(code = MEMBER_ROLE_UPDATE, description = "iam接收devops平滑升级事件",
+    @SagaTask(code = MEMBER_ROLE_UPDATE, description = "iam接收devops平滑升级事件",
             sagaCode = "devops-upgrade-0.9",
-            seq = 1)*/
+            seq = 1)
     public void assignRolesOnProject(String data) {
         IamMemberRole iamMemberRole = new IamMemberRole();
         iamMemberRole.setSourceType(ResourceLevel.PROJECT.value());
@@ -225,5 +232,35 @@ public class SagaDevopsServiceApplicationListener {
             }
         });
     }
+
+    @SagaTask(code = "steamIamCreateApplication",
+            description = "steam-iam 同步创建应用",
+            sagaCode = "devops-ci-create-application",
+            maxRetryCount = 3,
+            seq = 1)
+    public void createApplicationSagaTask(String data) throws IOException {
+        ApplicationReqPayload applicationReqPayload = objectMapper.readValue(data, ApplicationReqPayload.class);
+        // 通过 projectId 组织
+        IamProjectService iamProjectService = ApplicationContextHelper.getContext().getBean(IamProjectService.class);
+        IamProjectVO iamProjectVO = iamProjectService.queryOne(applicationReqPayload.getProjectId());
+        if (Objects.isNull(iamProjectVO)) {
+            throw new IamAppCommException("error.steam-iam.iamProject.isNull");
+        }
+        Long organizationId = iamProjectVO.getOrganizationId();
+
+        IamApplicationVO iamApplicationVO = new IamApplicationVO();
+        iamApplicationVO.setApplicationCategory(APPLICATION);
+        iamApplicationVO.setApplicationType(applicationReqPayload.getType());
+        iamApplicationVO.setCode(applicationReqPayload.getCode());
+        iamApplicationVO.setName(applicationReqPayload.getName());
+        iamApplicationVO.setEnabled(true);
+        iamApplicationVO.setOrganizationId(organizationId);
+        iamApplicationVO.setProjectId(iamProjectVO.getId());
+        iamApplicationVO.setFrom(applicationName);
+
+        IamApplicationService iamApplicationService = ApplicationContextHelper.getContext().getBean(IamApplicationService.class);
+        iamApplicationService.createApplication(iamApplicationVO);
+    }
+
 
 }

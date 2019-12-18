@@ -40,7 +40,7 @@ public class SagaIamOrganizationListener {
     @Autowired
     private OauthPasswordPolicyService oauthPasswordPolicyService;
 
-    /*@SagaTask(code = TASK_ORG_CREATE, sagaCode = ORG_CREATE, description = "iam接收org服务创建组织事件",
+/*    @SagaTask(code = TASK_ORG_CREATE, sagaCode = ORG_CREATE, description = "iam接收org服务创建组织事件",
             seq = 1 )*/
     public OrganizationPayload sagaTaskCreateEventHandle(String data) throws IOException {
         OrganizationPayload organizationEventPayload = objectMapper.readValue(data, OrganizationPayload.class);
@@ -48,7 +48,7 @@ public class SagaIamOrganizationListener {
         Long orgId = organizationEventPayload.getId();
         IamOrganizationDTO iamOrganizationDTO = iamOrganizationService.getAndThrow(orgId);
 //        sagaTaskCreateLdap(orgId, iamOrganizationDTO.getName());
-        sagaTaskCreatePasswordPolicy(orgId, iamOrganizationDTO.getCode(), iamOrganizationDTO.getName());
+//        sagaTaskCreatePasswordPolicy(orgId, iamOrganizationDTO.getCode(), iamOrganizationDTO.getName());
         return organizationEventPayload;
     }
 

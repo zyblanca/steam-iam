@@ -102,15 +102,4 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
         }
     }
 
-    @SagaTask(code = "testSagaTask",
-            sagaCode = USER_CREATE,
-            description = "测试Saga事务",
-            seq = 1)
-    public List<UserEventPayload> testSagaTask(String data) throws IOException {
-        JavaType javaType = objectMapper.getTypeFactory().constructCollectionType(List.class, UserEventPayload.class);
-        List<UserEventPayload> payloads = objectMapper.readValue(data, javaType);
-        log.info("测试SagaTask的Code:[{}], 测试SagaTask的入参date:[{}]", "testSagaTask", data);
-        return  payloads;
-    }
-
 }
