@@ -79,7 +79,7 @@ public class IamApplicationServiceImpl implements IamApplicationService {
         return entityToVo(returnEntity);
     }
 
-    @Saga(code = APP_UPDATE, description = "iam更新应用", inputSchemaClass = IamApplication.class)
+    @Saga(code = APP_UPDATE, description = "steam-iam 更新应用", inputSchemaClass = IamApplication.class)
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     @Override
     public IamApplicationVO updateApplication(IamApplicationVO iamApplicationVO) {
