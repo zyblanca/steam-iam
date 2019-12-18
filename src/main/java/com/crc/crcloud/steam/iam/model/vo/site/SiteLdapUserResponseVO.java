@@ -46,5 +46,7 @@ public class SiteLdapUserResponseVO {
     @ApiModelProperty("职务")
     private String position;
 
+    @ApiModelProperty("是否已经是平台管理员角色")
+    private Boolean alreadySiteRole;
 
 }
