@@ -2,6 +2,7 @@ package com.crc.crcloud.steam.iam.service;
 
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
@@ -136,4 +137,6 @@ public interface IamUserService {
      * @return
      */
     List<IamUserVO> listByProject(Long projectId, UserSearchDTO userSearchDTO);
+
+    IPage<UserWithRoleDTO> pagingQueryUsersWithOrganizationLevelRoles(PageUtil pageUtil, RoleAssignmentSearchDTO roleAssignmentSearchDTO, Long sourceId);
 }

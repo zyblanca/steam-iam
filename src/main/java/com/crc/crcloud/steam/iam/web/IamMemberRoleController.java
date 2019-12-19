@@ -2,6 +2,7 @@ package com.crc.crcloud.steam.iam.web;
 
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.model.dto.iam.RoleAssignmentSearchDTO;
@@ -60,5 +61,19 @@ public class IamMemberRoleController {
                 pageUtil, roleAssignmentSearchDTO, sourceId, doPage));
     }
 
-
+    /**
+     * 在site层查询用户，用户包含拥有的organization层的角色
+     *
+     * @param roleAssignmentSearchDTO 搜索条件
+     */
+    @Permission(level = ResourceLevel.ORGANIZATION)
+    @ApiOperation(value = "组织层查询用户列表以及该用户拥有的角色")
+    @PostMapping(value = "/organizations/{organization_id}/role_members/users/roles")
+    public ResponseEntity<IPage<UserWithRoleDTO>> pagingQueryUsersWithOrganizationLevelRoles(
+            @PathVariable(name = "organization_id") Long sourceId,
+            @ApiIgnore PageUtil pageUtil,
+            @RequestBody(required = false) @Valid RoleAssignmentSearchDTO roleAssignmentSearchDTO) {
+        return new ResponseEntity<>(iamUserService.pagingQueryUsersWithOrganizationLevelRoles(
+                pageUtil, roleAssignmentSearchDTO, sourceId));
+    }
 }
