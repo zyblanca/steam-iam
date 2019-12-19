@@ -342,8 +342,8 @@ public class IamUserServiceImpl implements IamUserService {
         long total;
         long size;
         if (doPage) {
-            long page = pageUtil.getCurrent();
-            size = pageUtil.getSize();
+            long page = pageUtil.getCurrent() < 1 ? 1L: pageUtil.getCurrent();
+            size = pageUtil.getSize()<1?10L:pageUtil.getSize();
             long start = page * size;
             total = iamUserMapper.selectCountUsers(roleAssignmentSearchDTO, sourceId, ResourceLevel.PROJECT.value());
             if (total > 0) {
@@ -429,6 +429,26 @@ public class IamUserServiceImpl implements IamUserService {
         return CopyUtil.copyList(users, IamUserVO.class);
     }
 
+    @Override
+    public IPage<UserWithRoleDTO> pagingQueryUsersWithOrganizationLevelRoles(PageUtil pageUtil, RoleAssignmentSearchDTO roleAssignmentSearchDTO, Long sourceId) {
+        List<UserWithRoleDTO> result;
+        long page = pageUtil.getCurrent() < 1 ? 1L: pageUtil.getCurrent();
+        long size = pageUtil.getSize()<1?10L:pageUtil.getSize();
+        long start = page * size;
+        long total = iamUserMapper.selectCountUsers(roleAssignmentSearchDTO, sourceId, ResourceLevel.ORGANIZATION.value());
+        if (total > 0) {
+            result = getUserRoleData(roleAssignmentSearchDTO, sourceId, ResourceLevel.ORGANIZATION.value(), start, size);
+        } else {
+            result = new ArrayList<>();
+        }
+
+        IPage<UserWithRoleDTO> pageData = new Page<>();
+        pageData.setRecords(result);
+        pageData.setSize(size);
+        pageData.setTotal(total);
+        return pageData;
+    }
+
     /**
      * 1.检查当前组织是否存在
      * 2.检查当前组织是否有权限
@@ -474,11 +494,11 @@ public class IamUserServiceImpl implements IamUserService {
     private List<UserWithRoleDTO> getUserRoleData(RoleAssignmentSearchDTO roleAssignmentSearchDTO, Long sourceId, String value, Long start, Long size) {
         List<UserWithRoleDTO> result = new ArrayList<>();
         //查询用户
-        List<IamUser> users = iamUserMapper.selectUserByOption(roleAssignmentSearchDTO, sourceId, ResourceLevel.PROJECT.value(), start, size);
+        List<IamUser> users = iamUserMapper.selectUserByOption(roleAssignmentSearchDTO, sourceId, value, start, size);
         if (CollectionUtils.isEmpty(users)) return new ArrayList<>();
         //查询用户下的权限
         List<Long> userIds = users.stream().map(IamUser::getId).collect(Collectors.toList());
-        List<IamRoleDTO> roles = iamUserMapper.selectUserWithRolesByOption(sourceId, ResourceLevel.PROJECT.value(), userIds);
+        List<IamRoleDTO> roles = iamUserMapper.selectUserWithRolesByOption(sourceId, value, userIds);
         Map<Long, List<IamRoleDTO>> map = CopyUtil.listToMapList(roles, IamRoleDTO::getUserId);
         //类型转换
         UserWithRoleDTO userWithRoleDTO;
