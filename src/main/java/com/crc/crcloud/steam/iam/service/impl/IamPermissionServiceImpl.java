@@ -22,6 +22,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -82,7 +83,7 @@ public class IamPermissionServiceImpl implements IamPermissionService {
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     @Override
     public boolean delete(@NotNull Long permissionId) {
-        iamRolePermissionService.clear(permissionId);
+        iamRolePermissionService.clear(permissionId, new HashSet<>());
         return this.iamPermissionMapper.deleteById(permissionId) > 0;
     }
 
