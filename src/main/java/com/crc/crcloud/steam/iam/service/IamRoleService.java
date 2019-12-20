@@ -3,6 +3,7 @@ package com.crc.crcloud.steam.iam.service;
 
 import cn.hutool.core.collection.CollUtil;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
+import com.crc.crcloud.steam.iam.model.vo.IamRoleVO;
 import io.choerodon.core.iam.ResourceLevel;
 
 import javax.annotation.Nullable;
@@ -73,4 +74,10 @@ public interface IamRoleService {
     default Optional<IamRoleDTO> getRoleByCode(@NotNull String code) {
         return getRolesByCode(CollUtil.newHashSet(code)).stream().findFirst();
     }
+
+    /**
+     * 获取项目级别权限信息
+     * @return
+     */
+    List<IamRoleDTO> getProjectRoles();
 }

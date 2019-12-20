@@ -86,15 +86,16 @@ public class IamUserController {
     //简易权限，后续需要根据实际情况做校验
     @Permission(level = ResourceLevel.PROJECT)
     @ApiOperation(value = "项目人员列表", notes = "项目人员列表", response = IamUserVO.class)
-    @GetMapping("/projects/{project_id}/users")
+    @PostMapping("/projects/{project_id}/users")
     public ResponseEntity<IPage<IamUserVO>> pageProjectUser(@ApiParam(value = "项目ID", required = true)
                                                             @PathVariable(name = "project_id") Long projectId,
-                                                            UserSearchDTO userSearchDTO,
+                                                            @RequestBody UserSearchDTO userSearchDTO,
                                                             PageUtil page) {
 
 
         return new ResponseEntity<>(iamUserService.pageByProject(projectId, userSearchDTO, page));
     }
+
     /**
      * 查询指定项目下的所有成员信息
      * 当前只有id loginName realName email 四个属性 后续可以根据需要添加
@@ -108,8 +109,8 @@ public class IamUserController {
     @ApiOperation(value = "项目人员列表", notes = "项目人员列表", response = IamUserVO.class)
     @GetMapping("/projects/{project_id}/list/users")
     public ResponseEntity<List<IamUserVO>> listProjectUser(@ApiParam(value = "项目ID", required = true)
-                                                            @PathVariable(name = "project_id") Long projectId,
-                                                            UserSearchDTO userSearchDTO) {
+                                                           @PathVariable(name = "project_id") Long projectId,
+                                                           UserSearchDTO userSearchDTO) {
 
 
         return new ResponseEntity<>(iamUserService.listByProject(projectId, userSearchDTO));
@@ -166,8 +167,8 @@ public class IamUserController {
     public ResponseEntity projectBindUsers(@ApiParam(value = "项目ID", required = true)
                                            @PathVariable(name = "project_id") Long projectId,
                                            @RequestBody IamUserVO iamUserVO) {
-        List<Long> userIds = iamUserVO.getUserIds();
-        iamUserService.projectBindUsers(projectId, userIds);
+
+        iamUserService.projectBindUsers(projectId, iamUserVO);
         return ResponseEntity.ok();
     }
 
@@ -294,8 +295,8 @@ public class IamUserController {
      * 根据用户查询所有组织并且用户角色为组织管理员
      *
      * @param userId
-     * @deprecated 已废弃
      * @return
+     * @deprecated 已废弃
      */
     @Deprecated
     @Permission(permissionWithin = true)
@@ -335,7 +336,8 @@ public class IamUserController {
      * 怀疑为临时解决方案，由老行云iam迁移过来
      * 不做逻辑修改
      * <p>左上角下拉框项目列表</p>
-     * @param id 用户编号
+     *
+     * @param id               用户编号
      * @param includedDisabled 是否包含禁用
      */
     @Permission(level = ResourceLevel.ORGANIZATION, permissionLogin = true)

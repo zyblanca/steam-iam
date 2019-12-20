@@ -112,17 +112,24 @@
         ) as iam_user
       group by iam_user.id
     </select>
-    <select id="pageByProject" resultMap="BaseResultMap">
+    <select id="pageByProject" resultType="com.crc.crcloud.steam.iam.model.dto.IamUserDTO">
         SELECT
         iu.id,
         iu.login_name,
         iu.real_name,
-        iu.email
-        FROM (select DISTINCT imr.member_id
+        iu.email,
+        tmp.roleName
+        FROM (select imr.member_id,GROUP_CONCAT(ir.NAME ORDER BY ir.ID desc) roleName
         FROM iam_member_role imr
+        LEFT JOIN iam_role ir ON ir.ID=imr.ROLE_ID
         WHERE imr.member_type = #{userSearch.memberType}
         AND imr.source_type = #{userSearch.memberSourceType}
-        AND imr.source_id = #{userSearch.projectId})tmp
+        AND imr.source_id = #{userSearch.projectId}
+        <if test="userSearch.roleIds !=null and userSearch.roleIds.size()>0">
+            and imr.role_id in <foreach collection="userSearch.roleIds" separator="," open="(" item="item" close=")"/>
+        </if>
+        AND ir.IS_ENABLED =1
+        GROUP BY imr.MEMBER_ID)tmp
         INNER JOIN iam_user iu
         ON tmp.member_id = iu.id
         where 1=1
@@ -297,7 +304,11 @@
         FROM iam_member_role imr
         WHERE imr.member_type = #{userSearch.memberType}
         AND imr.source_type = #{userSearch.memberSourceType}
-        AND imr.source_id = #{userSearch.projectId})tmp
+        AND imr.source_id = #{userSearch.projectId}
+        <if test="userSearch.roleIds !=null and userSearch.roleIds.size()>0">
+            and imr.role_id in <foreach collection="userSearch.roleIds" separator="," open="(" item="item" close=")"/>
+        </if>
+        )tmp
         INNER JOIN iam_user iu
         ON tmp.member_id = iu.id
         where 1=1

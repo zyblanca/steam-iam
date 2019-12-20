@@ -35,8 +35,10 @@ public interface IamUserService {
      */
     @NotNull
     IamUserDTO createUserByManual(@Valid IamUserCreateRequestVO vo, @NotEmpty Set<Long> organizationIds);
+
     /**
      * 获取用户-如果用户不存在抛出异常
+     *
      * @param userId 用户编号
      * @return 用户信息
      */
@@ -45,6 +47,7 @@ public interface IamUserService {
     /**
      * 分页查询组织成员
      * <p>复合条件用户都会查询出来，不区分是否禁用开启等情况</p>
+     *
      * @param organizationId 组织ID
      * @param vo             查询属性与分页参数
      * @return 分页数据
@@ -83,9 +86,10 @@ public interface IamUserService {
      * 项目绑定用户
      *
      * @param projectId 项目id
-     * @param userIds   用户id
+     * @param iamUserVO 绑定参数
      */
-    void projectBindUsers(Long projectId, List<Long> userIds);
+    void projectBindUsers(Long projectId, IamUserVO iamUserVO);
+
     /**
      * 内部端口，不对外使用
      * 通过用户id集合，查询用户信息
@@ -100,6 +104,7 @@ public interface IamUserService {
     /**
      * 获取用户的hash密码
      * <p>用户不存在时 return {@link Optional#empty()}</p>
+     *
      * @param userId 用户ID
      * @return 如果密码为空串，也返回{@link Optional#empty()}
      */
@@ -108,7 +113,8 @@ public interface IamUserService {
     /**
      * 修改用户当前组织编号记录
      * {@link IamUserDTO#getCurrentOrganizationId()}
-     * @param userId 用户编号
+     *
+     * @param userId                用户编号
      * @param currentOrganizationId 当前组织编号
      */
     void updateUserCurrentOrganization(@NotNull Long userId, @NotNull Long currentOrganizationId);
@@ -124,7 +130,8 @@ public interface IamUserService {
     /**
      * 页面左上角用户项目列表
      * <p>如果是管理员，则显示该项目下所有应用</p>
-     * @param id 用户编号
+     *
+     * @param id               用户编号
      * @param includedDisabled 是否包含禁用项目 已废弃
      * @return 项目列表
      */
@@ -132,6 +139,7 @@ public interface IamUserService {
 
     /**
      * 查询项目下的人员信息
+     *
      * @param projectId
      * @param userSearchDTO
      * @return
