@@ -28,4 +28,8 @@ public class UserSearchDTO {
     private String email;
 
     private String param;
+
+
+    private Long roleIds;
+
 }
