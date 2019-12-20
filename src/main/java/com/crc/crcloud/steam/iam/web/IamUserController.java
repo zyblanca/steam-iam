@@ -86,10 +86,10 @@ public class IamUserController {
     //简易权限，后续需要根据实际情况做校验
     @Permission(level = ResourceLevel.PROJECT)
     @ApiOperation(value = "项目人员列表", notes = "项目人员列表", response = IamUserVO.class)
-    @PostMapping("/projects/{project_id}/users")
+    @GetMapping("/projects/{project_id}/users")
     public ResponseEntity<IPage<IamUserVO>> pageProjectUser(@ApiParam(value = "项目ID", required = true)
                                                             @PathVariable(name = "project_id") Long projectId,
-                                                            @RequestBody UserSearchDTO userSearchDTO,
+                                                             UserSearchDTO userSearchDTO,
                                                             PageUtil page) {
 
 
