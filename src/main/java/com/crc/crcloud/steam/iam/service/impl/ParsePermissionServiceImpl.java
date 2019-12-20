@@ -1,7 +1,6 @@
 package com.crc.crcloud.steam.iam.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ArrayUtil;
 import com.crc.crcloud.steam.iam.model.dto.IamPermissionDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamRolePermissionDTO;
@@ -83,7 +82,7 @@ public class ParsePermissionServiceImpl implements ParsePermissionService {
         }
     }
 
-//    @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
+    //    @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     @Override
     public void parser(EurekaEventPayload payload) {
         try {
@@ -199,32 +198,31 @@ public class ParsePermissionServiceImpl implements ParsePermissionService {
                 .build();
         newPermission = this.iamPermissionService.put(newPermission);
         logger.debug("processPermission[{}]: {}", newPermission.getCode(), newPermission);
-        if (ArrayUtil.isNotEmpty(permission.getRoles())) {
-            /**
-             * 先根据permission level关联相应层级的管理员角色
-             * level=site -> SITE_ADMINISTRATOR
-             * level=organization -> ORGANIZATION_ADMINISTRATOR
-             * level=project -> PROJECT_ADMINISTRATOR,PROJECT_OWNER
-             */
-            MultiValueMap<ResourceLevel, String> levelRole = new LinkedMultiValueMap<>(3);
-            levelRole.add(ResourceLevel.SITE, InitRoleCode.SITE_ADMINISTRATOR);
-            levelRole.add(ResourceLevel.ORGANIZATION, InitRoleCode.ORGANIZATION_ADMINISTRATOR);
-            levelRole.add(ResourceLevel.PROJECT, InitRoleCode.PROJECT_ADMINISTRATOR);
-            levelRole.add(ResourceLevel.PROJECT, InitRoleCode.PROJECT_OWNER);
-            final Set<String> roleSet = new HashSet<>(Arrays.asList(permission.getRoles()));
-            final String level = newPermission.getFdLevel();
-            final Long permissionId = newPermission.getId();
+        /**
+         * 先根据permission level关联相应层级的管理员角色
+         * level=site -> SITE_ADMINISTRATOR
+         * level=organization -> ORGANIZATION_ADMINISTRATOR
+         * level=project -> PROJECT_ADMINISTRATOR,PROJECT_OWNER
+         */
+        MultiValueMap<ResourceLevel, String> levelRole = new LinkedMultiValueMap<>(3);
+        levelRole.add(ResourceLevel.SITE, InitRoleCode.SITE_ADMINISTRATOR);
+        levelRole.add(ResourceLevel.ORGANIZATION, InitRoleCode.ORGANIZATION_ADMINISTRATOR);
+        levelRole.add(ResourceLevel.PROJECT, InitRoleCode.PROJECT_ADMINISTRATOR);
+        levelRole.add(ResourceLevel.PROJECT, InitRoleCode.PROJECT_OWNER);
+        final Set<String> roleSet = new HashSet<>(Arrays.asList(permission.getRoles()));
+        final String level = newPermission.getFdLevel();
+        final Long permissionId = newPermission.getId();
 
-            Arrays.stream(ResourceLevel.values()).filter(t -> Objects.equals(t.value(), level)).findFirst().ifPresent(t -> {
-                if (levelRole.containsKey(t)) {
-                    logger.info("permission[{}] completion link {} level role: [{}]", permissionId, t, levelRole.get(t));
-                    //noinspection ConstantConditions
-                    roleSet.addAll(levelRole.get(t));
-                }
-            });
-            logger.info("permission[{}|{}] link roles: [{}]", permissionId, newPermission.getCode(), ArrayUtil.join(permission.getRoles(), ","));
-            //此权限关联的角色，需要清除已经关联的角色
-            iamRolePermissionService.clear(permissionId);
+        Arrays.stream(ResourceLevel.values()).filter(t -> Objects.equals(t.value(), level)).findFirst().ifPresent(t -> {
+            if (levelRole.containsKey(t)) {
+                //noinspection ConstantConditions
+                roleSet.addAll(levelRole.get(t));
+            }
+        });
+        logger.info("permission[{}|{}] link roles: [{}]", permissionId, code, CollUtil.join(roleSet, ","));
+        //此权限关联的角色，需要清除已经关联的角色
+        iamRolePermissionService.clear(permissionId, iamRoleService.getRolesByCode(roleSet).stream().map(IamRoleDTO::getId).collect(Collectors.toSet()));
+        if (!roleSet.isEmpty()) {
             processRolePermission(roleSet, permissionId, level);
         }
         return code;
