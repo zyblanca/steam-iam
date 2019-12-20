@@ -2,6 +2,7 @@ package com.crc.crcloud.steam.iam.service;
 
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
@@ -148,6 +149,9 @@ public interface IamUserService {
      */
     List<IamUserVO> listByProject(Long projectId, UserSearchDTO userSearchDTO);
 
+
+    IPage<UserWithRoleDTO> pagingQueryUsersWithOrganizationLevelRoles(PageUtil pageUtil, RoleAssignmentSearchDTO roleAssignmentSearchDTO, Long sourceId);
+
     /**
      * 获取用户通过用户编号
      * <p>查询所有用户，只要用户编号存在，后续逻辑删除除外</p>
@@ -179,4 +183,5 @@ public interface IamUserService {
      * @return 用户信息
      */
     Optional<IamUserDTO> getByEmail(@NotBlank String email);
+
 }
