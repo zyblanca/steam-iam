@@ -54,6 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 
+import javax.annotation.Nullable;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
@@ -166,10 +167,12 @@ public class IamUserServiceImpl implements IamUserService {
         });
     }
 
+    @Override
     public Optional<IamUserDTO> getByLoginName(@NotBlank String loginName) {
         return getOne(t -> t.eq(IamUser::getLoginName, loginName));
     }
 
+    @Override
     public Optional<IamUserDTO> getByEmail(@NotBlank String email) {
         return getOne(t -> t.eq(IamUser::getEmail, email));
     }
@@ -537,4 +540,20 @@ public class IamUserServiceImpl implements IamUserService {
         return result;
 
     }
+
+    @Override
+    public @NotNull List<IamUserDTO> getUsers(@Nullable Set<Long> ids) {
+        if (CollUtil.isEmpty(ids)) {
+            return new ArrayList<>();
+        }
+        return this.iamUserMapper.selectBatchIds(ids).stream().map(t -> ConvertHelper.convert(t, IamUserDTO.class)).collect(Collectors.toList());
+    }
+
+    @Override
+    public @NotNull List<IamUserDTO> getAdminUsers() {
+        LambdaQueryWrapper<IamUser> queryWrapper = Wrappers.<IamUser>lambdaQuery().eq(IamUser::getIsAdmin, true);
+        return iamUserMapper.selectList(queryWrapper)
+                .stream().map(t -> ConvertHelper.convert(t, IamUserDTO.class)).collect(Collectors.toList());
+    }
+
 }

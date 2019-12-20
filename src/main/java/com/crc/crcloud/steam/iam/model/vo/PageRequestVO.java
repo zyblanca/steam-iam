@@ -1,6 +1,7 @@
 package com.crc.crcloud.steam.iam.model.vo;
 
 import cn.hutool.core.util.NumberUtil;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -11,7 +12,9 @@ import java.util.Optional;
  * @date 2019/12/3
  */
 public class PageRequestVO {
+    @ApiModelProperty("当前页;从1开始")
     private Long current;
+    @ApiModelProperty("每页数量;从1开始")
     private Long size;
 
     public void format() {

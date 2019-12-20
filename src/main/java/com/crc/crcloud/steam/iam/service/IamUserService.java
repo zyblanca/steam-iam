@@ -4,6 +4,7 @@ package com.crc.crcloud.steam.iam.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
+import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.iam.RoleAssignmentSearchDTO;
@@ -13,7 +14,9 @@ import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamOrganizationUserPageRequestVO;
 import com.crc.crcloud.steam.iam.model.vo.user.IamUserCreateRequestVO;
 
+import javax.annotation.Nullable;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -146,5 +149,39 @@ public interface IamUserService {
      */
     List<IamUserVO> listByProject(Long projectId, UserSearchDTO userSearchDTO);
 
+
     IPage<UserWithRoleDTO> pagingQueryUsersWithOrganizationLevelRoles(PageUtil pageUtil, RoleAssignmentSearchDTO roleAssignmentSearchDTO, Long sourceId);
+
+    /**
+     * 获取用户通过用户编号
+     * <p>查询所有用户，只要用户编号存在，后续逻辑删除除外</p>
+     * @param ids 用户编号
+     * @return 用户集合
+     */
+    @NotNull
+    List<IamUserDTO> getUsers(@Nullable Set<Long> ids);
+
+    /**
+     * 获取admin用户
+     * <p>{@link IamUser#getIsAdmin()}=true</p>
+     * <p>查询所有用户，只要用户编号存在，后续逻辑删除除外</p>
+     * @return 用户集合
+     */
+    @NotNull
+    List<IamUserDTO> getAdminUsers();
+
+    /**
+     * 通过登录名查询
+     * @param loginName 登录名
+     * @return 用户信息
+     */
+    Optional<IamUserDTO> getByLoginName(@NotBlank String loginName);
+
+    /**
+     * 通过邮箱查询
+     * @param email 邮箱
+     * @return 用户信息
+     */
+    Optional<IamUserDTO> getByEmail(@NotBlank String email);
+
 }
