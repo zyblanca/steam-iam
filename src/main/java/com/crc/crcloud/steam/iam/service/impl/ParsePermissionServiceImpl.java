@@ -1,7 +1,6 @@
 package com.crc.crcloud.steam.iam.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ArrayUtil;
 import com.crc.crcloud.steam.iam.model.dto.IamPermissionDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamRolePermissionDTO;
@@ -24,6 +23,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.client.RestTemplate;
@@ -81,7 +82,7 @@ public class ParsePermissionServiceImpl implements ParsePermissionService {
         }
     }
 
-//    @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
+    //    @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     @Override
     public void parser(EurekaEventPayload payload) {
         try {
@@ -197,11 +198,32 @@ public class ParsePermissionServiceImpl implements ParsePermissionService {
                 .build();
         newPermission = this.iamPermissionService.put(newPermission);
         logger.debug("processPermission[{}]: {}", newPermission.getCode(), newPermission);
-        if (ArrayUtil.isNotEmpty(permission.getRoles())) {
-            logger.info("permission[{}|{}] link roles: [{}]", newPermission.getId(), newPermission.getCode(), ArrayUtil.join(permission.getRoles(), ","));
-            //此权限关联的角色，需要清除已经关联的角色
-            iamRolePermissionService.clear(newPermission.getId());
-            processRolePermission(permission.getRoles(), newPermission.getId(), newPermission.getFdLevel());
+        /**
+         * 先根据permission level关联相应层级的管理员角色
+         * level=site -> SITE_ADMINISTRATOR
+         * level=organization -> ORGANIZATION_ADMINISTRATOR
+         * level=project -> PROJECT_ADMINISTRATOR,PROJECT_OWNER
+         */
+        MultiValueMap<ResourceLevel, String> levelRole = new LinkedMultiValueMap<>(3);
+        levelRole.add(ResourceLevel.SITE, InitRoleCode.SITE_ADMINISTRATOR);
+        levelRole.add(ResourceLevel.ORGANIZATION, InitRoleCode.ORGANIZATION_ADMINISTRATOR);
+        levelRole.add(ResourceLevel.PROJECT, InitRoleCode.PROJECT_ADMINISTRATOR);
+        levelRole.add(ResourceLevel.PROJECT, InitRoleCode.PROJECT_OWNER);
+        final Set<String> roleSet = new HashSet<>(Arrays.asList(permission.getRoles()));
+        final String level = newPermission.getFdLevel();
+        final Long permissionId = newPermission.getId();
+
+        Arrays.stream(ResourceLevel.values()).filter(t -> Objects.equals(t.value(), level)).findFirst().ifPresent(t -> {
+            if (levelRole.containsKey(t)) {
+                //noinspection ConstantConditions
+                roleSet.addAll(levelRole.get(t));
+            }
+        });
+        logger.info("permission[{}|{}] link roles: [{}]", permissionId, code, CollUtil.join(roleSet, ","));
+        //此权限关联的角色，需要清除已经关联的角色
+        iamRolePermissionService.clear(permissionId, iamRoleService.getRolesByCode(roleSet).stream().map(IamRoleDTO::getId).collect(Collectors.toSet()));
+        if (!roleSet.isEmpty()) {
+            processRolePermission(roleSet, permissionId, level);
         }
         return code;
     }
@@ -230,27 +252,16 @@ public class ParsePermissionServiceImpl implements ParsePermissionService {
     }
 
     /**
-     * 先根据permission level关联相应层级的管理员角色
-     * level=site -> SITE_ADMINISTRATOR
-     * level=organization -> ORGANIZATION_ADMINISTRATOR
-     * level=project -> PROJECT_ADMINISTRATOR
+     * 给权限关联上对应角色
+     * @param roleCodes 角色编码
+     * @param permissionId 权限编号
+     * @param level 级别
      */
-    private void processRolePermission(@NotEmpty String[] roleCodes, @NotNull Long permissionId, @NotBlank String level) {
-        Map<ResourceLevel, String> levelRole = new HashMap<>(3);
-        levelRole.put(ResourceLevel.SITE, InitRoleCode.SITE_ADMINISTRATOR);
-        levelRole.put(ResourceLevel.ORGANIZATION, InitRoleCode.ORGANIZATION_ADMINISTRATOR);
-        levelRole.put(ResourceLevel.PROJECT, InitRoleCode.PROJECT_ADMINISTRATOR);
-        Set<String> roleSet = new HashSet<>(Arrays.asList(roleCodes));
-        Arrays.stream(ResourceLevel.values()).filter(t -> Objects.equals(t.value(), level)).findFirst().ifPresent(t -> {
-            if (levelRole.containsKey(t)) {
-                logger.info("permission[{}] completion link {} level role: [{}]", permissionId, t, levelRole.get(t));
-                roleSet.add(levelRole.get(t));
-            }
-        });
-        final Map<String, IamRoleDTO> codeRoleMap = iamRoleService.getRolesByCode(roleSet).stream().collect(Collectors.toMap(IamRoleDTO::getCode, Function.identity()));
+    private void processRolePermission(@NotEmpty Set<String> roleCodes, @NotNull Long permissionId, @NotBlank String level) {
+        final Map<String, IamRoleDTO> codeRoleMap = iamRoleService.getRolesByCode(roleCodes).stream().collect(Collectors.toMap(IamRoleDTO::getCode, Function.identity()));
         //需要关联的角色ID
         final Set<Long> needLinkRoleIds = CollUtil.newHashSet();
-        for (String roleCode : roleSet) {
+        for (String roleCode : roleCodes) {
             final IamRoleDTO role = codeRoleMap.get(roleCode);
             if (Objects.isNull(role)) {
                 //找不到code，说明没有初始化进去角色或者角色code拼错了
