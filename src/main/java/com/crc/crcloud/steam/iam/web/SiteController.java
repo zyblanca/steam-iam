@@ -3,6 +3,7 @@ package com.crc.crcloud.steam.iam.web;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
@@ -30,7 +31,9 @@ import javax.annotation.Nullable;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.text.Collator;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -73,7 +76,23 @@ public class SiteController {
         Collection<IamUserDTO> distinct = siteUsers.stream().collect(Collectors.toMap(IamUserDTO::getId, Function.identity(), (a, b) -> a, LinkedHashMap::new)).values();
         siteUsers = CollUtil.newArrayList(distinct);
         Page<SiteManagerUserResponseVO> pageResult = new Page<>(vo.getCurrent(), vo.getSize(), siteUsers.size());
-        List<IamUserDTO> pageSiteUsers = CollUtil.sortPageAll(vo.getCurrent().intValue(), vo.getSize().intValue(), Comparator.comparingLong(IamUserDTO::getId).reversed(), siteUsers);
+
+        List<IamUserDTO> pageSiteUsers = CollUtil.sortPageAll(vo.getCurrent().intValue(), vo.getSize().intValue(), (o1, o2) -> {
+            if (!StrUtil.isAllBlank(vo.getAsc(), vo.getDesc())) {
+                AtomicBoolean isDesc = new AtomicBoolean(false);
+                String fieldName = Optional.ofNullable(vo.getAsc()).filter(StrUtil::isNotBlank).orElseGet(() -> {
+                    isDesc.set(true);
+                    return vo.getDesc();
+                });
+                Object o1Value = BeanUtil.getProperty(o1, fieldName);
+                Object o2Value = BeanUtil.getProperty(o2, fieldName);
+                if (Objects.nonNull(o1Value) && Objects.nonNull(o2Value)) {
+                    Collator instance = Collator.getInstance(Locale.CHINA);
+                    return (isDesc.get() ? instance.reversed() : instance).compare(o1Value, o2Value);
+                }
+            }
+            return 0;
+        }, siteUsers);
         pageResult.setRecords(pageSiteUsers.stream().map(SiteManagerUserResponseVO::instance).collect(Collectors.toList()));
         return new ResponseEntity<>(pageResult);
     }
