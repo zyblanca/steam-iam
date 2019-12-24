@@ -300,25 +300,6 @@ public class IamProjectServiceImpl implements IamProjectService {
     }
 
     @Override
-    public IPage<IamProjectVO> queryAllProject(PageUtil pageUtil, IamProjectVO iamProjectVO) {
-//        if (Objects.isNull(iamProjectVO.getOrganizationId())) {
-//            throw new IamAppCommException("project.organization.id.null");
-//        }
-        IamProjectDTO iamProjectDTO = CopyUtil.copy(iamProjectVO, IamProjectDTO.class);
-
-        iamProjectDTO.setUserId(UserDetail.getUserId());
-
-        IPage<IamProjectDTO> projectPage = iamProjectMapper.queryAllProject(pageUtil, iamProjectDTO);
-
-
-        IPage<IamProjectVO> result = new Page<>();
-        result.setSize(pageUtil.getSize());
-        result.setTotal(projectPage.getTotal());
-        result.setRecords(CopyUtil.copyList(projectPage.getRecords(), IamProjectVO.class));
-        return result;
-    }
-
-    @Override
     public List<IamProjectVO> queryByCategory(String category) {
 
         List<IamProjectDTO> projects = iamProjectMapper.queryByCategory(category);
@@ -360,5 +341,11 @@ public class IamProjectServiceImpl implements IamProjectService {
     @Override
     public Optional<IamProjectDTO> get(@NotNull Long projectId) {
         return Optional.ofNullable(this.iamProjectMapper.selectById(projectId)).map(t -> ConvertHelper.convert(t, IamProjectDTO.class));
+    }
+
+    @Override
+    public IPage<IamProjectDTO> getUserProjects(PageUtil pageUtil, @NotNull Long userId, @NotNull Long organizationId, @Nullable String searchName) {
+        IPage<IamProject> projectPage = iamProjectMapper.getUserProjects(pageUtil, userId, organizationId, searchName);
+        return projectPage.convert(t -> ConvertHelper.convert(t, IamProjectDTO.class));
     }
 }

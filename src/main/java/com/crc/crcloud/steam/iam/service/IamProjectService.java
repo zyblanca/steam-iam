@@ -92,7 +92,14 @@ public interface IamProjectService {
      */
     IamProjectVO queryProjectById(Long id);
 
-    IPage<IamProjectVO> queryAllProject(PageUtil pageUtil, IamProjectVO iamProjectVO);
+    /**
+     * 获取用户授权项目
+     * @param pageUtil 不包含已禁用项目
+     * @param userId 用户编号
+     * @param organizationId 组织编号
+     * @return 项目
+     */
+    IPage<IamProjectDTO> getUserProjects(PageUtil pageUtil, @NotNull Long userId, @NotNull Long organizationId, @Nullable String searchName);
 
     List<IamProjectVO> queryByCategory(String category);
 
