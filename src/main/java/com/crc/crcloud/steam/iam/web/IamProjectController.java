@@ -2,9 +2,12 @@ package com.crc.crcloud.steam.iam.web;
 
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.crc.crcloud.steam.iam.api.feign.SteamAgileServiceClient;
+import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.common.utils.UserDetail;
+import com.crc.crcloud.steam.iam.model.dto.IamProjectDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
 import com.crc.crcloud.steam.iam.service.IamProjectService;
@@ -37,6 +40,8 @@ public class IamProjectController {
     private IamProjectService iamProjectService;
     @Autowired
     private IamUserService iamUserService;
+    @Autowired
+    private SteamAgileServiceClient steamAgileServiceClient;
     /**
      * 新增项目
      * 项目不同步到老行云
@@ -52,8 +57,11 @@ public class IamProjectController {
     public ResponseEntity<IamProjectVO> insert(@ApiParam(value = "组织id", required = true)
                                                @PathVariable(name = "organization_id") Long organizationId,
                                                @RequestBody @Validated IamProjectVO iamProject) {
-
-        return new ResponseEntity<>(iamProjectService.insert(organizationId, iamProject));
+        IamProjectVO iamProjectVO = iamProjectService.insert(organizationId, iamProject);
+        if (Objects.equals("KANBAN_BGH", iamProjectVO.getCategory()) || Objects.equals("KANBAN", iamProjectVO.getCategory())) {
+            steamAgileServiceClient.initKanbanTemplate(iamProjectVO.getId(), UserDetail.getUserId(), CopyUtil.copy(iamProjectVO, IamProjectDTO.class));
+        }
+        return new ResponseEntity<>(iamProjectVO);
     }
 
     /**
