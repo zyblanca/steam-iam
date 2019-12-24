@@ -344,7 +344,7 @@ public class IamProjectServiceImpl implements IamProjectService {
     }
 
     @Override
-    public IPage<IamProjectDTO> getUserProjects(PageUtil pageUtil, @NotNull Long userId, @NotNull Long organizationId, @Nullable String searchName) {
+    public IPage<IamProjectDTO> getUserProjects(Page pageUtil, @NotNull Long userId, @NotNull Long organizationId, @Nullable String searchName) {
         IPage<IamProject> projectPage = iamProjectMapper.getUserProjects(pageUtil, userId, organizationId, searchName);
         return projectPage.convert(t -> ConvertHelper.convert(t, IamProjectDTO.class));
     }
