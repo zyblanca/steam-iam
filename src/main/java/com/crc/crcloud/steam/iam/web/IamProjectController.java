@@ -4,6 +4,8 @@ package com.crc.crcloud.steam.iam.web;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.crc.crcloud.steam.iam.api.feign.SteamAgileServiceClient;
+import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.common.utils.UserDetail;
@@ -46,6 +48,11 @@ public class IamProjectController {
     @Autowired
     private IamUserService iamUserService;
 
+    @Autowired
+    private SteamAgileServiceClient steamAgileServiceClient;
+
+
+
     /**
      * 新增项目
      * 项目不同步到老行云
@@ -61,8 +68,11 @@ public class IamProjectController {
     public ResponseEntity<IamProjectVO> insert(@ApiParam(value = "组织id", required = true)
                                                @PathVariable(name = "organization_id") Long organizationId,
                                                @RequestBody @Validated IamProjectVO iamProject) {
-
-        return new ResponseEntity<>(iamProjectService.insert(organizationId, iamProject));
+        IamProjectVO iamProjectVO = iamProjectService.insert(organizationId, iamProject);
+        if (Objects.equals("KANBAN_BGH", iamProjectVO.getCategory()) || Objects.equals("KANBAN", iamProjectVO.getCategory())) {
+            steamAgileServiceClient.initKanbanTemplate(iamProjectVO.getId(), UserDetail.getUserId(), CopyUtil.copy(iamProjectVO, IamProjectDTO.class));
+        }
+        return new ResponseEntity<>(iamProjectVO);
     }
 
     /**

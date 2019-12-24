@@ -65,8 +65,7 @@ public class IamProjectServiceImpl implements IamProjectService {
     private IamLabelMapper iamLabelMapper;
     @Autowired
     private IamMemberRoleService iamMemberRoleService;
-    @Autowired
-    private SteamAgileServiceClient steamAgileServiceClient;
+
 
 
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
@@ -90,9 +89,7 @@ public class IamProjectServiceImpl implements IamProjectService {
         //创建人授予项目拥有者权限
         grantCreatMember(iamProject);
 
-        if (Objects.equals("KANBAN_BGH", iamProject.getCategory()) || Objects.equals("KANBAN", iamProject.getCategory())) {
-            steamAgileServiceClient.initKanbanTemplate(iamProject.getId(), UserDetail.getUserId(), CopyUtil.copy(iamProject, IamProjectDTO.class));
-        }
+
         return CopyUtil.copy(iamProject, IamProjectVO.class);
     }
 
