@@ -1,13 +1,19 @@
 package com.crc.crcloud.steam.iam.common.utils;
 
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class PageUtil<T> extends Page<T> {
 
@@ -109,5 +115,20 @@ public class PageUtil<T> extends Page<T> {
 
     public void setMatchCount(Integer matchCount) {
         this.matchCount = matchCount;
+    }
+
+    /**
+     * 排序字段转下划线
+     * @param page 分页信息
+     */
+    public static void sortFieldConvertToUnderlineCase(Page page) {
+        BiConsumer<String[], Consumer<List<String>>> convertToUnderlineCase = (sorts, consumer) -> {
+            if (ArrayUtil.isNotEmpty(sorts)) {
+                List<String> collect = Arrays.stream(sorts).filter(StrUtil::isNotBlank).map(StrUtil::toUnderlineCase).collect(Collectors.toList());
+                consumer.accept(collect);
+            }
+        };
+        convertToUnderlineCase.accept(page.ascs(), page::setAscs);
+        convertToUnderlineCase.accept(page.descs(), page::setDescs);
     }
 }

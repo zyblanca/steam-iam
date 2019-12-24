@@ -113,6 +113,7 @@ public class IamProjectController {
         if (Objects.isNull(vo.getOrganizationId())) {
             vo.setOrganizationId(iamUser.getCurrentOrganizationId());
         }
+        PageUtil.sortFieldConvertToUnderlineCase(pageUtil);
         IPage<IamProjectDTO> userProjects = iamProjectService.getUserProjects(pageUtil, iamUser.getId(), vo.getOrganizationId(), vo.getName());
         Set<Long> userIds = userProjects.getRecords().stream().map(IamProjectDTO::getCreatedBy).filter(Objects::nonNull).collect(Collectors.toSet());
         Map<Long, String> userMap = iamUserService.getUsers(userIds).stream().collect(Collectors.toMap(IamUserDTO::getId, IamUserDTO::getRealName));
