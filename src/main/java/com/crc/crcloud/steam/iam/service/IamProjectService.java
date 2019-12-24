@@ -99,7 +99,7 @@ public interface IamProjectService {
      * @param organizationId 组织编号
      * @return 项目
      */
-    IPage<IamProjectDTO> getUserProjects(PageUtil pageUtil, @NotNull Long userId, @NotNull Long organizationId, @Nullable String searchName);
+    IPage<IamProjectDTO> getUserProjects(Page pageUtil, @NotNull Long userId, @NotNull Long organizationId, @Nullable String searchName);
 
     List<IamProjectVO> queryByCategory(String category);
 

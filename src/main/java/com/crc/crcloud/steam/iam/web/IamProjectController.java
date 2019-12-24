@@ -4,6 +4,7 @@ package com.crc.crcloud.steam.iam.web;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.common.utils.UserDetail;
@@ -113,8 +114,11 @@ public class IamProjectController {
         if (Objects.isNull(vo.getOrganizationId())) {
             vo.setOrganizationId(iamUser.getCurrentOrganizationId());
         }
-        PageUtil.sortFieldConvertToUnderlineCase(pageUtil);
-        IPage<IamProjectDTO> userProjects = iamProjectService.getUserProjects(pageUtil, iamUser.getId(), vo.getOrganizationId(), vo.getName());
+        final Page page = new Page(pageUtil.getCurrent(), pageUtil.getSize(), pageUtil.getTotal(), pageUtil.isSearchCount());
+        page.setAsc(pageUtil.ascs());
+        page.setDesc(pageUtil.descs());
+        PageUtil.sortFieldConvertToUnderlineCase(page);
+        IPage<IamProjectDTO> userProjects = iamProjectService.getUserProjects(page, iamUser.getId(), vo.getOrganizationId(), vo.getName());
         Set<Long> userIds = userProjects.getRecords().stream().map(IamProjectDTO::getCreatedBy).filter(Objects::nonNull).collect(Collectors.toSet());
         Map<Long, String> userMap = iamUserService.getUsers(userIds).stream().collect(Collectors.toMap(IamUserDTO::getId, IamUserDTO::getRealName));
         IPage<IamUserProjectResponseVO> pageResult = userProjects.convert(t -> {

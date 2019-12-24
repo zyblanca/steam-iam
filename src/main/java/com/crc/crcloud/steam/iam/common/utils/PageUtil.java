@@ -8,12 +8,12 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
 
 public class PageUtil<T> extends Page<T> {
 
@@ -122,9 +122,20 @@ public class PageUtil<T> extends Page<T> {
      * @param page 分页信息
      */
     public static void sortFieldConvertToUnderlineCase(Page page) {
+        Predicate<String> isConvert = ((Predicate<String>) s -> StrUtil.containsAny(s, ORDER_HEARD)).and(field -> StrUtil.containsAny(field, ORDER_END));
         BiConsumer<String[], Consumer<List<String>>> convertToUnderlineCase = (sorts, consumer) -> {
             if (ArrayUtil.isNotEmpty(sorts)) {
-                List<String> collect = Arrays.stream(sorts).filter(StrUtil::isNotBlank).map(StrUtil::toUnderlineCase).collect(Collectors.toList());
+                List<String> collect = new ArrayList<>();
+                for (String sort : sorts) {
+                    Optional.ofNullable(sort).filter(StrUtil::isNotBlank).ifPresent(t -> {
+                        Optional<String> s = Optional.ofNullable(t).filter(isConvert.negate());
+                        if (s.isPresent()) {
+                            s.map(StrUtil::toUnderlineCase).ifPresent(collect::add);
+                        } else {
+                            collect.add(t);
+                        }
+                    });
+                }
                 consumer.accept(collect);
             }
         };
