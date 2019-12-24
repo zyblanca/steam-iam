@@ -1,6 +1,8 @@
 package com.crc.crcloud.steam.iam.web;
 
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
@@ -23,6 +25,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -112,9 +115,14 @@ public class IamProjectController {
         }
         IPage<IamProjectDTO> userProjects = iamProjectService.getUserProjects(pageUtil, iamUser.getId(), vo.getOrganizationId(), vo.getName());
         Set<Long> userIds = userProjects.getRecords().stream().map(IamProjectDTO::getCreatedBy).filter(Objects::nonNull).collect(Collectors.toSet());
-//        iamUserService.listUserByIds()
-//        userProjects.convert()
-        return new ResponseEntity<>();
+        Map<Long, String> userMap = iamUserService.getUsers(userIds).stream().collect(Collectors.toMap(IamUserDTO::getId, IamUserDTO::getRealName));
+        IPage<IamUserProjectResponseVO> pageResult = userProjects.convert(t -> {
+            IamUserProjectResponseVO response = new IamUserProjectResponseVO();
+            BeanUtil.copyProperties(t, response, CopyOptions.create().ignoreNullValue());
+            response.setRealName(userMap.get(t.getCreatedBy()));
+            return response;
+        });
+        return new ResponseEntity<>(pageResult);
     }
 
     /**
