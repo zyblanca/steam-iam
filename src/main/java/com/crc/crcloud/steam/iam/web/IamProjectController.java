@@ -1,12 +1,17 @@
 package com.crc.crcloud.steam.iam.web;
 
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.common.utils.UserDetail;
+import com.crc.crcloud.steam.iam.model.dto.IamProjectDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
+import com.crc.crcloud.steam.iam.model.vo.project.IamUserProjectRequestVO;
+import com.crc.crcloud.steam.iam.model.vo.project.IamUserProjectResponseVO;
 import com.crc.crcloud.steam.iam.service.IamProjectService;
 import com.crc.crcloud.steam.iam.service.IamUserService;
 import io.choerodon.core.iam.InitRoleCode;
@@ -20,7 +25,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -37,6 +45,7 @@ public class IamProjectController {
     private IamProjectService iamProjectService;
     @Autowired
     private IamUserService iamUserService;
+
     /**
      * 新增项目
      * 项目不同步到老行云
@@ -92,21 +101,28 @@ public class IamProjectController {
 
 
     /**
-     * 查询所有项目
-     * todo 此处需要重构，条件查询与排序有误
+     * 查询当前用户所在组织的已授权项目
      * <p>切换完组织之后的项目列表</p>
      */
     @Permission(permissionLogin = true)
-    @ApiOperation(value = "查询所有项目")
+    @ApiOperation(value = "查询当前用户授权的项目")
     @PostMapping()
-    public ResponseEntity<IPage<IamProjectVO>> queryAllProject(
-            PageUtil pageUtil,
-            @RequestBody(required = false) IamProjectVO iamProjectVO) {
-        if (Objects.isNull(iamProjectVO.getOrganizationId())) {
-            IamUserDTO iamUser = iamUserService.getAndThrow(UserDetail.getUserId());
-            iamProjectVO.setOrganizationId(iamUser.getCurrentOrganizationId());
+    public ResponseEntity<IPage<IamUserProjectResponseVO>> queryAllProject(
+            PageUtil pageUtil, IamUserProjectRequestVO vo) {
+        final IamUserDTO iamUser = iamUserService.getAndThrow(UserDetail.getUserId());
+        if (Objects.isNull(vo.getOrganizationId())) {
+            vo.setOrganizationId(iamUser.getCurrentOrganizationId());
         }
-        return new ResponseEntity<>(iamProjectService.queryAllProject(pageUtil, iamProjectVO));
+        IPage<IamProjectDTO> userProjects = iamProjectService.getUserProjects(pageUtil, iamUser.getId(), vo.getOrganizationId(), vo.getName());
+        Set<Long> userIds = userProjects.getRecords().stream().map(IamProjectDTO::getCreatedBy).filter(Objects::nonNull).collect(Collectors.toSet());
+        Map<Long, String> userMap = iamUserService.getUsers(userIds).stream().collect(Collectors.toMap(IamUserDTO::getId, IamUserDTO::getRealName));
+        IPage<IamUserProjectResponseVO> pageResult = userProjects.convert(t -> {
+            IamUserProjectResponseVO response = new IamUserProjectResponseVO();
+            BeanUtil.copyProperties(t, response, CopyOptions.create().ignoreNullValue());
+            response.setRealName(userMap.get(t.getCreatedBy()));
+            return response;
+        });
+        return new ResponseEntity<>(pageResult);
     }
 
     /**

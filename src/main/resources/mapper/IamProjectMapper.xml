@@ -57,7 +57,7 @@
         from iam_project
         where 1=1
         <if test="iamProject.organizationId != null">
-        and organization_id = #{iamProject.organizationId}
+            and organization_id = #{iamProject.organizationId}
         </if>
 
         <if test="iamProject.name != null">
@@ -73,28 +73,25 @@
             AND category = #{iamProject.category}
         </if>
     </select>
-    <select id="queryAllProject" resultType="com.crc.crcloud.steam.iam.model.dto.IamProjectDTO">
-        SELECT DISTINCT fd.id as id,
-        fd.code as code,
-        fd.organization_id as organization_id,
-        fd.is_enabled as is_enabled ,
-        fd.image_url as image_url,
-        fd.name as name ,
-        fd.created_by,
-        fd.category as category,
-        fd.creation_date as creation_date,
-        iu.real_name as real_name
-        FROM iam_project fd
-        INNER JOIN iam_member_role imr on imr.source_id = fd.id
-        INNER JOIN iam_role iro on iro.is_enabled = 1 and iro.id = imr.role_id and
-        imr.source_type = 'project'
-        LEFT JOIN iam_user iu on fd.created_by = iu.id
-        WHERE  imr.member_id = #{iamProject.userId}
-        AND fd.is_enabled = 1
-        AND fd.organization_id =  #{iamProject.organizationId}
-        <if test="iamProject.name != null and iamProject.name != ''">
-            and fd.name LIKE CONCAT(CONCAT('%', #{iamProject.name}),'%')
+    <select id="getUserProjects" resultMap="BaseResultMap">
+        select
+         <include refid="Base_Column_List"/>
+        from (
+        select ip.*, iu.real_name as real_name
+        from iam_project ip
+        inner join iam_member_role imr on ip.id = imr.source_id
+        inner join iam_role role on role.id = imr.role_id
+        left join iam_user iu on ip.created_by = iu.id
+        where ip.is_enabled = true
+        and imr.member_type = 'user'
+        and imr.source_type = 'project'
+        and role.is_enabled = true
+        and ip.organization_id = #{organizationId}
+        and imr.member_id = #{userId}
+        <if test="@cn.hutool.core.util.StrUtil@isNotEmpty(searchName)">
+            and ip.name like concat('%',#{searchName},'%')
         </if>
+        ) ip
     </select>
     <select id="queryByCategory" resultType="com.crc.crcloud.steam.iam.model.dto.IamProjectDTO">
         select ip.id,ip.code,ip.name,ip.organization_id,io.name organization_name,ip.CREATION_DATE
