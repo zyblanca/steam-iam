@@ -216,6 +216,9 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
         if (StrUtil.isNotBlank(vo.getDesc())) {
             page.setDesc(gbkConvert.apply(vo.getDesc()));
         }
+        ArrayList<String> desc = Optional.ofNullable(page.descs()).map(CollUtil::toList).orElseGet(ArrayList::new);
+        desc.add(EntityUtil.getSimpleField(IamOrganization::getCreationDate));
+        page.setDescs(desc);
         return this.iamOrganizationMapper.page(page, vo);
     }
 
