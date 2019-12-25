@@ -98,6 +98,7 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
                         });
             }
         } catch (Exception e){
+            log.warn(e.getMessage());
             throw new CommonException("error.sagaEvent.organizationUserService.createUserByManual", e);
         }
     }
