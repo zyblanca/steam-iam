@@ -461,7 +461,10 @@ public class LdapServiceImpl implements LdapService {
                 IamUserOrganizationRel iamUserOrganizationRel = new IamUserOrganizationRel();
                 iamUserOrganizationRel.setOrganizationId(oauthLdapDTO.getOrganizationId());
                 iamUserOrganizationRel.setUserId(user.getId());
+                //修改用户
                 updateUser.add(user);
+                //绑定用户
+                bandUser.add(iamUserOrganizationRel);
                 //为找到相同的用户属于异常用户
             } else {
                 userToErrorUser(oauthLdapHistory, user, errorUsers, LdapSyncUserErrorEnum.SAME_LOGIN_DIFF_LDAP.getMsg());
