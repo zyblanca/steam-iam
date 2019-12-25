@@ -118,7 +118,8 @@
         iu.login_name,
         iu.real_name,
         iu.email,
-        tmp.roleName
+        tmp.roleName,
+        iu.creation_date
         FROM (select imr.member_id,GROUP_CONCAT(ir.NAME ORDER BY ir.ID desc) roleName
         FROM iam_member_role imr
         LEFT JOIN iam_role ir ON ir.ID=imr.ROLE_ID
