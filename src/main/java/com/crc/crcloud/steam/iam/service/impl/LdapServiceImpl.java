@@ -321,12 +321,14 @@ public class LdapServiceImpl implements LdapService {
         oauthLdapHistory.setErrorUserCount(oauthLdapHistory.getErrorUserCount() + errorUsers.size() - initErrorSize);
         oauthLdapHistory.setNewUserCount(oauthLdapHistory.getNewUserCount() + insertUser.size());
         oauthLdapHistory.setUpdateUserCount(oauthLdapHistory.getUpdateUserCount() + updateUser.size());
+        //插入新用户
         List<OauthLdapErrorUser> insertError = insertLdapUser(oauthLdapHistory.getId(), insertUser, oauthLdapDTO.getOrganizationId());
         oauthLdapHistory.setNewUserCount(oauthLdapHistory.getNewUserCount() - insertError.size());
         oauthLdapHistory.setErrorUserCount(oauthLdapHistory.getErrorUserCount() + insertError.size());
         errorUsers.addAll(insertError);
         updateLdapUser(updateUser);
-        bandLdapUser(bandUser);
+        //新组织绑定用户
+        bandLdapUser(bandUser, oauthLdapDTO.getOrganizationId());
         insertErrorUser(errorUsers);
     }
 
@@ -336,9 +338,22 @@ public class LdapServiceImpl implements LdapService {
     }
 
     //绑定用户
-    private void bandLdapUser(List<IamUserOrganizationRel> bandUser) {
+    private void bandLdapUser(List<IamUserOrganizationRel> bandUser, Long organizationId) {
         if (CollectionUtils.isEmpty(bandUser)) return;
+
         bandUser.forEach(v -> iamUserOrganizationRelMapper.insert(v));
+        Set<Long> userId = bandUser.stream().map(IamUserOrganizationRel::getUserId).collect(Collectors.toSet());
+        //获取组织成员权限
+        IamRole iamRole = iamRoleMapper.selectOne(Wrappers.<IamRole>lambdaQuery()
+                .eq(IamRole::getFdLevel, ResourceLevel.ORGANIZATION.value())
+                .eq(IamRole::getCode, InitRoleCode.ORGANIZATION_MEMBER));
+        if (Objects.isNull(iamRole)) {
+            log.warn("查询组织成员权限失败{},{}", ResourceLevel.ORGANIZATION.value(), InitRoleCode.ORGANIZATION_MEMBER);
+            return ;
+        }
+        Set<Long> roleIds = new HashSet<>();
+        roleIds.add(iamRole.getId());
+        iamMemberRoleService.grantUserRole(new HashSet<>(userId), roleIds, organizationId, ResourceLevel.ORGANIZATION);
     }
 
     //修改用户
