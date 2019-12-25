@@ -122,7 +122,7 @@ public class SagaDevopsServiceApplicationListener {
             try {
                 assertHelper.organizationNotExisted(organizationId);
             } catch (IamAppCommException e) {
-                log.error("illegal application because of organization does not existed, application: {}", app);
+                log.error("illegal application because of organization does not existed, application: {}，{}", app,e.getCode());
                 return true;
             }
         }
@@ -134,7 +134,7 @@ public class SagaDevopsServiceApplicationListener {
             try {
                 assertHelper.projectNotExisted(projectId);
             } catch (IamAppCommException e) {
-                log.error("illegal application because of project does not existed, application: {}", app);
+                log.error("illegal application because of project does not existed, application: {},{}", app,e.getCode());
                 return true;
             }
         }
@@ -228,6 +228,7 @@ public class SagaDevopsServiceApplicationListener {
                                 .withRefId(refIds);
                 });
             } catch (Exception e) {
+                log.warn(e.getMessage());
                 throw new IamAppCommException("error.iRoleMemberServiceImpl.updateMemberRole.event");
             }
         });

@@ -121,7 +121,7 @@ public class IamOrganizationController {
     @ApiOperation(value = "上传组织图标")
     @PostMapping(value = "upload/image")
     public ResponseEntity<String> uploadOrganizationImageUrl(@RequestParam(value = "file") @NotNull MultipartFile file) {
-        BigDecimal mb = NumberUtil.div(BigDecimal.valueOf(file.getSize()), BigDecimal.valueOf(1024 * 1024), 2, RoundingMode.HALF_UP);
+        BigDecimal mb = NumberUtil.div(BigDecimal.valueOf(file.getSize()), BigDecimal.valueOf(1024 * 1024L), 2, RoundingMode.HALF_UP);
         log.info("需要上传组织图标: {} size:{}/m|{}/bytes", file.getOriginalFilename(), mb.toPlainString(), file.getSize());
         if (NumberUtil.isGreater(mb, BigDecimal.ONE)) {
             throw new IamAppCommException("organization.image.file.size");
