@@ -225,8 +225,8 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     @Override
     public IamOrganizationDTO create(@NotNull @Valid IamOrganizationCreateRequestVO vo) {
-        //只能以字母和数字开头，且长度不能少于2，内容可以包含字母数字.-
-        Predicate<String> matchCode = code -> ReUtil.isMatch("^[a-z][a-z0-9-]+$", code);
+        //只能以字母和数字开头，且长度不能少于1，内容可以包含字母数字.-
+        Predicate<String> matchCode = code -> ReUtil.isMatch("^[a-z][a-z0-9-]*$", code);
         //不能以"-结尾"
         matchCode = matchCode.and(code -> !StrUtil.endWithAny(code, "-"));
         //不能连续出现两个"-"

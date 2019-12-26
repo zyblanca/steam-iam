@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -68,8 +69,11 @@ public class IamRolePermissionServiceImpl extends ServiceImpl<IamRolePermissionM
     }
 
     @Override
-    public void clear(@NotNull Long permissionId) {
+    public void clear(@NotNull Long permissionId, @Nullable Set<Long> excludeRoleIds) {
         LambdaQueryWrapper<IamRolePermission> queryWrapper = Wrappers.<IamRolePermission>lambdaQuery().eq(IamRolePermission::getPermissionId, permissionId);
+        if (CollUtil.isNotEmpty(excludeRoleIds)) {
+            queryWrapper.notIn(IamRolePermission::getRoleId, excludeRoleIds);
+        }
         this.iamRolePermissionMapper.delete(queryWrapper);
     }
 

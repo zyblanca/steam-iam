@@ -3,6 +3,7 @@ package com.crc.crcloud.steam.iam.service;
 
 import com.crc.crcloud.steam.iam.model.dto.IamRolePermissionDTO;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -28,8 +29,9 @@ public interface IamRolePermissionService {
     /**
      * 清除该权限的所有关联角色
      * @param permissionId 权限编号
+     * @param excludeRoleIds 需要排除的关联角色
      */
-    void clear(@NotNull Long permissionId);
+    void clear(@NotNull Long permissionId, @Nullable Set<Long> excludeRoleIds);
 
     /**
      * 获取错误的层级匹配

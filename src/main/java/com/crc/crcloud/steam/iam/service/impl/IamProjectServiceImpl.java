@@ -7,17 +7,12 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.enums.RoleLabelEnum;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
-import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
-import com.crc.crcloud.steam.iam.common.utils.PageUtil;
-import com.crc.crcloud.steam.iam.common.utils.UserDetail;
+import com.crc.crcloud.steam.iam.common.utils.*;
 import com.crc.crcloud.steam.iam.dao.IamLabelMapper;
 import com.crc.crcloud.steam.iam.dao.IamOrganizationMapper;
 import com.crc.crcloud.steam.iam.dao.IamProjectMapper;
 import com.crc.crcloud.steam.iam.dao.IamRoleMapper;
-import com.crc.crcloud.steam.iam.entity.IamLabel;
-import com.crc.crcloud.steam.iam.entity.IamOrganization;
-import com.crc.crcloud.steam.iam.entity.IamProject;
-import com.crc.crcloud.steam.iam.entity.IamRole;
+import com.crc.crcloud.steam.iam.entity.*;
 import com.crc.crcloud.steam.iam.model.dto.IamProjectDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.ProjectEventPayload;
 import com.crc.crcloud.steam.iam.model.event.IamProjectCreateEvent;
@@ -297,25 +292,6 @@ public class IamProjectServiceImpl implements IamProjectService {
     }
 
     @Override
-    public IPage<IamProjectVO> queryAllProject(PageUtil pageUtil, IamProjectVO iamProjectVO) {
-//        if (Objects.isNull(iamProjectVO.getOrganizationId())) {
-//            throw new IamAppCommException("project.organization.id.null");
-//        }
-        IamProjectDTO iamProjectDTO = CopyUtil.copy(iamProjectVO, IamProjectDTO.class);
-
-        iamProjectDTO.setUserId(UserDetail.getUserId());
-
-        IPage<IamProjectDTO> projectPage = iamProjectMapper.queryAllProject(pageUtil, iamProjectDTO);
-
-
-        IPage<IamProjectVO> result = new Page<>();
-        result.setSize(pageUtil.getSize());
-        result.setTotal(projectPage.getTotal());
-        result.setRecords(CopyUtil.copyList(projectPage.getRecords(), IamProjectVO.class));
-        return result;
-    }
-
-    @Override
     public List<IamProjectVO> queryByCategory(String category) {
 
         List<IamProjectDTO> projects = iamProjectMapper.queryByCategory(category);
@@ -357,5 +333,16 @@ public class IamProjectServiceImpl implements IamProjectService {
     @Override
     public Optional<IamProjectDTO> get(@NotNull Long projectId) {
         return Optional.ofNullable(this.iamProjectMapper.selectById(projectId)).map(t -> ConvertHelper.convert(t, IamProjectDTO.class));
+    }
+
+    @Override
+    public IPage<IamProjectDTO> getUserProjects(Page page, @NotNull Long userId, @NotNull Long organizationId, @Nullable String searchName) {
+        //noinspection unchecked
+        PageWrapper<IamProject> pageWrapper = PageWrapper.instance(page);
+        pageWrapper.addGbkFieldConvert(IamProject::getName, IamProject::getDescription);
+        pageWrapper.addGbkFieldConvert(EntityUtil.getSimpleField(IamUser::getRealName));
+        pageWrapper.addDefaultOrderByDesc(IamProject::getCreationDate);
+        IPage<IamProject> projectPage = iamProjectMapper.getUserProjects(pageWrapper, userId, organizationId, searchName);
+        return projectPage.convert(t -> ConvertHelper.convert(t, IamProjectDTO.class));
     }
 }
