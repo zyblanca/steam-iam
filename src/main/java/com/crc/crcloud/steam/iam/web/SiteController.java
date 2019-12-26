@@ -3,14 +3,10 @@ package com.crc.crcloud.steam.iam.web;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.comparator.PinyinComparator;
-import cn.hutool.core.convert.Convert;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
-import com.crc.crcloud.steam.iam.model.dto.IamMemberRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.vo.site.SiteLdapUserResponseVO;
@@ -33,8 +29,9 @@ import javax.annotation.Nullable;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -58,47 +55,17 @@ public class SiteController {
     @Autowired
     private IamRoleService iamRoleService;
 
-    public static void main(String[] args) {
-        List<String> strings = CollUtil.sortByPinyin(CollUtil.newArrayList("abc", " ", "", "刘洋", "管理员", "ldf", "杨严翠"));
-        System.out.println(strings);
-    }
     @Permission(level = ResourceLevel.SITE)
     @ApiOperation("平台管理-成员管理")
     @PostMapping("page")
     public ResponseEntity<IPage<SiteManagerUserResponseVO>> getSiteManagerUserPage(@RequestBody @Valid SiteManagerUserRequestVO vo) {
-        //内存分页-最新授权的用户再最前面
-        List<IamUserDTO> siteUsers = new ArrayList<>();
-        List<IamMemberRoleDTO> siteMemberUser = iamMemberRoleService.getSiteUserMemberRoleBySource();
-        Comparator<IamMemberRoleDTO> ascComparator = Comparator.comparingLong(IamMemberRoleDTO::getId);
-        siteMemberUser.sort(ascComparator.reversed());
-        final List<Long> userIds = siteMemberUser.stream().map(IamMemberRoleDTO::getMemberId).collect(Collectors.toList());
-        @NotNull List<IamUserDTO> users = iamUserService.getUsers(CollUtil.newHashSet(userIds));
-        //排序按照dateAscComparator排序
-        users.sort(Comparator.comparing(user -> userIds.indexOf(user.getId())));
-        siteUsers.addAll(users);
-        siteUsers.addAll(iamUserService.getAdminUsers());
-        //去重
-        Collection<IamUserDTO> distinct = siteUsers.stream().collect(Collectors.toMap(IamUserDTO::getId, Function.identity(), (a, b) -> a, LinkedHashMap::new)).values();
-        siteUsers = CollUtil.newArrayList(distinct);
-        Page<SiteManagerUserResponseVO> pageResult = new Page<>(vo.getCurrent(), vo.getSize(), siteUsers.size());
-        List<IamUserDTO> pageSiteUsers = CollUtil.sortPageAll(vo.getCurrent().intValue(), vo.getSize().intValue(), (o1, o2) -> {
-            if (!StrUtil.isAllBlank(vo.getAsc(), vo.getDesc())) {
-                AtomicBoolean isDesc = new AtomicBoolean(false);
-                String fieldName = Optional.ofNullable(vo.getAsc()).filter(StrUtil::isNotBlank).orElseGet(() -> {
-                    isDesc.set(true);
-                    return vo.getDesc();
-                });
-                Object o1Value = BeanUtil.getProperty(o1, fieldName);
-                Object o2Value = BeanUtil.getProperty(o2, fieldName);
-                Comparator<String> pinyinComparator = Comparator.nullsFirst(new PinyinComparator());
-                if (isDesc.get()) {
-                    pinyinComparator = pinyinComparator.reversed();
-                }
-                return pinyinComparator.compare(Convert.toStr(o1Value), Convert.toStr(o2Value));
-            }
-            return 0;
-        }, siteUsers);
-        pageResult.setRecords(pageSiteUsers.stream().map(SiteManagerUserResponseVO::instance).collect(Collectors.toList()));
+        Page page = new Page(vo.getCurrent(), vo.getSize());
+        page.setAsc(vo.getAsc());
+        page.setDesc(vo.getDesc());
+        @NotNull IPage<Long> pageUserIdResult = iamMemberRoleService.getSiteAdminUserId(page);
+        Map<Long, IamUserDTO> userMap = iamUserService.getUsers(CollUtil.newHashSet(pageUserIdResult.getRecords()))
+                .stream().collect(Collectors.toMap(IamUserDTO::getId, Function.identity()));
+        IPage<SiteManagerUserResponseVO> pageResult = pageUserIdResult.convert(userId -> SiteManagerUserResponseVO.instance(userMap.get(userId)));
         return new ResponseEntity<>(pageResult);
     }
 
@@ -113,7 +80,7 @@ public class SiteController {
             responseVO.setCompany("润联科技");
             responseVO.setDepartment("华润云-开发云");
             responseVO.setPosition("高级咨询经理");
-            responseVO.setPhoneNumber(StrUtil.addPrefixIfNot(t.getPhone(), t.getInternationalTelCode()));
+            responseVO.setPhoneNumber(t.getPhone());
             boolean alreadySiteRole = iamRoleService.getUserRoles(t.getId(), ResourceLevel.SITE).stream().anyMatch(role -> Objects.equals(role.getCode(), InitRoleCode.SITE_ADMINISTRATOR));
             responseVO.setAlreadySiteRole(alreadySiteRole);
             return responseVO;
