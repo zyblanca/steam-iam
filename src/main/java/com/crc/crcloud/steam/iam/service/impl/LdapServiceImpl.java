@@ -524,7 +524,7 @@ public class LdapServiceImpl implements LdapService {
      * @param oauthLdapDTO   ldap 配置信息
      */
     private void transformationToUser(OauthLdapHistory history, List<Attributes> attributesList, List<IamUser> normalUser, List<OauthLdapErrorUser> errorUsers, OauthLdapDTO oauthLdapDTO) {
-        Long orgId = oauthLdapDTO.getId();
+
         Long historyId = history.getId();
         IamUser iamUser;
         //此处可以设置成枚举或者集合对象遍历
@@ -641,6 +641,8 @@ public class LdapServiceImpl implements LdapService {
             iamUser.setPhone(phone);
             iamUser.setRealName(realName);
             iamUser.setTimeZone("CTT");
+            //初始数据给定 默认组织
+            iamUser.setCurrentOrganizationId(oauthLdapDTO.getOrganizationId());
             iamUser.setHashPassword("ldap users do not have password");
             normalUser.add(iamUser);
         }
