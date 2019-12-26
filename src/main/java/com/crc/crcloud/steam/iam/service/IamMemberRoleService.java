@@ -1,6 +1,8 @@
 package com.crc.crcloud.steam.iam.service;
 
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.model.dto.IamMemberRoleDTO;
 import io.choerodon.core.iam.ResourceLevel;
 
@@ -83,4 +85,11 @@ public interface IamMemberRoleService {
      * @see this#grantUserRole(Long, Set, Long, ResourceLevel)
      */
     void grantUserSiteRole(@NotNull Long userId, @NotEmpty Set<Long> roleIds);
+
+    /**
+     * 获取平台管理员-包括管理员
+     * @return 用户分页
+     */
+    @NotNull
+    IPage<Long> getSiteAdminUserId(@NotNull Page page);
 }

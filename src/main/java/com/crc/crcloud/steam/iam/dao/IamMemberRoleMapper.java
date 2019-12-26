@@ -17,4 +17,6 @@ public interface IamMemberRoleMapper extends BaseMapper<IamMemberRole> {
 
     IPage<IamMemberRole> page(Page page, @Param("iamMemberRole") IamMemberRoleDTO iamMemberRoleDTO);
 
+
+    IPage<Long> getSiteAdminUserId(Page page, @Param("roleId") Long roleId);
 }

@@ -3,24 +3,24 @@
 <mapper namespace="com.crc.crcloud.steam.iam.dao.IamMemberRoleMapper">
 
 
-        <!-- 通用查询映射结果 -->
-        <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamMemberRole">
-                    <id column="id" property="id" />
-                    <result column="role_id" property="roleId" />
-                    <result column="member_id" property="memberId" />
-                    <result column="member_type" property="memberType" />
-                    <result column="source_id" property="sourceId" />
-                    <result column="source_type" property="sourceType" />
-                    <result column="object_version_number" property="objectVersionNumber" />
-                    <result column="created_by" property="createdBy" />
-                    <result column="creation_date" property="creationDate" />
-                    <result column="last_updated_by" property="lastUpdatedBy" />
-                    <result column="last_update_date" property="lastUpdateDate" />
-        </resultMap>
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamMemberRole">
+        <id column="id" property="id"/>
+        <result column="role_id" property="roleId"/>
+        <result column="member_id" property="memberId"/>
+        <result column="member_type" property="memberType"/>
+        <result column="source_id" property="sourceId"/>
+        <result column="source_type" property="sourceType"/>
+        <result column="object_version_number" property="objectVersionNumber"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="creation_date" property="creationDate"/>
+        <result column="last_updated_by" property="lastUpdatedBy"/>
+        <result column="last_update_date" property="lastUpdateDate"/>
+    </resultMap>
 
 
-        <!-- 通用查询结果列 -->
-        <sql id="Base_Column_List">
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
                      id,
                      role_id,
                      member_id,
@@ -35,11 +35,26 @@
         </sql>
 
     <select id="page" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"/>
+        select
+        <include refid="Base_Column_List"/>
         from iam_member_role
 
     </select>
-
+    <select id="getSiteAdminUserId" resultType="java.lang.Long">
+        select id from (
+          select imr.creation_date as rel_date,iu.*
+                from iam_user iu
+                         left join iam_member_role imr
+                                   on iu.id = imr.member_id and imr.member_type = 'user' and imr.source_type = 'site' and
+                                      imr.role_id = #{roleId}
+                where iu.id in (select member_id
+                                from iam_member_role imr
+                                where imr.member_type = 'user'
+                                  and imr.source_type = 'site'
+                                  and imr.role_id = #{roleId})
+            or is_admin = true
+        ) iu
+    </select>
 
 
 </mapper>
