@@ -88,6 +88,7 @@ public interface IamMemberRoleService {
 
     /**
      * 获取平台管理员-包括管理员
+     * @param page  分页信息
      * @return 用户分页
      */
     @NotNull

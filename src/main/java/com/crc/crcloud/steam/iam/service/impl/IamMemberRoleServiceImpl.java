@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crc.crcloud.steam.iam.common.enums.MemberType;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
+import com.crc.crcloud.steam.iam.common.utils.PageWrapper;
 import com.crc.crcloud.steam.iam.dao.IamMemberRoleMapper;
 import com.crc.crcloud.steam.iam.entity.IamMemberRole;
 import com.crc.crcloud.steam.iam.model.dto.IamMemberRoleDTO;
@@ -167,6 +168,9 @@ public class IamMemberRoleServiceImpl extends ServiceImpl<IamMemberRoleMapper, I
 		if (!siteAdminRole.isPresent()) {
 			return new Page<>(page.getCurrent(), page.getSize());
 		}
-		return iamMemberRoleMapper.getSiteAdminUserId(page, siteAdminRole.get().getId());
+		PageWrapper pageWrapper = PageWrapper.instance(page);
+		pageWrapper.addDefaultOrderByDesc("rel_date");
+		pageWrapper.addGbkFieldConvert(EntityUtil.getSimpleField(IamUserDTO::getRealName));
+		return iamMemberRoleMapper.getSiteAdminUserId(pageWrapper, siteAdminRole.get().getId());
 	}
 }
