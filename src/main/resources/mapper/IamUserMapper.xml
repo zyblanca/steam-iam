@@ -201,7 +201,7 @@
     </select>
     <select id="selectUserMatchLdapByLoginName"
             resultType="com.crc.crcloud.steam.iam.model.dto.UserMatchLdapDTO">
-        SELECT iu.id,iu.login_name,iu.is_ldap,GROUP_CONCAT(iuor.organization_id)
+        SELECT iu.id,iu.login_name,iu.is_ldap,GROUP_CONCAT(iuor.organization_id) as organizationIds
         FROM iam_user iu
         LEFT JOIN iam_user_organization_rel iuor
         ON iuor.user_id=iu.id
