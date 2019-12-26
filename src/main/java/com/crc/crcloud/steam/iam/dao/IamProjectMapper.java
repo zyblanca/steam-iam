@@ -27,7 +27,7 @@ public interface IamProjectMapper extends BaseMapper<IamProject> {
      */
     int updateBySql(@Param("project") IamProjectDTO project);
 
-    IPage<IamProject> getUserProjects(Page page, @Param("userId") Long userId, @Param("organizationId") Long organizationId, @Param("searchName") String searchName);
+    IPage<IamProject> getUserProjects(IPage page, @Param("userId") Long userId, @Param("organizationId") Long organizationId, @Param("searchName") String searchName);
 
     List<IamProjectDTO> queryByCategory(@Param("category") String category);
 
