@@ -102,6 +102,9 @@ public class IamUserServiceImpl implements IamUserService {
         @NotNull IamUserDTO user = createUserByManual(vo);
         log.info("手动添加用户[{}],期望属于组织[{}]", vo.getRealName(), CollUtil.join(organizationIds, ","));
         iamUserOrganizationRelService.link(user.getId(), organizationIds);
+        iamUserOrganizationRelService.getUserOrganizations(user.getId()).stream().findFirst().ifPresent(t -> {
+            this.updateUserCurrentOrganization(t.getUserId(), t.getOrganizationId());
+        });
         ApplicationContextHelper.getContext().publishEvent(new IamUserManualCreateEvent(user, vo.getPassword()));
         log.info("手动添加用户[{}],期望属于角色[{}]", vo.getRealName(), CollUtil.join(vo.getRoleIds(), ","));
         for (Long organizationId : organizationIds) {
