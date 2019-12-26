@@ -75,7 +75,7 @@
     </select>
     <select id="getUserProjects" resultMap="BaseResultMap">
         select
-         <include refid="Base_Column_List"/>
+        <include refid="Base_Column_List"/>
         from (
         select ip.*, iu.real_name as real_name
         from iam_project ip
@@ -91,6 +91,7 @@
         <if test="@cn.hutool.core.util.StrUtil@isNotEmpty(searchName)">
             and ip.name like concat('%',#{searchName},'%')
         </if>
+        group by ip.id
         ) ip
     </select>
     <select id="queryByCategory" resultType="com.crc.crcloud.steam.iam.model.dto.IamProjectDTO">
