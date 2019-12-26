@@ -6,7 +6,7 @@ import cn.hutool.core.bean.copier.CopyOptions;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.api.feign.SteamAgileServiceClient;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
-import com.crc.crcloud.steam.iam.common.utils.PageUtil;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.common.utils.UserDetail;
 import com.crc.crcloud.steam.iam.model.dto.IamProjectDTO;
@@ -118,13 +118,12 @@ public class IamProjectController {
     @ApiOperation(value = "查询当前用户授权的项目")
     @PostMapping()
     public ResponseEntity<IPage<IamUserProjectResponseVO>> queryAllProject(
-            PageUtil pageUtil, IamUserProjectRequestVO vo) {
+            Page page, IamUserProjectRequestVO vo) {
         final IamUserDTO iamUser = iamUserService.getAndThrow(UserDetail.getUserId());
         if (Objects.isNull(vo.getOrganizationId())) {
             vo.setOrganizationId(iamUser.getCurrentOrganizationId());
         }
-        PageUtil.sortFieldConvertToUnderlineCase(pageUtil);
-        IPage<IamProjectDTO> userProjects = iamProjectService.getUserProjects(pageUtil, iamUser.getId(), vo.getOrganizationId(), vo.getName());
+        IPage<IamProjectDTO> userProjects = iamProjectService.getUserProjects(page, iamUser.getId(), vo.getOrganizationId(), vo.getName());
         Set<Long> userIds = userProjects.getRecords().stream().map(IamProjectDTO::getCreatedBy).filter(Objects::nonNull).collect(Collectors.toSet());
         Map<Long, String> userMap = iamUserService.getUsers(userIds).stream().collect(Collectors.toMap(IamUserDTO::getId, IamUserDTO::getRealName));
         IPage<IamUserProjectResponseVO> pageResult = userProjects.convert(t -> {

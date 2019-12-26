@@ -8,17 +8,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.api.feign.SteamAgileServiceClient;
 import com.crc.crcloud.steam.iam.common.enums.RoleLabelEnum;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
-import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
-import com.crc.crcloud.steam.iam.common.utils.PageUtil;
-import com.crc.crcloud.steam.iam.common.utils.UserDetail;
+import com.crc.crcloud.steam.iam.common.utils.*;
 import com.crc.crcloud.steam.iam.dao.IamLabelMapper;
 import com.crc.crcloud.steam.iam.dao.IamOrganizationMapper;
 import com.crc.crcloud.steam.iam.dao.IamProjectMapper;
 import com.crc.crcloud.steam.iam.dao.IamRoleMapper;
-import com.crc.crcloud.steam.iam.entity.IamLabel;
-import com.crc.crcloud.steam.iam.entity.IamOrganization;
-import com.crc.crcloud.steam.iam.entity.IamProject;
-import com.crc.crcloud.steam.iam.entity.IamRole;
+import com.crc.crcloud.steam.iam.entity.*;
 import com.crc.crcloud.steam.iam.model.dto.IamProjectDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.ProjectEventPayload;
 import com.crc.crcloud.steam.iam.model.event.IamProjectCreateEvent;
@@ -344,8 +339,13 @@ public class IamProjectServiceImpl implements IamProjectService {
     }
 
     @Override
-    public IPage<IamProjectDTO> getUserProjects(PageUtil pageUtil, @NotNull Long userId, @NotNull Long organizationId, @Nullable String searchName) {
-        IPage<IamProject> projectPage = iamProjectMapper.getUserProjects(pageUtil, userId, organizationId, searchName);
+    public IPage<IamProjectDTO> getUserProjects(Page page, @NotNull Long userId, @NotNull Long organizationId, @Nullable String searchName) {
+        //noinspection unchecked
+        PageWrapper<IamProject> pageWrapper = PageWrapper.instance(page);
+        pageWrapper.addGbkFieldConvert(IamProject::getName, IamProject::getDescription);
+        pageWrapper.addGbkFieldConvert(EntityUtil.getSimpleField(IamUser::getRealName));
+        pageWrapper.addDefaultOrderByDesc(IamProject::getCreationDate);
+        IPage<IamProject> projectPage = iamProjectMapper.getUserProjects(pageWrapper, userId, organizationId, searchName);
         return projectPage.convert(t -> ConvertHelper.convert(t, IamProjectDTO.class));
     }
 }
