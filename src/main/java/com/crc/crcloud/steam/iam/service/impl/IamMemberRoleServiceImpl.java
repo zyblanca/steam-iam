@@ -4,11 +4,14 @@ package com.crc.crcloud.steam.iam.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ArrayUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.crc.crcloud.steam.iam.common.enums.MemberType;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
+import com.crc.crcloud.steam.iam.common.utils.PageWrapper;
 import com.crc.crcloud.steam.iam.dao.IamMemberRoleMapper;
 import com.crc.crcloud.steam.iam.entity.IamMemberRole;
 import com.crc.crcloud.steam.iam.model.dto.IamMemberRoleDTO;
@@ -21,6 +24,7 @@ import com.crc.crcloud.steam.iam.service.IamRoleService;
 import com.crc.crcloud.steam.iam.service.IamUserService;
 import io.choerodon.core.convertor.ApplicationContextHelper;
 import io.choerodon.core.convertor.ConvertHelper;
+import io.choerodon.core.iam.InitRoleCode;
 import io.choerodon.core.iam.ResourceLevel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +36,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -158,5 +159,18 @@ public class IamMemberRoleServiceImpl extends ServiceImpl<IamMemberRoleMapper, I
 	@Override
 	public void grantUserSiteRole(@NotNull Long userId, @NotEmpty Set<Long> roleIds) {
 		this.grantUserRole(userId, roleIds, 0L, ResourceLevel.SITE);
+	}
+
+	@Override
+	public @NotNull IPage<Long> getSiteAdminUserId(@NotNull Page page) {
+		IamRoleService iamRoleService = ApplicationContextHelper.getContext().getBean(IamRoleService.class);
+		Optional<IamRoleDTO> siteAdminRole = iamRoleService.getRoleByCode(InitRoleCode.SITE_ADMINISTRATOR);
+		if (!siteAdminRole.isPresent()) {
+			return new Page<>(page.getCurrent(), page.getSize());
+		}
+		PageWrapper pageWrapper = PageWrapper.instance(page);
+		pageWrapper.addDefaultOrderByDesc("rel_date");
+		pageWrapper.addGbkFieldConvert(EntityUtil.getSimpleField(IamUserDTO::getRealName));
+		return iamMemberRoleMapper.getSiteAdminUserId(pageWrapper, siteAdminRole.get().getId());
 	}
 }
