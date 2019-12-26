@@ -127,7 +127,7 @@
         AND imr.source_type = #{userSearch.memberSourceType}
         AND imr.source_id = #{userSearch.projectId}
         <if test="userSearch.roleIds !=null and userSearch.roleIds.size()>0">
-            and imr.role_id in <foreach collection="userSearch.roleIds" separator="," open="(" item="item" close=")"/>
+            and imr.role_id in <foreach collection="userSearch.roleIds" separator="," open="(" item="item" close=")">#{item}</foreach>
         </if>
         AND ir.IS_ENABLED =1
         GROUP BY imr.MEMBER_ID)tmp
