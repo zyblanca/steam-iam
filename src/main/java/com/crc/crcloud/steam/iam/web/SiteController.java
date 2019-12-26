@@ -3,6 +3,8 @@ package com.crc.crcloud.steam.iam.web;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.comparator.PinyinComparator;
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -31,7 +33,6 @@ import javax.annotation.Nullable;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.text.Collator;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
@@ -57,6 +58,10 @@ public class SiteController {
     @Autowired
     private IamRoleService iamRoleService;
 
+    public static void main(String[] args) {
+        List<String> strings = CollUtil.sortByPinyin(CollUtil.newArrayList("abc", " ", "", "刘洋", "管理员", "ldf", "杨严翠"));
+        System.out.println(strings);
+    }
     @Permission(level = ResourceLevel.SITE)
     @ApiOperation("平台管理-成员管理")
     @PostMapping("page")
@@ -76,7 +81,6 @@ public class SiteController {
         Collection<IamUserDTO> distinct = siteUsers.stream().collect(Collectors.toMap(IamUserDTO::getId, Function.identity(), (a, b) -> a, LinkedHashMap::new)).values();
         siteUsers = CollUtil.newArrayList(distinct);
         Page<SiteManagerUserResponseVO> pageResult = new Page<>(vo.getCurrent(), vo.getSize(), siteUsers.size());
-
         List<IamUserDTO> pageSiteUsers = CollUtil.sortPageAll(vo.getCurrent().intValue(), vo.getSize().intValue(), (o1, o2) -> {
             if (!StrUtil.isAllBlank(vo.getAsc(), vo.getDesc())) {
                 AtomicBoolean isDesc = new AtomicBoolean(false);
@@ -86,10 +90,11 @@ public class SiteController {
                 });
                 Object o1Value = BeanUtil.getProperty(o1, fieldName);
                 Object o2Value = BeanUtil.getProperty(o2, fieldName);
-                if (Objects.nonNull(o1Value) && Objects.nonNull(o2Value)) {
-                    Collator instance = Collator.getInstance(Locale.CHINA);
-                    return (isDesc.get() ? instance.reversed() : instance).compare(o1Value, o2Value);
+                Comparator<String> pinyinComparator = Comparator.nullsFirst(new PinyinComparator());
+                if (isDesc.get()) {
+                    pinyinComparator = pinyinComparator.reversed();
                 }
+                return pinyinComparator.compare(Convert.toStr(o1Value), Convert.toStr(o2Value));
             }
             return 0;
         }, siteUsers);
@@ -108,6 +113,7 @@ public class SiteController {
             responseVO.setCompany("润联科技");
             responseVO.setDepartment("华润云-开发云");
             responseVO.setPosition("高级咨询经理");
+            responseVO.setPhoneNumber(StrUtil.addPrefixIfNot(t.getPhone(), t.getInternationalTelCode()));
             boolean alreadySiteRole = iamRoleService.getUserRoles(t.getId(), ResourceLevel.SITE).stream().anyMatch(role -> Objects.equals(role.getCode(), InitRoleCode.SITE_ADMINISTRATOR));
             responseVO.setAlreadySiteRole(alreadySiteRole);
             return responseVO;
