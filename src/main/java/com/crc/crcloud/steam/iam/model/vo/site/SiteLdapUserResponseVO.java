@@ -39,10 +39,13 @@ public class SiteLdapUserResponseVO {
     @ApiModelProperty("电话号码")
     private String phoneNumber;
 
+    @Deprecated
     @ApiModelProperty("公司")
     private String company;
+    @Deprecated
     @ApiModelProperty("部门")
     private String department;
+    @Deprecated
     @ApiModelProperty("职务")
     private String position;
 
