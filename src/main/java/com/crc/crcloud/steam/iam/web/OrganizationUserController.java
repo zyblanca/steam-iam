@@ -2,7 +2,7 @@ package com.crc.crcloud.steam.iam.web;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.convert.Convert;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
 import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
@@ -25,12 +25,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -55,15 +52,8 @@ public class OrganizationUserController {
     @PostMapping("page")
     public ResponseEntity<IPage<IamOrganizationUserPageResponseVO>> page(@PathVariable("organization_id") Long organizationId
             , @RequestBody @Valid IamOrganizationUserPageRequestVO vo) {
-        if (Objects.isNull(vo.getPage()) || vo.getPage() <= 0) {
-            vo.setPage(1);
-        }
-        if (Objects.isNull(vo.getPageSize()) || vo.getPageSize() <= 0) {
-            vo.setPage(10);
-        }
-        if (StrUtil.isAllBlank(vo.getAsc(), vo.getDesc())) {
-            vo.setAsc(EntityUtil.getSimpleField(IamUserDTO::getLoginName));
-        }
+        Optional.ofNullable(vo.getPage()).ifPresent(value -> vo.setCurrent(Convert.toLong(value)));
+        Optional.ofNullable(vo.getPageSize()).ifPresent(value -> vo.setSize(Convert.toLong(value)));
         IPage<IamUserVO> pageResult = iamUserService.pageQueryOrganizationUser(organizationId, vo);
         final Map<Long, List<IamRoleDTO>> iamUserRoleMap = new ConcurrentHashMap<>(pageResult.getRecords().size());
         pageResult.getRecords().parallelStream().forEach(t -> {
@@ -93,13 +83,14 @@ public class OrganizationUserController {
     @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR})
     @GetMapping
     public ResponseEntity<List<IamUserSafeVO>> list(@PathVariable("organization_id") Long organizationId) {
-        IamOrganizationUserPageRequestVO pageRequestVO = IamOrganizationUserPageRequestVO.builder().pageSize(999).build();
+        IamOrganizationUserPageRequestVO pageRequestVO = new IamOrganizationUserPageRequestVO();
+        pageRequestVO.setSize(999L);
         List<IamUserSafeVO> orgUsers = new ArrayList<>(500);
-        AtomicInteger page = new AtomicInteger();
+        AtomicLong page = new AtomicLong();
         IPage<IamUserSafeVO> pageResult;
         pageRequestVO.setAsc(EntityUtil.getSimpleField(IamUserSafeVO::getRealName));
         do {
-            pageRequestVO.setPage(page.incrementAndGet());
+            pageRequestVO.setCurrent(page.incrementAndGet());
             pageResult = iamUserService.pageQueryOrganizationUser(organizationId, pageRequestVO).convert(IamUserSafeVO::new);
             orgUsers.addAll(pageResult.getRecords());
         } while (pageResult.getCurrent() < pageResult.getPages());

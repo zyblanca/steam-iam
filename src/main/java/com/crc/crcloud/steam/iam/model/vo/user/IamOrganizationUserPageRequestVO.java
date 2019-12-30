@@ -1,6 +1,7 @@
 package com.crc.crcloud.steam.iam.model.vo.user;
 
 import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
+import com.crc.crcloud.steam.iam.model.vo.PageRequestVO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,10 +18,12 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class IamOrganizationUserPageRequestVO {
+public class IamOrganizationUserPageRequestVO extends PageRequestVO {
     @Nullable
+    @Deprecated
     private Integer page;
     @Nullable
+    @Deprecated
     private Integer pageSize;
 
     @Nullable

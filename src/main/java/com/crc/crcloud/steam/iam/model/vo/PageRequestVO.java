@@ -3,6 +3,7 @@ package com.crc.crcloud.steam.iam.model.vo;
 import cn.hutool.core.util.NumberUtil;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Optional;
 
@@ -31,6 +32,7 @@ public class PageRequestVO {
      * <p>小于0的页码自动格式化为1</p>
      * @return 页码 从1开始
      */
+    @NotNull
     public Long getCurrent() {
         return Optional.ofNullable(current)
                 .filter(t -> NumberUtil.isGreater(BigDecimal.valueOf(t), BigDecimal.ZERO))
@@ -46,6 +48,7 @@ public class PageRequestVO {
      * <p>小于0的页码自动格式化为10</p>
      * @return 每页数量 从1开始
      */
+    @NotNull
     public Long getSize() {
         return Optional.ofNullable(size)
                 .filter(t -> NumberUtil.isGreater(BigDecimal.valueOf(t), BigDecimal.ZERO))

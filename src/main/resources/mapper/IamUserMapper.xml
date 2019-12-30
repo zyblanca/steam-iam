@@ -106,9 +106,9 @@
             <if test="searchDTO.isLdap!=null">
                 and iam_user.is_ldap = ${searchDTO.isLdap}
             </if>
-            <if test="@cn.hutool.core.util.StrUtil@isNotBlank(searchDTO.orderByRoleName)">
-                order by ${searchDTO.orderByRoleName}
-            </if>
+            <!--<if test="@cn.hutool.core.util.StrUtil@isNotBlank(searchDTO.orderByRoleName)">
+                order by ${searchDTO.orderByRoleName} -废除角色排序
+            </if>-->
         ) as iam_user
       group by iam_user.id
     </select>

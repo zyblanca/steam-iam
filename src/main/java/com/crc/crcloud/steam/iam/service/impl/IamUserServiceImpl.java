@@ -14,12 +14,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.enums.MemberType;
 import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
-import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
-import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
-import com.crc.crcloud.steam.iam.common.utils.PageUtil;
-import com.crc.crcloud.steam.iam.common.utils.UserDetail;
+import com.crc.crcloud.steam.iam.common.utils.*;
 import com.crc.crcloud.steam.iam.dao.*;
-import com.crc.crcloud.steam.iam.entity.*;
+import com.crc.crcloud.steam.iam.entity.IamOrganization;
+import com.crc.crcloud.steam.iam.entity.IamProject;
+import com.crc.crcloud.steam.iam.entity.IamUser;
+import com.crc.crcloud.steam.iam.entity.IamUserOrganizationRel;
 import com.crc.crcloud.steam.iam.model.dto.IamProjectDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
@@ -41,7 +41,6 @@ import com.crc.crcloud.steam.iam.service.IamUserService;
 import io.choerodon.core.convertor.ApplicationContextHelper;
 import io.choerodon.core.convertor.ConvertHelper;
 import io.choerodon.core.exception.CommonException;
-import io.choerodon.core.iam.InitRoleCode;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.core.oauth.CustomUserDetails;
 import io.choerodon.core.oauth.DetailsHelper;
@@ -60,9 +59,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -209,7 +206,7 @@ public class IamUserServiceImpl implements IamUserService {
             UserOriginEnum[] userOriginEnums = UserOriginEnum.values();
             if (vo.getOrigins().stream().noneMatch(t -> Arrays.stream(userOriginEnums).anyMatch(origin -> origin.equalsValue(t)))) {
                 log.warn("来源参数都不符合;[{}]", CollUtil.join(vo.getOrigins(), ""));
-                return new Page<>(vo.getPage(), vo.getPageSize());
+                return new Page<>(vo.getCurrent(), vo.getSize());
             }
             Set<UserOriginEnum> collect = Arrays.stream(userOriginEnums).filter(t -> vo.getOrigins().contains(t.getValue())).collect(Collectors.toSet());
             if (collect.size() == 1) {
@@ -224,29 +221,16 @@ public class IamUserServiceImpl implements IamUserService {
                 }
             }
         }
-        final Page<IamUser> page = new Page<>(vo.getPage(), vo.getPageSize());
         //处理排序转换
-        final Map<String, Function<String, String>> orderConvert = new HashMap<>(4);
-        orderConvert.put(EntityUtil.getSimpleField(IamUser::getLoginName), Function.identity());
-        orderConvert.put(EntityUtil.getSimpleField(IamUser::getRealName), t -> StrUtil.format("convert(iam_user.{} using gbk)", t));
-        orderConvert.put("origin", t -> EntityUtil.getSimpleField(IamUser::getIsLdap));
-        final String roleNameField = StrUtil.toUnderlineCase("roleName");
-        orderConvert.put(roleNameField, t -> StrUtil.format("convert(iam_role.{} using gbk)", EntityUtil.getSimpleField(IamRoleDTO::getName)));
-        BiConsumer<String, Consumer<String>> handler = (field, setter) -> {
-            Optional.ofNullable(field).filter(StrUtil::isNotBlank).map(StrUtil::toUnderlineCase)
-                    .filter(orderConvert::containsKey).map(t -> orderConvert.get(t).apply(t))
-                    .ifPresent(setter);
-        };
-        if (Objects.equals(roleNameField, StrUtil.toUnderlineCase(vo.getAsc()))) {
-            searchDTO.setOrderByRoleName(orderConvert.get(roleNameField).apply(roleNameField));
-        } else {
-            handler.accept(vo.getAsc(), page::setAsc);
-        }
-        if (Objects.equals(roleNameField, StrUtil.toUnderlineCase(vo.getDesc()))) {
-            searchDTO.setOrderByRoleName(orderConvert.get(roleNameField).apply(roleNameField) + " desc");
-        } else {
-            handler.accept(vo.getDesc(), page::setDesc);
-        }
+        final Page<IamUser> page = new Page<>(vo.getCurrent(), vo.getSize());
+        PageWrapper<IamUser> pageWrapper = PageWrapper.instance(page);
+        pageWrapper.addTableAliasSortFieldConvert("iam_user", IamUser::getRealName);
+        pageWrapper.addGbkFieldConvert(IamUser::getRealName);
+        pageWrapper.addSortFieldConvert(origin -> EntityUtil.getSimpleField(IamUser::getIsLdap), "origin");
+        pageWrapper.addTableAliasSortFieldConvert("iam_role", "roleName");
+        pageWrapper.addGbkFieldConvert("roleName");
+        pageWrapper.addDefaultOrderByDesc(IamUser::getCreationDate);
+        pageWrapper.addTableAliasSortFieldConvert("iam_user", IamUser::getCreationDate);
         IPage<IamUser> pageResult = iamUserMapper.pageQueryOrganizationUser(page, CollUtil.newHashSet(organizationId), searchDTO);
         return pageResult.convert(t -> CopyUtil.copy(t, IamUserVO.class));
     }
