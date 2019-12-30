@@ -2,7 +2,6 @@ package com.crc.crcloud.steam.iam.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
@@ -55,7 +54,7 @@ public interface IamUserMapper extends BaseMapper<IamUser> {
      * @param searchDTO
      * @return
      */
-    IPage<IamUser> pageQueryOrganizationUser(@Param("page") Page<IamUser> page, @Param("organizationIds") Set<Long> organizationIds, @Param("searchDTO") SearchDTO searchDTO);
+    IPage<IamUser> pageQueryOrganizationUser(@Param("page") IPage<IamUser> page, @Param("organizationIds") Set<Long> organizationIds, @Param("searchDTO") SearchDTO searchDTO);
 
     /**
      * 通过项目查询用户

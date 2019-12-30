@@ -106,9 +106,9 @@
             <if test="searchDTO.isLdap!=null">
                 and iam_user.is_ldap = ${searchDTO.isLdap}
             </if>
-            <if test="@cn.hutool.core.util.StrUtil@isNotBlank(searchDTO.orderByRoleName)">
-                order by ${searchDTO.orderByRoleName}
-            </if>
+            <!--<if test="@cn.hutool.core.util.StrUtil@isNotBlank(searchDTO.orderByRoleName)">
+                order by ${searchDTO.orderByRoleName} -废除角色排序
+            </if>-->
         ) as iam_user
       group by iam_user.id
     </select>
@@ -184,19 +184,18 @@
         SELECT iu.id,
                iu.login_name,
                iu.real_name
-        FROM iam_user_organization_rel iuor
+        FROM (SELECT DISTINCT user_id FROM  iam_user_organization_rel WHERE organization_id=#{userSearch.organizationId}) iuor
                  INNER JOIN iam_user iu
                             ON iu.id = iuor.user_id
                  LEFT JOIN (SELECT DISTINCT imr.member_id
                             FROM iam_member_role imr
-                            WHERE imr.member_type = #{userSearch.memberType}
-                              AND imr.source_type = #{userSearch.memberSourceType}
+                            WHERE imr.member_type =#{userSearch.memberType}
+                              AND imr.source_type =#{userSearch.memberSourceType}
                               AND imr.source_id = #{userSearch.projectId}) tmp
                            ON tmp.member_id = iu.id
-        WHERE iuor.organization_id = #{userSearch.organizationId}
-          AND tmp.member_id IS NULL
+        WHERE  tmp.member_id IS NULL
           AND iu.is_enabled =1
-        order by CONVERT(real_name USING gbk)
+        order by CONVERT(real_name USING gbk);
 
     </select>
     <select id="selectUserMatchLdapByLoginName"
