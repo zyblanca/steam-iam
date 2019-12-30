@@ -9,6 +9,8 @@ target/
 .settings
 .springBeans
 .sts4-cache
+/application-test.yml
+
 
 ### IntelliJ IDEA ###
 .idea
