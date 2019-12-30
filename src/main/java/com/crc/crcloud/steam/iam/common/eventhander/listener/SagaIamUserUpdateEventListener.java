@@ -74,6 +74,7 @@ public class SagaIamUserUpdateEventListener implements ApplicationListener<IamUs
                         return  input;
                     });
         } catch (Exception e) {
+            log.warn(e.getMessage());
             throw new CommonException("error.sagaEvent.organizationUserService.updateUser");
         }
     }

@@ -21,6 +21,7 @@ import com.crc.crcloud.steam.iam.model.feign.role.RoleDTO;
 import com.crc.crcloud.steam.iam.model.feign.user.UserDTO;
 import com.crc.crcloud.steam.iam.service.IamOrganizationService;
 import com.crc.crcloud.steam.iam.service.IamProjectService;
+import io.choerodon.core.iam.InitRoleCode;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.core.validator.ValidList;
 import lombok.extern.slf4j.Slf4j;
@@ -80,6 +81,13 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
      */
     public void sync(@NotNull IamUserDTO user, @NotEmpty List<IamMemberRoleWithRoleDTO> roles) throws RuntimeException {
         roles = roles.stream().filter(t -> Objects.equals(t.getIamMemberRole().getMemberId(), user.getId()) && Objects.equals(t.getIamMemberRole().getMemberType(), MemberType.USER.getValue()))
+                .filter(role -> {
+                    if (Objects.equals(role.getRole().getCode(), InitRoleCode.SITE_ADMINISTRATOR)) {
+                        log.warn("用户[{}]平台管理员不同步到老行云", user.getLoginName());
+                        return false;
+                    }
+                    return true;
+                })
                 .collect(Collectors.toList());
         Optional<UserDTO> iamServerUserOpt = getIamServerUserByLoginName(user.getLoginName());
         if (!iamServerUserOpt.isPresent()) {

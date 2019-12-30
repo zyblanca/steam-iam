@@ -297,15 +297,6 @@ public class IamUserServiceImpl implements IamUserService {
         if (CollectionUtils.isEmpty(userIds = iamUserVO.getUserIds()) || CollectionUtils.isEmpty(roleIds = iamUserVO.getRoleIds())) {
             throw new IamAppCommException("");
         }
-
-        //当前写死项目拥有者权限
-        //获取项目拥有者权限id
-        IamRole iamRole = iamRoleMapper.selectOne(Wrappers.<IamRole>lambdaQuery()
-                .eq(IamRole::getFdLevel, ResourceLevel.PROJECT.value()).eq(IamRole::getCode, InitRoleCode.PROJECT_OWNER).eq(IamRole::getIsEnabled, (byte) 1));
-        if (Objects.isNull(iamRole)) {
-            throw new IamAppCommException("project.invalid.owner.role");
-        }
-        roleIds.add(iamRole.getId());
         //公共授权通道
         iamMemberRoleService.grantUserRole(new HashSet<>(userIds), new HashSet<>(roleIds), projectId, ResourceLevel.PROJECT);
 

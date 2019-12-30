@@ -97,6 +97,7 @@ public class SagaIamOrganizationListener {
             passwordPolicyDTO.setLockedExpireTime(600);
             oauthPasswordPolicyService.sagaCreatePasswordPolicy(orgId, passwordPolicyDTO);
         } catch (Exception e) {
+            log.warn(e.getMessage());
             log.error("steam-iam-SagaTask create password policy error of organizationId: {}, exception: {}", orgId, e);
         }
     }

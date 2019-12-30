@@ -3,6 +3,8 @@ package com.crc.crcloud.steam.iam.model.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
  * 人员查询条件
  */
@@ -30,6 +32,6 @@ public class UserSearchDTO {
     private String param;
 
 
-    private Long roleIds;
+    private List<Long> roleIds;
 
 }

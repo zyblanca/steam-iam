@@ -93,6 +93,7 @@ public class SagaIamUserToggleEnableEventListener implements ApplicationListener
                         return input;
                     });
         } catch (Exception e) {
+            log.warn(e.getMessage());
             throw new CommonException("error.sagaEvent.organizationUserService.toggleUserStatus");
         }
     }

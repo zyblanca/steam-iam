@@ -118,7 +118,8 @@
         iu.login_name,
         iu.real_name,
         iu.email,
-        tmp.roleName
+        tmp.roleName,
+        iu.creation_date
         FROM (select imr.member_id,GROUP_CONCAT(ir.NAME ORDER BY ir.ID desc) roleName
         FROM iam_member_role imr
         LEFT JOIN iam_role ir ON ir.ID=imr.ROLE_ID
@@ -126,7 +127,7 @@
         AND imr.source_type = #{userSearch.memberSourceType}
         AND imr.source_id = #{userSearch.projectId}
         <if test="userSearch.roleIds !=null and userSearch.roleIds.size()>0">
-            and imr.role_id in <foreach collection="userSearch.roleIds" separator="," open="(" item="item" close=")"/>
+            and imr.role_id in <foreach collection="userSearch.roleIds" separator="," open="(" item="item" close=")">#{item}</foreach>
         </if>
         AND ir.IS_ENABLED =1
         GROUP BY imr.MEMBER_ID)tmp
@@ -200,7 +201,7 @@
     </select>
     <select id="selectUserMatchLdapByLoginName"
             resultType="com.crc.crcloud.steam.iam.model.dto.UserMatchLdapDTO">
-        SELECT iu.id,iu.login_name,iu.is_ldap,GROUP_CONCAT(iuor.organization_id)
+        SELECT iu.id,iu.login_name,iu.is_ldap,GROUP_CONCAT(iuor.organization_id) as organizationIds
         FROM iam_user iu
         LEFT JOIN iam_user_organization_rel iuor
         ON iuor.user_id=iu.id
