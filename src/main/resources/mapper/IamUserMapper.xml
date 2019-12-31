@@ -118,23 +118,29 @@
         iu.login_name,
         iu.real_name,
         iu.email,
-        tmp.roleName,
+        mr1.roleName,
         iu.creation_date
-        FROM (select imr.member_id,GROUP_CONCAT(ir.NAME ORDER BY ir.ID desc) roleName
+        FROM
+        (SELECT DISTINCT member_id FROM iam_member_role
+        WHERE source_id = #{userSearch.projectId}
+        AND member_type =#{userSearch.memberType}
+        AND source_type = #{userSearch.memberSourceType}
+        <if test="userSearch.roleIds !=null and userSearch.roleIds.size()>0">
+            AND role_id IN <foreach collection="userSearch.roleIds" separator="," open="(" item="item" close=")">#{item}</foreach>
+        </if>
+        ) mr
+        LEFT JOIN (SELECT imr.member_id,GROUP_CONCAT(ir.NAME ORDER BY ir.ID DESC) roleName
         FROM iam_member_role imr
         LEFT JOIN iam_role ir ON ir.ID=imr.ROLE_ID
         WHERE imr.member_type = #{userSearch.memberType}
         AND imr.source_type = #{userSearch.memberSourceType}
-        AND imr.source_id = #{userSearch.projectId}
-        <if test="userSearch.roleIds !=null and userSearch.roleIds.size()>0">
-            and imr.role_id in <foreach collection="userSearch.roleIds" separator="," open="(" item="item" close=")">#{item}</foreach>
-        </if>
+        AND imr.source_id =#{userSearch.projectId}
         AND ir.IS_ENABLED =1
-        GROUP BY imr.MEMBER_ID)tmp
-        INNER JOIN iam_user iu
-        ON tmp.member_id = iu.id
-        where 1=1
-        and iu.is_enabled =1
+        GROUP BY imr.MEMBER_ID) mr1 ON mr1.member_id = mr.member_id
+        LEFT JOIN iam_user iu
+        ON mr1.member_id = iu.id
+        WHERE 1=1
+        AND iu.is_enabled =1
         <if test="userSearch.id != null">
             AND iu.id = #{userId}
         </if>
