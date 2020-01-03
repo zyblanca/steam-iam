@@ -84,7 +84,7 @@ public class IamUserController {
      * @return 人员信息
      */
     //简易权限，后续需要根据实际情况做校验
-    @Permission(level = ResourceLevel.PROJECT)
+    @Permission(level = ResourceLevel.PROJECT,roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
     @ApiOperation(value = "项目人员列表", notes = "项目人员列表", response = IamUserVO.class)
     @GetMapping("/projects/{project_id}/users")
     public ResponseEntity<IPage<IamUserVO>> pageProjectUser(@ApiParam(value = "项目ID", required = true)
@@ -105,7 +105,7 @@ public class IamUserController {
      * @return 人员信息
      */
     //简易权限，后续需要根据实际情况做校验
-    @Permission(level = ResourceLevel.PROJECT)
+    @Permission(level = ResourceLevel.PROJECT,roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
     @ApiOperation(value = "项目人员列表，无分页", notes = "项目人员列表，无分页", response = IamUserVO.class)
     @GetMapping("/projects/{project_id}/list/users")
     public ResponseEntity<List<IamUserVO>> listProjectUser(@ApiParam(value = "项目ID", required = true)
@@ -125,7 +125,7 @@ public class IamUserController {
      * @return 用户信息
      */
     //简易权限，后续需要根据实际情况做校验
-    @Permission(level = ResourceLevel.PROJECT)
+    @Permission(level = ResourceLevel.PROJECT,roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
     @ApiOperation(value = "项目人员下拉列表", notes = "项目人员下拉列表", response = IamUserVO.class)
     @GetMapping("/projects/{project_id}/iam_user/drop/down")
     public ResponseEntity<List<IamUserVO>> projectDropDownUser(@ApiParam(value = "项目ID", required = true)
@@ -143,7 +143,7 @@ public class IamUserController {
      * @return 用户信息
      */
     //简易权限，后续需要根据实际情况做校验
-    @Permission(level = ResourceLevel.PROJECT)
+    @Permission(level = ResourceLevel.PROJECT,roles = {InitRoleCode.PROJECT_OWNER})
     @ApiOperation(value = "组织下面未被项目选择的人员下拉", notes = "组织下面未被项目选择的人员下拉", response = IamUserVO.class)
     @GetMapping("/projects/{project_id}/iam_user/unselect")
     public ResponseEntity<List<IamUserVO>> projectUnselectUser(@ApiParam(value = "项目ID", required = true)
@@ -161,7 +161,7 @@ public class IamUserController {
      * @return 绑定结果
      */
     //简易权限，后续需要根据实际情况做校验
-    @Permission(level = ResourceLevel.PROJECT)
+    @Permission(level = ResourceLevel.PROJECT,roles = { InitRoleCode.PROJECT_OWNER})
     @ApiOperation(value = "项目绑定用户", notes = "项目绑定用户")
     @PostMapping("/projects/{project_id}/iam_user/bind/users")
     public ResponseEntity projectBindUsers(@ApiParam(value = "项目ID", required = true)

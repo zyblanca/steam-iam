@@ -32,6 +32,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -77,8 +79,14 @@ public class IamProjectServiceImpl implements IamProjectService {
         iamProject.setIsEnabled(Boolean.TRUE);
         //创建项目
         iamProjectMapper.insert(iamProject);
-        //发起saga事件
-        applicationEventPublisher.publishEvent(new IamProjectCreateEvent(intiParam(iamProject, organization)));
+        //事务成功后 发起saga事件
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+            @Override
+            public void afterCommit() {
+                //发起saga事件
+                applicationEventPublisher.publishEvent(new IamProjectCreateEvent(intiParam(iamProject, organization)));
+            }
+        });
 
 
         //创建人授予项目拥有者权限

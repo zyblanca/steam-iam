@@ -119,7 +119,7 @@
         iu.real_name,
         iu.email,
         mr1.roleName,
-        iu.creation_date
+        mr1.creation_date
         FROM
         (SELECT DISTINCT member_id FROM iam_member_role
         WHERE source_id = #{userSearch.projectId}
@@ -129,7 +129,7 @@
             AND role_id IN <foreach collection="userSearch.roleIds" separator="," open="(" item="item" close=")">#{item}</foreach>
         </if>
         ) mr
-        LEFT JOIN (SELECT imr.member_id,GROUP_CONCAT(ir.NAME ORDER BY ir.ID DESC) roleName
+        LEFT JOIN (SELECT imr.member_id,GROUP_CONCAT(ir.NAME ORDER BY ir.ID DESC) roleName,MAX(imr.creation_date)creation_date
         FROM iam_member_role imr
         LEFT JOIN iam_role ir ON ir.ID=imr.ROLE_ID
         WHERE imr.member_type = #{userSearch.memberType}
