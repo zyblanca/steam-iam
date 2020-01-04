@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.crc.crcloud.steam.iam.api.feign.FileFeignClient;
 import com.crc.crcloud.steam.iam.common.constant.IamConstant;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
+import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.model.dto.IamOrganizationDTO;
 import com.crc.crcloud.steam.iam.model.dto.organization.IamOrganizationWithProjectCountDTO;
@@ -46,6 +47,7 @@ import java.util.function.BiFunction;
  * <p>组织修改 </p>
  * <p>组织禁用启用 </p>
  * <p>组织列表查询 </p>
+ *
  * @author LiuYang
  */
 @Validated
@@ -156,4 +158,19 @@ public class IamOrganizationController {
             return responseVO;
         }));
     }
+
+    /**
+     * 根据组织id查询组织
+     *
+     * @param id 所要查询的组织id号
+     * @return 组织信息
+     */
+    @Permission(level = ResourceLevel.SITE)
+    @ApiOperation(value = "全局层根据组织id查询组织")
+    @GetMapping(value = "/{organization_id}")
+    public ResponseEntity<IamOrganizationVO> query(@PathVariable(name = "organization_id") Long id) {
+        return new ResponseEntity<>(CopyUtil.copy(iamOrganizationService.getAndThrow(id), IamOrganizationVO.class));
+    }
+
+
 }

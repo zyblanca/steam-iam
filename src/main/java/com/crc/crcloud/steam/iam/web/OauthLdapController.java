@@ -116,7 +116,7 @@ public class OauthLdapController {
      */
     @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_MEMBER})
     @ApiOperation(value = "通过组织查询ldap", notes = "通过组织查询ldap", response = OauthLdapVO.class)
-    @GetMapping("/organizations/{organization_id}")
+    @GetMapping("/organizations/{organization_id}/ldap")
     public ResponseEntity<OauthLdapVO> loadByOrg(@ApiParam(value = "组织id", required = true)
                                                  @PathVariable(name = "organization_id") Long organizationId) {
         return new ResponseEntity<>(oauthLdapService.queryOneByOrganizationId(organizationId));
