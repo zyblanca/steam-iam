@@ -246,7 +246,7 @@ public class IamUserServiceImpl implements IamUserService {
         pageWrapper.addGbkFieldConvert("roleName");
         pageWrapper.addDefaultOrderByDesc(IamUser::getCreationDate);
         pageWrapper.addTableAliasSortFieldConvert("iam_user", IamUser::getCreationDate);
-        IPage<IamUser> pageResult = iamUserMapper.pageQueryOrganizationUser(page, CollUtil.newHashSet(organizationId), searchDTO);
+        IPage<IamUser> pageResult = iamUserMapper.pageQueryOrganizationUser(pageWrapper, CollUtil.newHashSet(organizationId), searchDTO);
         return pageResult.convert(t -> CopyUtil.copy(t, IamUserVO.class));
     }
 
