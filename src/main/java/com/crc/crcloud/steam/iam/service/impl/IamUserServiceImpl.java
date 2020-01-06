@@ -236,6 +236,8 @@ public class IamUserServiceImpl implements IamUserService {
         }
         //处理排序转换
         final Page<IamUser> page = new Page<>(vo.getCurrent(), vo.getSize());
+        page.setAsc(vo.getAsc());
+        page.setDesc(vo.getDesc());
         PageWrapper<IamUser> pageWrapper = PageWrapper.instance(page);
         pageWrapper.addTableAliasSortFieldConvert("iam_user", IamUser::getRealName);
         pageWrapper.addGbkFieldConvert(IamUser::getRealName);
