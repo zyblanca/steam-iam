@@ -58,6 +58,17 @@
         WHERE il.name = #{name}
         AND il.type = #{type}
     </select>
+    <select id="selectRolesByMemberRole" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM
+        iam_role ir
+        LEFT JOIN
+        iam_member_role imr ON imr.role_id = ir.id
+        WHERE imr.source_id = #{memberRole.sourceId}
+        AND imr.source_type=#{memberRole.sourceType}
+        AND imr.member_id = #{memberRole.memberId}
+        AND imr.member_type=#{memberRole.memberType}
+    </select>
 
 
 </mapper>

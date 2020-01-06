@@ -369,6 +369,17 @@ public class IamUserController {
         return new ResponseEntity<>(iamUserService.queryProjectsNew(id, organizationId, includedDisabled));
     }
 
+    /**
+     * @note: 临时接口，用于判断当前人员是否是该项目的拥有者
+     * @return 判断标志
+     */
+    @Permission(permissionLogin = true)
+    @GetMapping("user/project/{project_id}/is_owner")
+    public ResponseEntity<Boolean> isProjectOwner(@PathVariable("project_id")Long projectId){
+
+       return new ResponseEntity<>(iamUserService.projectOwner(projectId));
+
+    }
 
 
 }

@@ -16,14 +16,8 @@ import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.*;
 import com.crc.crcloud.steam.iam.dao.*;
-import com.crc.crcloud.steam.iam.entity.IamOrganization;
-import com.crc.crcloud.steam.iam.entity.IamProject;
-import com.crc.crcloud.steam.iam.entity.IamUser;
-import com.crc.crcloud.steam.iam.entity.IamUserOrganizationRel;
-import com.crc.crcloud.steam.iam.model.dto.IamProjectDTO;
-import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
-import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
-import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
+import com.crc.crcloud.steam.iam.entity.*;
+import com.crc.crcloud.steam.iam.model.dto.*;
 import com.crc.crcloud.steam.iam.model.dto.iam.RoleAssignmentSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.iam.UserWithRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.user.SearchDTO;
@@ -41,6 +35,7 @@ import com.crc.crcloud.steam.iam.service.IamUserService;
 import io.choerodon.core.convertor.ApplicationContextHelper;
 import io.choerodon.core.convertor.ConvertHelper;
 import io.choerodon.core.exception.CommonException;
+import io.choerodon.core.iam.InitRoleCode;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.core.oauth.CustomUserDetails;
 import io.choerodon.core.oauth.DetailsHelper;
@@ -175,6 +170,24 @@ public class IamUserServiceImpl implements IamUserService {
     @Override
     public Optional<IamUserDTO> getByEmail(@NotBlank String email) {
         return getOne(t -> t.eq(IamUser::getEmail, email));
+    }
+
+    @Override
+    public Boolean projectOwner(Long projectId) {
+
+        Long userId = UserDetail.getUserId();
+        IamMemberRoleDTO iamMemberRoleDTO = new IamMemberRoleDTO();
+        iamMemberRoleDTO.setMemberId(userId);
+        iamMemberRoleDTO.setMemberType("user");
+        iamMemberRoleDTO.setSourceType("project");
+        iamMemberRoleDTO.setSourceId(projectId);
+        //查询指定人员指定项目的权限
+        List<IamRole> roles = iamRoleMapper.selectRolesByMemberRole(iamMemberRoleDTO);
+        if(CollectionUtils.isEmpty(roles)){
+            return Boolean.FALSE;
+        }
+
+        return roles.stream().anyMatch(v->Objects.equals(v.getCode(), InitRoleCode.PROJECT_OWNER));
     }
 
     /**
