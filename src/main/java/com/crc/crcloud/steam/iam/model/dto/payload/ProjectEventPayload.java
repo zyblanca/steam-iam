@@ -20,4 +20,7 @@ public class ProjectEventPayload {
     private String imageUrl;
     private Long organizationId;
     private Set<String> roleLabels;
+    //新行云新增同步信息
+    private String type;
+    private String category;
 }
