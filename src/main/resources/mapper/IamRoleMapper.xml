@@ -59,7 +59,11 @@
         AND il.type = #{type}
     </select>
     <select id="selectRolesByMemberRole" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
+        SELECT
+        ir.id,
+        ir.name,
+        ir.code,
+        ir.fd_level
         FROM
         iam_role ir
         LEFT JOIN
@@ -68,6 +72,7 @@
         AND imr.source_type=#{memberRole.sourceType}
         AND imr.member_id = #{memberRole.memberId}
         AND imr.member_type=#{memberRole.memberType}
+        AND ir.is_enabled = 1
     </select>
 
 
