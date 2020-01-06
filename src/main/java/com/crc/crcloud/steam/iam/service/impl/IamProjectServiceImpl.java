@@ -85,12 +85,13 @@ public class IamProjectServiceImpl implements IamProjectService {
             public void afterCommit() {
                 //发起saga事件
                 applicationEventPublisher.publishEvent(new IamProjectCreateEvent(intiParam(iamProject, organization)));
+                //创建人授予项目拥有者权限
+                grantCreatMember(iamProject);
             }
         });
 
 
-        //创建人授予项目拥有者权限
-        grantCreatMember(iamProject);
+
 
 
         return CopyUtil.copy(iamProject, IamProjectVO.class);
@@ -112,6 +113,8 @@ public class IamProjectServiceImpl implements IamProjectService {
         projectEventPayload.setProjectCategory(iamProject.getCategory());
         projectEventPayload.setProjectName(iamProject.getName());
         projectEventPayload.setImageUrl(iamProject.getImageUrl());
+        projectEventPayload.setCategory(iamProject.getCategory());
+        projectEventPayload.setType(iamProject.getType());
         //组织信息
         projectEventPayload.setOrganizationCode(organization.getCode());
         projectEventPayload.setOrganizationId(organization.getId());
