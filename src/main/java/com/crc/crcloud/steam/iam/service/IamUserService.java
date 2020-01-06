@@ -183,5 +183,9 @@ public interface IamUserService {
      * @return 用户信息
      */
     Optional<IamUserDTO> getByEmail(@NotBlank String email);
-
+    /**
+     * 用于判断当前人员是否是该项目的拥有者
+     * @return 判断标志
+     */
+    Boolean projectOwner(Long projectId);
 }
