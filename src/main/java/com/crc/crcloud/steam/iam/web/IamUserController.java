@@ -375,6 +375,7 @@ public class IamUserController {
      */
     @Permission(permissionLogin = true)
     @GetMapping("user/project/{project_id}/is_owner")
+    @ApiOperation(value = "临时接口，用于判断当前人员是否是该项目的拥有者(管理者)")
     public ResponseEntity<Boolean> isProjectOwner(@PathVariable("project_id")Long projectId){
 
        return new ResponseEntity<>(iamUserService.projectOwner(projectId));
