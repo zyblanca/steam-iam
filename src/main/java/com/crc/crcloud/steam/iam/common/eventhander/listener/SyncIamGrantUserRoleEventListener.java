@@ -111,7 +111,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
         grantConsumer.put(ResourceLevel.ORGANIZATION, items -> {
             return this.grantRole(items, list -> {
                 Long organizationId = CollUtil.getFirst(list).getSourceId();
-                if (iamOrganizationService.get(organizationId).map(IamOrganizationDTO::getCreationDate).filter(conditionDate::isAfter).isPresent()) {
+                if (iamOrganizationService.get(organizationId).map(IamOrganizationDTO::getCreationDate)/*.filter(conditionDate::isAfter)*/.isPresent()) {
                     return this.iamServiceClient.createOrUpdateOnOrganizationLevel(false, organizationId, MemberType.USER.getValue(), memberIds, list);
                 }
                 return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
@@ -120,7 +120,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
         grantConsumer.put(ResourceLevel.PROJECT, items -> {
             return this.grantRole(items, list -> {
                 Long projectId = CollUtil.getFirst(list).getSourceId();
-                if (iamProjectService.get(projectId).map(IamProjectDTO::getCreationDate).filter(conditionDate::isAfter).isPresent()) {
+                if (iamProjectService.get(projectId).map(IamProjectDTO::getCreationDate)/*.filter(conditionDate::isAfter)*/.isPresent()) {
                     return this.iamServiceClient.createOrUpdateOnProjectLevel(false, projectId, MemberType.USER.getValue(), memberIds, list);
                 }
                 return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
