@@ -2,7 +2,6 @@ package com.crc.crcloud.steam.iam.service;
 
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
@@ -136,6 +135,7 @@ public interface IamUserService {
      *
      * @param id               用户编号
      * @param includedDisabled 是否包含禁用项目 已废弃
+     * @param organizationId 组织编号
      * @return 项目列表
      */
     List<IamProjectVO> queryProjectsNew(Long id, @NotNull Long organizationId, boolean includedDisabled);
