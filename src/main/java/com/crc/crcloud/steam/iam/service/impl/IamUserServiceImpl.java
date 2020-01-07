@@ -388,7 +388,8 @@ public class IamUserServiceImpl implements IamUserService {
         if (isAdmin) {
             LambdaQueryWrapper<IamProject> queryWrapper = Wrappers.<IamProject>lambdaQuery()
                     .eq(IamProject::getOrganizationId, organizationId)
-                    .eq(IamProject::getIsEnabled, true);
+                    .eq(IamProject::getIsEnabled, true)
+                    .orderByDesc(IamProject::getCreationDate);
             return CopyUtil.copyList(iamProjectMapper.selectList(queryWrapper), IamProjectVO.class);
         } else {
             IamProjectDTO project = new IamProjectDTO();

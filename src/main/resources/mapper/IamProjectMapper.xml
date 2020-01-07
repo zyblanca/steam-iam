@@ -112,12 +112,13 @@
         AND iam_project.organization_id = #{organizationId}
         <if test="project != null">
             <if test="project.name != null">
-                AND iam_project.name LIKE concat(concat('%',#{project.name}),'%')
+                AND iam_project.name LIKE concat('%',#{project.name},'%')
             </if>
             <if test="project.isEnabled != null">
                 AND iam_project.is_enabled = #{project.isEnabled}
             </if>
         </if>
+        ORDER BY  creation_date desc
 
     </select>
 
