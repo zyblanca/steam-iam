@@ -13,7 +13,9 @@ import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
 import com.crc.crcloud.steam.iam.common.enums.MemberType;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
+import com.crc.crcloud.steam.iam.common.utils.SagaTopic;
 import com.crc.crcloud.steam.iam.model.dto.*;
+import com.crc.crcloud.steam.iam.model.dto.payload.UserMemberEventPayload;
 import com.crc.crcloud.steam.iam.model.dto.user.IamMemberRoleWithRoleDTO;
 import com.crc.crcloud.steam.iam.model.event.IamGrantUserRoleEvent;
 import com.crc.crcloud.steam.iam.model.feign.role.MemberRoleDTO;
@@ -21,6 +23,9 @@ import com.crc.crcloud.steam.iam.model.feign.role.RoleDTO;
 import com.crc.crcloud.steam.iam.model.feign.user.UserDTO;
 import com.crc.crcloud.steam.iam.service.IamOrganizationService;
 import com.crc.crcloud.steam.iam.service.IamProjectService;
+import io.choerodon.asgard.saga.annotation.Saga;
+import io.choerodon.asgard.saga.producer.StartSagaBuilder;
+import io.choerodon.asgard.saga.producer.TransactionalProducer;
 import io.choerodon.core.iam.InitRoleCode;
 import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.core.validator.ValidList;
@@ -46,6 +51,7 @@ import java.util.stream.Collectors;
 
 /**
  * 用户被授权角色事件-同步到老行云
+ *
  * @author LiuYang
  * @date 2019/11/25
  */
@@ -60,6 +66,11 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
     private IamOrganizationService iamOrganizationService;
     @Autowired
     private IamProjectService iamProjectService;
+
+    @Autowired
+    private TransactionalProducer producer;
+
+
     @Override
     public void onApplicationEvent(IamGrantUserRoleEvent event) {
         TimeInterval timer = DateUtil.timer();
@@ -76,9 +87,11 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
     /**
      * 该接口全量增量同步均支持
      * <p>会忽略掉项目或者组织创建时间在{@link ChoerodonDevOpsProperties#getConditionDate()}之后的数据</p>
-     * @param user 用户
+     *
+     * @param user  用户
      * @param roles 授权的角色
      */
+    @Saga(code = SagaTopic.MemberRole.MEMBER_ROLE_UPDATE, description = "新行云人员授权事件", inputSchemaClass = List.class)
     public void sync(@NotNull IamUserDTO user, @NotEmpty List<IamMemberRoleWithRoleDTO> roles) throws RuntimeException {
         roles = roles.stream().filter(t -> Objects.equals(t.getIamMemberRole().getMemberId(), user.getId()) && Objects.equals(t.getIamMemberRole().getMemberType(), MemberType.USER.getValue()))
                 .filter(role -> {
@@ -108,10 +121,13 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
         final List<Long> memberIds = CollUtil.newArrayList(iamServerUser.getId());
         final DateTime conditionDate = DateTime.of(properties.getConditionDate());
         log.info("新老数据判定时间conditionDate: {}", conditionDate);
+
+
         grantConsumer.put(ResourceLevel.ORGANIZATION, items -> {
             return this.grantRole(items, list -> {
                 Long organizationId = CollUtil.getFirst(list).getSourceId();
                 if (iamOrganizationService.get(organizationId).map(IamOrganizationDTO::getCreationDate)/*.filter(conditionDate::isAfter)*/.isPresent()) {
+                    sendSaga(organizationId, ResourceLevel.ORGANIZATION, user);
                     return this.iamServiceClient.createOrUpdateOnOrganizationLevel(false, organizationId, MemberType.USER.getValue(), memberIds, list);
                 }
                 return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
@@ -121,6 +137,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
             return this.grantRole(items, list -> {
                 Long projectId = CollUtil.getFirst(list).getSourceId();
                 if (iamProjectService.get(projectId).map(IamProjectDTO::getCreationDate)/*.filter(conditionDate::isAfter)*/.isPresent()) {
+                    sendSaga(projectId, ResourceLevel.ORGANIZATION, user);
                     return this.iamServiceClient.createOrUpdateOnProjectLevel(false, projectId, MemberType.USER.getValue(), memberIds, list);
                 }
                 return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
@@ -150,8 +167,39 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
         }
     }
 
+
+    //发起saga事件
+    private void sendSaga(Long sourceId, ResourceLevel resourceLevel, IamUserDTO user) {
+        //↓↓↓↓↓↓↓↓↓↓↓↓↓↓参数封装↓↓↓↓↓↓↓↓↓↓↓↓↓
+        List<UserMemberEventPayload> userMemberEventPayloads = new ArrayList<>();
+
+        UserMemberEventPayload userMemberEventPayload = new UserMemberEventPayload();
+        userMemberEventPayload.setResourceId(sourceId);
+        userMemberEventPayload.setResourceType(resourceLevel.value());
+        userMemberEventPayload.setUserId(user.getId());
+        userMemberEventPayload.setUsername(user.getLoginName());
+
+        userMemberEventPayloads.add(userMemberEventPayload);
+        //↑↑↑↑↑↑↑↑↑↑参数封装↑↑↑↑↑↑↑↑↑↑
+        //发起saga事件
+        producer.applyAndReturn(
+                StartSagaBuilder
+                        .newBuilder()
+                        .withLevel(resourceLevel)
+                        .withSourceId(sourceId)
+                        .withSagaCode(SagaTopic.MemberRole.MEMBER_ROLE_UPDATE),
+                builder -> {
+                    builder.withPayloadAndSerialize(userMemberEventPayloads)
+                            .withRefType(resourceLevel.value())
+                            .withRefId(user.getId().toString());
+                    return userMemberEventPayloads;
+                });
+    }
+
+
     /**
      * 组织授权
+     *
      * @param items 按照级别分组之后的数据
      * @return
      */
@@ -184,6 +232,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
 
     /**
      * 通过新的角色列表查询老的角色列表
+     *
      * @param roles 新关联的角色列表
      * @return 老的那边的角色列表
      */
@@ -215,6 +264,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
 
     /**
      * 根据邮箱获取对应的老行云用户
+     *
      * @param loginName 邮箱
      * @return 老行云用户
      */
