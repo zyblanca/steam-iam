@@ -127,8 +127,10 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
             return this.grantRole(items, list -> {
                 Long organizationId = CollUtil.getFirst(list).getSourceId();
                 if (iamOrganizationService.get(organizationId).map(IamOrganizationDTO::getCreationDate)/*.filter(conditionDate::isAfter)*/.isPresent()) {
+
+                    ResponseEntity<List<MemberRoleDTO>> result = this.iamServiceClient.createOrUpdateOnOrganizationLevel(false, organizationId, MemberType.USER.getValue(), memberIds, list);
                     sendSaga(organizationId, ResourceLevel.ORGANIZATION, user);
-                    return this.iamServiceClient.createOrUpdateOnOrganizationLevel(false, organizationId, MemberType.USER.getValue(), memberIds, list);
+                    return result;
                 }
                 return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
             });
@@ -137,8 +139,9 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
             return this.grantRole(items, list -> {
                 Long projectId = CollUtil.getFirst(list).getSourceId();
                 if (iamProjectService.get(projectId).map(IamProjectDTO::getCreationDate)/*.filter(conditionDate::isAfter)*/.isPresent()) {
+                    ResponseEntity<List<MemberRoleDTO>> result = this.iamServiceClient.createOrUpdateOnProjectLevel(false, projectId, MemberType.USER.getValue(), memberIds, list);
                     sendSaga(projectId, ResourceLevel.ORGANIZATION, user);
-                    return this.iamServiceClient.createOrUpdateOnProjectLevel(false, projectId, MemberType.USER.getValue(), memberIds, list);
+                    return result;
                 }
                 return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
             });
@@ -169,6 +172,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
 
 
     //发起saga事件
+    //saga事件触发前提 老平台已经有数据
     private void sendSaga(Long sourceId, ResourceLevel resourceLevel, IamUserDTO user) {
         //↓↓↓↓↓↓↓↓↓↓↓↓↓↓参数封装↓↓↓↓↓↓↓↓↓↓↓↓↓
         List<UserMemberEventPayload> userMemberEventPayloads = new ArrayList<>();
