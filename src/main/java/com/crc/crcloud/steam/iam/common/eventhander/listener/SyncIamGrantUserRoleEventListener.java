@@ -140,7 +140,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
                 Long projectId = CollUtil.getFirst(list).getSourceId();
                 if (iamProjectService.get(projectId).map(IamProjectDTO::getCreationDate)/*.filter(conditionDate::isAfter)*/.isPresent()) {
                     ResponseEntity<List<MemberRoleDTO>> result = this.iamServiceClient.createOrUpdateOnProjectLevel(false, projectId, MemberType.USER.getValue(), memberIds, list);
-                    sendSaga(projectId, ResourceLevel.ORGANIZATION, user);
+                    sendSaga(projectId, ResourceLevel.PROJECT, user);
                     return result;
                 }
                 return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
