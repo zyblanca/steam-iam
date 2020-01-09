@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
 import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
+import com.crc.crcloud.steam.iam.model.dto.IamMemberRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
@@ -20,6 +21,8 @@ import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -55,9 +58,17 @@ public class OrganizationUserController {
         Optional.ofNullable(vo.getPage()).ifPresent(value -> vo.setCurrent(Convert.toLong(value)));
         Optional.ofNullable(vo.getPageSize()).ifPresent(value -> vo.setSize(Convert.toLong(value)));
         IPage<IamUserVO> pageResult = iamUserService.pageQueryOrganizationUser(organizationId, vo);
-        final Map<Long, List<IamRoleDTO>> iamUserRoleMap = new ConcurrentHashMap<>(pageResult.getRecords().size());
-        pageResult.getRecords().parallelStream().forEach(t -> {
-            iamUserRoleMap.put(t.getId(), iamRoleService.getUserRolesByOrganization(t.getId()));
+        final MultiValueMap<Long, IamRoleDTO> iamUserRoleMap = new LinkedMultiValueMap<>(pageResult.getRecords().size());
+        final Map<Long, IamRoleDTO> iamRoleMap = new ConcurrentHashMap<>(2);
+        pageResult.getRecords().forEach(t -> {
+            @NotNull List<IamMemberRoleDTO> userMemberRoleByOrganization = memberRoleService.getUserMemberRoleByOrganization(t.getId(), CollUtil.newHashSet(organizationId));
+            Set<Long> roleIds = userMemberRoleByOrganization.stream().map(IamMemberRoleDTO::getRoleId).filter(roleId -> !iamRoleMap.containsKey(roleId)).collect(Collectors.toSet());
+            iamRoleService.getRoles(roleIds).forEach(role -> iamRoleMap.put(role.getId(), role));
+            userMemberRoleByOrganization.forEach(userMemberRole -> {
+                if (iamRoleMap.containsKey(userMemberRole.getRoleId())) {
+                    iamUserRoleMap.add(t.getId(), iamRoleMap.get(userMemberRole.getRoleId()));
+                }
+            });
         });
         Function<IamUserVO, IamOrganizationUserPageResponseVO> convert = t -> {
             IamOrganizationUserPageResponseVO responseVO = new IamOrganizationUserPageResponseVO();

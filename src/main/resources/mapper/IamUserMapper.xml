@@ -76,41 +76,40 @@
         <bind name="userMemberType" value="@com.crc.crcloud.steam.iam.common.enums.MemberType@USER.getValue()"/>
         select * from
         (
-            select iam_user.*
-            from iam_user as iam_user
-            inner join iam_user_organization_rel iuor on iam_user.id = iuor.user_id
-            left join
-            (
-            select iam_role.id, iam_role.name, role.member_id
-            from iam_role
-            inner join iam_member_role role on iam_role.id = role.role_id and role.member_type = #{userMemberType}
-            ) as iam_role
-            on iam_user.id = iam_role.member_id
-            where
-            iuor.organization_id in
-            <foreach collection="organizationIds" item="organizationId" open="(" close=")" separator=",">
-                ${organizationId}
+        select iam_user.*
+        from iam_user as iam_user
+        left join
+        (
+        select iam_role.id, iam_role.name, role.member_id
+        from iam_role
+        inner join iam_member_role role on iam_role.id = role.role_id and role.member_type = #{userMemberType}
+        ) as iam_role
+        on iam_user.id = iam_role.member_id
+        where
+            iam_role.source_id in
+        <foreach collection="organizationIds" item="organizationId" open="(" close=")" separator=",">
+            ${organizationId}
+        </foreach>
+        <if test="@cn.hutool.core.collection.CollUtil@isNotEmpty(searchDTO.roleIds)">
+            and iam_role.id in
+            <foreach collection="searchDTO.roleIds" item="roleId" open="(" close=")" separator=",">
+                ${roleId}
             </foreach>
-            <if test="@cn.hutool.core.collection.CollUtil@isNotEmpty(searchDTO.roleIds)">
-                and iam_role.id in
-                <foreach collection="searchDTO.roleIds" item="roleId" open="(" close=")" separator=",">
-                    ${roleId}
-                </foreach>
-            </if>
-            <if test="@cn.hutool.core.util.StrUtil@isNotEmpty(searchDTO.loginName)">
-                and iam_user.login_name like concat('%',#{searchDTO.loginName},'%')
-            </if>
-            <if test="@cn.hutool.core.util.StrUtil@isNotEmpty(searchDTO.realName)">
-                and iam_user.real_name like concat('%',#{searchDTO.realName},'%')
-            </if>
-            <if test="searchDTO.isLdap!=null">
-                and iam_user.is_ldap = ${searchDTO.isLdap}
-            </if>
-            <!--<if test="@cn.hutool.core.util.StrUtil@isNotBlank(searchDTO.orderByRoleName)">
-                order by ${searchDTO.orderByRoleName} -废除角色排序
-            </if>-->
+        </if>
+        <if test="@cn.hutool.core.util.StrUtil@isNotEmpty(searchDTO.loginName)">
+            and iam_user.login_name like concat('%',#{searchDTO.loginName},'%')
+        </if>
+        <if test="@cn.hutool.core.util.StrUtil@isNotEmpty(searchDTO.realName)">
+            and iam_user.real_name like concat('%',#{searchDTO.realName},'%')
+        </if>
+        <if test="searchDTO.isLdap!=null">
+            and iam_user.is_ldap = ${searchDTO.isLdap}
+        </if>
+        <!--<if test="@cn.hutool.core.util.StrUtil@isNotBlank(searchDTO.orderByRoleName)">
+            order by ${searchDTO.orderByRoleName} -废除角色排序
+        </if>-->
         ) as iam_user
-      group by iam_user.id
+        group by iam_user.id
     </select>
     <select id="pageByProject" resultType="com.crc.crcloud.steam.iam.model.dto.IamUserDTO">
         SELECT
