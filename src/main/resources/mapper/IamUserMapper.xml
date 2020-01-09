@@ -76,41 +76,40 @@
         <bind name="userMemberType" value="@com.crc.crcloud.steam.iam.common.enums.MemberType@USER.getValue()"/>
         select * from
         (
-            select iam_user.*
-            from iam_user as iam_user
-            inner join iam_user_organization_rel iuor on iam_user.id = iuor.user_id
-            left join
-            (
-            select iam_role.id, iam_role.name, role.member_id
-            from iam_role
-            inner join iam_member_role role on iam_role.id = role.role_id and role.member_type = #{userMemberType}
-            ) as iam_role
-            on iam_user.id = iam_role.member_id
-            where
-            iuor.organization_id in
-            <foreach collection="organizationIds" item="organizationId" open="(" close=")" separator=",">
-                ${organizationId}
+        select iam_user.*
+        from iam_user as iam_user
+        left join
+        (
+        select iam_role.id, iam_role.name, role.member_id
+        from iam_role
+        inner join iam_member_role role on iam_role.id = role.role_id and role.member_type = #{userMemberType}
+        ) as iam_role
+        on iam_user.id = iam_role.member_id
+        where
+            iam_role.source_id in
+        <foreach collection="organizationIds" item="organizationId" open="(" close=")" separator=",">
+            ${organizationId}
+        </foreach>
+        <if test="@cn.hutool.core.collection.CollUtil@isNotEmpty(searchDTO.roleIds)">
+            and iam_role.id in
+            <foreach collection="searchDTO.roleIds" item="roleId" open="(" close=")" separator=",">
+                ${roleId}
             </foreach>
-            <if test="@cn.hutool.core.collection.CollUtil@isNotEmpty(searchDTO.roleIds)">
-                and iam_role.id in
-                <foreach collection="searchDTO.roleIds" item="roleId" open="(" close=")" separator=",">
-                    ${roleId}
-                </foreach>
-            </if>
-            <if test="@cn.hutool.core.util.StrUtil@isNotEmpty(searchDTO.loginName)">
-                and iam_user.login_name like concat('%',#{searchDTO.loginName},'%')
-            </if>
-            <if test="@cn.hutool.core.util.StrUtil@isNotEmpty(searchDTO.realName)">
-                and iam_user.real_name like concat('%',#{searchDTO.realName},'%')
-            </if>
-            <if test="searchDTO.isLdap!=null">
-                and iam_user.is_ldap = ${searchDTO.isLdap}
-            </if>
-            <!--<if test="@cn.hutool.core.util.StrUtil@isNotBlank(searchDTO.orderByRoleName)">
-                order by ${searchDTO.orderByRoleName} -废除角色排序
-            </if>-->
+        </if>
+        <if test="@cn.hutool.core.util.StrUtil@isNotEmpty(searchDTO.loginName)">
+            and iam_user.login_name like concat('%',#{searchDTO.loginName},'%')
+        </if>
+        <if test="@cn.hutool.core.util.StrUtil@isNotEmpty(searchDTO.realName)">
+            and iam_user.real_name like concat('%',#{searchDTO.realName},'%')
+        </if>
+        <if test="searchDTO.isLdap!=null">
+            and iam_user.is_ldap = ${searchDTO.isLdap}
+        </if>
+        <!--<if test="@cn.hutool.core.util.StrUtil@isNotBlank(searchDTO.orderByRoleName)">
+            order by ${searchDTO.orderByRoleName} -废除角色排序
+        </if>-->
         ) as iam_user
-      group by iam_user.id
+        group by iam_user.id
     </select>
     <select id="pageByProject" resultType="com.crc.crcloud.steam.iam.model.dto.IamUserDTO">
         SELECT
@@ -127,7 +126,8 @@
         AND imr.source_type = #{userSearch.memberSourceType}
         AND imr.source_id = #{userSearch.projectId}
         <if test="userSearch.roleIds !=null and userSearch.roleIds.size()>0">
-            and imr.role_id in <foreach collection="userSearch.roleIds" separator="," open="(" item="item" close=")">#{item}</foreach>
+            and imr.role_id in
+            <foreach collection="userSearch.roleIds" separator="," open="(" item="item" close=")">#{item}</foreach>
         </if>
         AND ir.IS_ENABLED =1
         GROUP BY imr.MEMBER_ID)tmp
@@ -140,13 +140,13 @@
         </if>
         <if test="userSearch.realName != null and userSearch.realName != '' ">
 
-          and  iu.real_name like concat('%',concat(#{userSearch.realName},'%'))
+            and iu.real_name like concat('%',concat(#{userSearch.realName},'%'))
         </if>
         <if test="userSearch.email != null">
             AND iu.email LIKE concat(concat('%',#{userSearch.email}),'%')
         </if>
         <if test="userSearch.loginName != null and userSearch.loginName != '' ">
-         and   iu.login_name like concat('%',concat(#{userSearch.loginName},'%'))
+            and iu.login_name like concat('%',concat(#{userSearch.loginName},'%'))
         </if>
         <if test="userSearch.param != null">
             AND (
@@ -172,10 +172,10 @@
         and iu.is_enabled =1
         <if test="userSearch.realName != null and userSearch.realName != '' ">
 
-         and   iu.real_name like concat('%',concat(#{userSearch.realName},'%'))
+            and iu.real_name like concat('%',concat(#{userSearch.realName},'%'))
         </if>
         <if test="userSearch.loginName != null and userSearch.loginName != '' ">
-        and    iu.login_name like concat('%',concat(#{userSearch.loginName},'%'))
+            and iu.login_name like concat('%',concat(#{userSearch.loginName},'%'))
         </if>
 
         order by CONVERT(real_name USING gbk)
@@ -184,17 +184,19 @@
         SELECT iu.id,
                iu.login_name,
                iu.real_name
-        FROM (SELECT DISTINCT user_id FROM  iam_user_organization_rel WHERE organization_id=#{userSearch.organizationId}) iuor
+        FROM (SELECT DISTINCT user_id
+              FROM iam_user_organization_rel
+              WHERE organization_id = #{userSearch.organizationId}) iuor
                  INNER JOIN iam_user iu
                             ON iu.id = iuor.user_id
                  LEFT JOIN (SELECT DISTINCT imr.member_id
                             FROM iam_member_role imr
-                            WHERE imr.member_type =#{userSearch.memberType}
-                              AND imr.source_type =#{userSearch.memberSourceType}
+                            WHERE imr.member_type = #{userSearch.memberType}
+                              AND imr.source_type = #{userSearch.memberSourceType}
                               AND imr.source_id = #{userSearch.projectId}) tmp
                            ON tmp.member_id = iu.id
-        WHERE  tmp.member_id IS NULL
-          AND iu.is_enabled =1
+        WHERE tmp.member_id IS NULL
+          AND iu.is_enabled = 1
         order by CONVERT(real_name USING gbk);
 
     </select>
@@ -215,49 +217,49 @@
         WHERE iu.email IN
         <foreach collection="emails" close=")" item="item" open="(" separator=",">#{item}</foreach>
     </select>
-        <select id="selectCountUsers" resultType="int">
-            SELECT count(1)
-            FROM (
-            SELECT DISTINCT iu.id FROM iam_user iu
-            LEFT JOIN iam_member_role imr on imr.member_id = iu.id
-            LEFT JOIN iam_role ir on ir.id = imr.role_id
-            WHERE imr.member_type = 'user'
-            AND imr.source_id = #{sourceId}
-            AND imr.source_type = #{sourceType}
-            <if test="roleAssignmentSearchDTO != null">
-                <if test="roleAssignmentSearchDTO.loginName != null">
-                    AND iu.login_name LIKE concat(concat('%',#{roleAssignmentSearchDTO.loginName}),'%')
-                </if>
-                <if test="roleAssignmentSearchDTO.realName != null">
-                    AND iu.real_name LIKE concat(concat('%',#{roleAssignmentSearchDTO.realName}),'%')
-                </if>
-                <if test="roleAssignmentSearchDTO.roleName != null">
-                    AND ir.name LIKE concat(concat('%',#{roleAssignmentSearchDTO.roleName}),'%')
-                </if>
+    <select id="selectCountUsers" resultType="int">
+        SELECT count(1)
+        FROM (
+        SELECT DISTINCT iu.id FROM iam_user iu
+        LEFT JOIN iam_member_role imr on imr.member_id = iu.id
+        LEFT JOIN iam_role ir on ir.id = imr.role_id
+        WHERE imr.member_type = 'user'
+        AND imr.source_id = #{sourceId}
+        AND imr.source_type = #{sourceType}
+        <if test="roleAssignmentSearchDTO != null">
+            <if test="roleAssignmentSearchDTO.loginName != null">
+                AND iu.login_name LIKE concat(concat('%',#{roleAssignmentSearchDTO.loginName}),'%')
             </if>
-            ) t
+            <if test="roleAssignmentSearchDTO.realName != null">
+                AND iu.real_name LIKE concat(concat('%',#{roleAssignmentSearchDTO.realName}),'%')
+            </if>
+            <if test="roleAssignmentSearchDTO.roleName != null">
+                AND ir.name LIKE concat(concat('%',#{roleAssignmentSearchDTO.roleName}),'%')
+            </if>
+        </if>
+        ) t
     </select>
     <select id="selectUserByOption" resultMap="BaseResultMap">
-            SELECT
-                    iu.id,
-                    iu.login_name,
-                    iu.email,
-                    iu.real_name,
-                    iu.is_enabled
-            FROM (SELECT DISTINCT
-                  imr.MEMBER_ID
-                FROM iam_member_role imr
-                  LEFT JOIN iam_role ir
-                    ON ir.id = imr.role_id
-                WHERE imr.member_type = 'user'
-                AND imr.source_id = #{sourceId}
-                AND imr.source_type = #{sourceType}
-                <if test="roleAssignmentSearchDTO != null and roleAssignmentSearchDTO.roleName != null">
-                    AND ir.name LIKE concat(concat('%',#{roleAssignmentSearchDTO.roleName}),'%')
-                </if>
-                ) temp
-               LEFT JOIN iam_user iu
-                ON temp.member_id = iu.id
+        SELECT
+        iu.id,
+        iu.login_name,
+        iu.email,
+        iu.real_name,
+        iu.is_enabled
+        FROM (SELECT DISTINCT
+        imr.MEMBER_ID
+        FROM iam_member_role imr
+        LEFT JOIN iam_role ir
+        ON ir.id = imr.role_id
+        WHERE imr.member_type = 'user'
+        AND imr.source_id = #{sourceId}
+        AND imr.source_type = #{sourceType}
+        <if test="roleAssignmentSearchDTO != null and roleAssignmentSearchDTO.roleName != null">
+            AND ir.name LIKE concat(concat('%',#{roleAssignmentSearchDTO.roleName}),'%')
+        </if>
+        ) temp
+        LEFT JOIN iam_user iu
+        ON temp.member_id = iu.id
         <if test="roleAssignmentSearchDTO != null">
             <if test="roleAssignmentSearchDTO.loginName != null">
                 AND iu.login_name LIKE concat(concat('%',#{roleAssignmentSearchDTO.loginName}),'%')
@@ -268,22 +270,25 @@
         </if>
     </select>
     <select id="selectUserWithRolesByOption" resultType="com.crc.crcloud.steam.iam.model.dto.IamRoleDTO">
-                SELECT
-                role.id ,
-                role.name,
-                role.code,
-                role.is_enabled,
-                role.is_built_in,
-                imr.member_id AS user_id
-                FROM iam_member_role imr
-                LEFT JOIN iam_role role ON imr.role_id = role.id
-                WHERE imr.member_type = 'user'
-                AND imr.source_id = #{sourceId}
-                AND imr.source_type = #{sourceType}
-                AND imr.member_id IN <foreach collection="userIds" close=")" item="item" open="(" separator=",">#{item}</foreach>
+        SELECT
+        role.id ,
+        role.name,
+        role.code,
+        role.is_enabled,
+        role.is_built_in,
+        imr.member_id AS user_id
+        FROM iam_member_role imr
+        LEFT JOIN iam_role role ON imr.role_id = role.id
+        WHERE imr.member_type = 'user'
+        AND imr.source_id = #{sourceId}
+        AND imr.source_type = #{sourceType}
+        AND imr.member_id IN
+        <foreach collection="userIds" close=")" item="item" open="(" separator=",">#{item}</foreach>
     </select>
     <select id="selectAllIds" resultType="java.lang.Long">
-        SELECT id from iam_user where is_enabled = 1
+        SELECT id
+        from iam_user
+        where is_enabled = 1
     </select>
     <select id="pagingQueryUsers" resultMap="BaseResultMap">
 
@@ -306,7 +311,8 @@
         AND imr.source_type = #{userSearch.memberSourceType}
         AND imr.source_id = #{userSearch.projectId}
         <if test="userSearch.roleIds !=null and userSearch.roleIds.size()>0">
-            and imr.role_id in <foreach collection="userSearch.roleIds" separator="," open="(" item="item" close=")"/>
+            and imr.role_id in
+            <foreach collection="userSearch.roleIds" separator="," open="(" item="item" close=")"/>
         </if>
         )tmp
         INNER JOIN iam_user iu
@@ -318,13 +324,13 @@
         </if>
         <if test="userSearch.realName != null and userSearch.realName != '' ">
 
-            and  iu.real_name like concat('%',concat(#{userSearch.realName},'%'))
+            and iu.real_name like concat('%',concat(#{userSearch.realName},'%'))
         </if>
         <if test="userSearch.email != null">
             AND iu.email LIKE concat(concat('%',#{userSearch.email}),'%')
         </if>
         <if test="userSearch.loginName != null and userSearch.loginName != '' ">
-            and   iu.login_name like concat('%',concat(#{userSearch.loginName},'%'))
+            and iu.login_name like concat('%',concat(#{userSearch.loginName},'%'))
         </if>
         <if test="userSearch.param != null">
             AND (
@@ -346,6 +352,7 @@
     <update id="batchUpdateLdapPassword">
         update iam_user
         set hash_password = #{password}
-        where id in <foreach collection="userIds" close=")" item="item" open="(" separator=",">#{item}</foreach>
+        where id in
+        <foreach collection="userIds" close=")" item="item" open="(" separator=",">#{item}</foreach>
     </update>
 </mapper>
