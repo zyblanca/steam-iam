@@ -49,7 +49,12 @@ public class OrganizationUserController {
     @Autowired
     private IamUserOrganizationRelService userOrganizationRelService;
 
-
+    /**
+     * 获取的是
+     * @param organizationId
+     * @param vo
+     * @return
+     */
     @Permission(level = ResourceLevel.ORGANIZATION, roles = {InitRoleCode.ORGANIZATION_ADMINISTRATOR, InitRoleCode.ORGANIZATION_MEMBER})
     @ApiOperation(value = "组织成员列表", notes = "分页", response = IamOrganizationUserPageResponseVO.class)
     @PostMapping("page")
@@ -124,7 +129,8 @@ public class OrganizationUserController {
         ResponseEntity<List<IamUserSafeVO>> responseEntity = this.list(organizationId);
         List<IamUserSafeVO> negateMember = responseEntity.getData().parallelStream().filter(t -> {
             //过滤掉用户不包含所在角色的用户
-            return iamRoleService.getUserRoles(t.getId()).stream().noneMatch(role -> Objects.equals(role.getId(), roleId));
+            @NotNull List<IamMemberRoleDTO> userMemberRoleByOrganization = memberRoleService.getUserMemberRoleByOrganization(t.getId(), CollUtil.newHashSet(organizationId));
+            return userMemberRoleByOrganization.stream().noneMatch(memberRole -> Objects.equals(memberRole.getRoleId(), roleId));
         }).collect(Collectors.toList());
         return new ResponseEntity<>(negateMember);
     }
