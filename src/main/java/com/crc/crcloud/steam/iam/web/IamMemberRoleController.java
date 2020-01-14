@@ -7,6 +7,7 @@ import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
 import com.crc.crcloud.steam.iam.model.dto.iam.RoleAssignmentSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.iam.UserWithRoleDTO;
+import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
 import com.crc.crcloud.steam.iam.service.IamMemberRoleService;
 import com.crc.crcloud.steam.iam.service.IamUserService;
 import io.choerodon.core.iam.InitRoleCode;
@@ -14,6 +15,8 @@ import io.choerodon.core.iam.ResourceLevel;
 import io.choerodon.swagger.annotation.Permission;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -76,4 +79,46 @@ public class IamMemberRoleController {
         return new ResponseEntity<>(iamUserService.pagingQueryUsersWithOrganizationLevelRoles(
                 pageUtil, roleAssignmentSearchDTO, sourceId));
     }
+
+
+    /**
+     * 项目绑定用户
+     * 给用户授权项目权限
+     *
+     * @param projectId 项目id
+     * @param iamUserVO 用户信息
+     * @return 绑定结果
+     */
+    //简易权限，后续需要根据实际情况做校验
+    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_OWNER})
+    @ApiOperation(value = "项目绑定用户", notes = "项目绑定用户")
+    @PostMapping("/projects/{project_id}/iam_user/bind/users")
+    public ResponseEntity projectBindUsers(@ApiParam(value = "项目ID", required = true)
+                                           @PathVariable(name = "project_id") Long projectId,
+                                           @RequestBody IamUserVO iamUserVO) {
+
+        iamUserService.projectBindUsers(projectId, iamUserVO);
+        return ResponseEntity.ok();
+    }
+
+    /**
+     * 回收用户的项目权限
+     * 单个用户收回项目权限
+     * note： 当前接口不支持批量回收
+     * @param projectId 项目id
+     * @param userId    人员id
+     * @return 状态
+     */
+    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_OWNER})
+    @ApiOperation(value = "项目删除用户权限", notes = "项目删除用户权限")
+    @Delete("/projects/{project_id}/iam_user/unbind/users/{user_id}")
+    public ResponseEntity projectDeleteUser(@ApiParam(value = "项目ID", required = true)
+                                            @PathVariable(name = "project_id") Long projectId,
+                                            @ApiParam(value = "人员id", required = true)
+                                            @PathVariable(name = "user_id") Long userId) {
+        iamUserService.projectUnbindUser(projectId, userId);
+        return ResponseEntity.ok();
+    }
+
+
 }
