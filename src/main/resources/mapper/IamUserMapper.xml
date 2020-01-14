@@ -73,26 +73,18 @@
         where id = ${userId}
     </select>
     <select id="pageQueryOrganizationUser" resultMap="BaseResultMap">
-        <bind name="userMemberType" value="@com.crc.crcloud.steam.iam.common.enums.MemberType@USER.getValue()"/>
-        select * from
-        (
-        select iam_user.*
-        from iam_user as iam_user
-        left join
-        (
-        SELECT iam_role.id, iam_role.name, role.member_id,role.source_id
-        FROM iam_role
-        INNER JOIN iam_member_role role
-        ON iam_role.id = role.role_id and role.member_type = 'user' and role.source_type = 'organization'
-        ) as iam_role
-        on iam_user.id = iam_role.member_id
-        where
-            iam_role.source_id in
+        <!--<bind name="userMemberType" value="@com.crc.crcloud.steam.iam.common.enums.MemberType@USER.getValue()"/>-->
+        select
+               iam_user.*
+        from iam_user iam_user inner join iam_member_role imr
+        on iam_user.id = imr.member_id and imr.member_type = 'user' and imr.source_type = 'organization'
+        WHERE
+             imr.source_id in
         <foreach collection="organizationIds" item="organizationId" open="(" close=")" separator=",">
             ${organizationId}
         </foreach>
         <if test="@cn.hutool.core.collection.CollUtil@isNotEmpty(searchDTO.roleIds)">
-            and iam_role.id in
+            and imr.role_id in
             <foreach collection="searchDTO.roleIds" item="roleId" open="(" close=")" separator=",">
                 ${roleId}
             </foreach>
@@ -106,10 +98,6 @@
         <if test="searchDTO.isLdap!=null">
             and iam_user.is_ldap = ${searchDTO.isLdap}
         </if>
-        <!--<if test="@cn.hutool.core.util.StrUtil@isNotBlank(searchDTO.orderByRoleName)">
-            order by ${searchDTO.orderByRoleName} -废除角色排序
-        </if>-->
-        ) as iam_user
         group by iam_user.id
     </select>
     <select id="pageByProject" resultType="com.crc.crcloud.steam.iam.model.dto.IamUserDTO">
