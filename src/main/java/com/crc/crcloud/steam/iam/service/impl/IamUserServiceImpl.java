@@ -20,7 +20,9 @@ import com.crc.crcloud.steam.iam.entity.*;
 import com.crc.crcloud.steam.iam.model.dto.*;
 import com.crc.crcloud.steam.iam.model.dto.iam.RoleAssignmentSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.iam.UserWithRoleDTO;
+import com.crc.crcloud.steam.iam.model.dto.payload.UserMemberEventPayload;
 import com.crc.crcloud.steam.iam.model.dto.user.SearchDTO;
+import com.crc.crcloud.steam.iam.model.event.IamUnbindUserRoleEvent;
 import com.crc.crcloud.steam.iam.model.event.IamUserManualCreateEvent;
 import com.crc.crcloud.steam.iam.model.feign.role.RoleDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamOrganizationVO;
@@ -41,6 +43,7 @@ import io.choerodon.core.oauth.CustomUserDetails;
 import io.choerodon.core.oauth.DetailsHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -75,6 +78,8 @@ public class IamUserServiceImpl implements IamUserService {
     @Autowired
     private IamMemberRoleService iamMemberRoleService;
     @Autowired
+    private IamMemberRoleMapper iamMemberRoleMapper;
+    @Autowired
     private IamProjectMapper iamProjectMapper;
     @Autowired
     private IamRoleMapper iamRoleMapper;
@@ -82,7 +87,8 @@ public class IamUserServiceImpl implements IamUserService {
     private IamUserOrganizationRelMapper iamUserOrganizationRelMapper;
     @Autowired
     private IamOrganizationMapper iamOrganizationMapper;
-
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
     /**
      * 线程安全
      */
@@ -183,11 +189,42 @@ public class IamUserServiceImpl implements IamUserService {
         iamMemberRoleDTO.setSourceId(projectId);
         //查询指定人员指定项目的权限
         List<IamRole> roles = iamRoleMapper.selectRolesByMemberRole(iamMemberRoleDTO);
-        if(CollectionUtils.isEmpty(roles)){
+        if (CollectionUtils.isEmpty(roles)) {
             return Boolean.FALSE;
         }
 
-        return roles.stream().anyMatch(v->Objects.equals(v.getCode(), InitRoleCode.PROJECT_OWNER));
+        return roles.stream().anyMatch(v -> Objects.equals(v.getCode(), InitRoleCode.PROJECT_OWNER));
+    }
+
+    @Override
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public void projectUnbindUser(@NotNull Long projectId, @NotNull Long userId) {
+        //获取已经拥有的权限
+        List<IamMemberRole> iamMemberRoles = iamMemberRoleMapper.selectList(Wrappers.<IamMemberRole>lambdaQuery()
+                .eq(IamMemberRole::getSourceId, projectId)
+                .eq(IamMemberRole::getMemberId, userId)
+                .eq(IamMemberRole::getMemberType, MemberType.USER.getValue())
+                .eq(IamMemberRole::getSourceType, ResourceLevel.PROJECT.value())
+        );
+        if (CollectionUtils.isEmpty(iamMemberRoles)) {
+            return;
+        }
+        //人员信息
+        IamUser iamUser = iamUserMapper.selectById(userId);
+        //封装saga事务参数
+        List<UserMemberEventPayload> userMemberEventPayloads = new ArrayList<>();
+        UserMemberEventPayload userMemberEventPayload = new UserMemberEventPayload();
+        userMemberEventPayload.setUsername(iamUser.getLoginName());
+        userMemberEventPayload.setUserId(userId);
+        userMemberEventPayload.setResourceId(projectId);
+        userMemberEventPayload.setResourceType(ResourceLevel.PROJECT.value());
+        userMemberEventPayloads.add(userMemberEventPayload);
+        IamUnbindUserRoleEvent event = new IamUnbindUserRoleEvent(null, ResourceLevel.PROJECT, projectId, userMemberEventPayloads);
+        //发起通知事件
+        applicationEventPublisher.publishEvent(event);
+        //删除指定权限
+        iamMemberRoleMapper.deleteBatchIds(iamMemberRoles.stream().map(IamMemberRole::getId).collect(Collectors.toList()));
+
     }
 
     /**
@@ -341,8 +378,8 @@ public class IamUserServiceImpl implements IamUserService {
         long total;
         long size;
         if (doPage) {
-            long page = pageUtil.getCurrent() < 1 ? 1L: pageUtil.getCurrent();
-            size = pageUtil.getSize()<1?10L:pageUtil.getSize();
+            long page = pageUtil.getCurrent() < 1 ? 1L : pageUtil.getCurrent();
+            size = pageUtil.getSize() < 1 ? 10L : pageUtil.getSize();
             long start = page * size;
             total = iamUserMapper.selectCountUsers(roleAssignmentSearchDTO, sourceId, ResourceLevel.PROJECT.value());
             if (total > 0) {
@@ -432,8 +469,8 @@ public class IamUserServiceImpl implements IamUserService {
     @Override
     public IPage<UserWithRoleDTO> pagingQueryUsersWithOrganizationLevelRoles(PageUtil pageUtil, RoleAssignmentSearchDTO roleAssignmentSearchDTO, Long sourceId) {
         List<UserWithRoleDTO> result;
-        long page = pageUtil.getCurrent() < 1 ? 1L: pageUtil.getCurrent();
-        long size = pageUtil.getSize()<1?10L:pageUtil.getSize();
+        long page = pageUtil.getCurrent() < 1 ? 1L : pageUtil.getCurrent();
+        long size = pageUtil.getSize() < 1 ? 10L : pageUtil.getSize();
         long start = page * size;
         long total = iamUserMapper.selectCountUsers(roleAssignmentSearchDTO, sourceId, ResourceLevel.ORGANIZATION.value());
         if (total > 0) {

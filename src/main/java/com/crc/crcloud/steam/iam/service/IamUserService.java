@@ -188,4 +188,11 @@ public interface IamUserService {
      * @return 判断标志
      */
     Boolean projectOwner(Long projectId);
+
+    /**
+     *  单个用户收回项目权限
+     * @param projectId 项目id
+     * @param userId 用户id
+     */
+    void projectUnbindUser(Long projectId, Long userId);
 }

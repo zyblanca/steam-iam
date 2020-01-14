@@ -5,7 +5,6 @@ import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.crc.crcloud.steam.iam.api.feign.SteamAgileServiceClient;
 import com.crc.crcloud.steam.iam.common.enums.RoleLabelEnum;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.*;
@@ -64,7 +63,6 @@ public class IamProjectServiceImpl implements IamProjectService {
     private IamMemberRoleService iamMemberRoleService;
 
 
-
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     @Override
     public IamProjectVO insert(Long organizationId, IamProjectVO iamProjectVO) {
@@ -86,12 +84,9 @@ public class IamProjectServiceImpl implements IamProjectService {
                 //发起saga事件
                 applicationEventPublisher.publishEvent(new IamProjectCreateEvent(intiParam(iamProject, organization)));
                 //创建人授予项目拥有者权限
-                grantCreatMember(iamProject);
+                grantCreateMember(iamProject);
             }
         });
-
-
-
 
 
         return CopyUtil.copy(iamProject, IamProjectVO.class);
@@ -136,7 +131,7 @@ public class IamProjectServiceImpl implements IamProjectService {
     //项目创建者授予拥有者权限
     //原始行云使用标签动态获取权限，当前只授予项目拥有者权限
     //todo 当前项目权限查询写死的 后续需要动态增加
-    private void grantCreatMember(IamProject iamProject) {
+    private void grantCreateMember(IamProject iamProject) {
         //获取组织成员权限
         IamRole iamRole = iamRoleMapper.selectOne(Wrappers.<IamRole>lambdaQuery()
                 .eq(IamRole::getFdLevel, ResourceLevel.PROJECT.value())

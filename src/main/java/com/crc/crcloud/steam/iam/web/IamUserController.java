@@ -156,24 +156,6 @@ public class IamUserController {
     }
 
 
-    /**
-     * 项目绑定用户
-     *
-     * @param projectId 项目id
-     * @param iamUserVO 用户信息
-     * @return 绑定结果
-     */
-    //简易权限，后续需要根据实际情况做校验
-    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_OWNER})
-    @ApiOperation(value = "项目绑定用户", notes = "项目绑定用户")
-    @PostMapping("/projects/{project_id}/iam_user/bind/users")
-    public ResponseEntity projectBindUsers(@ApiParam(value = "项目ID", required = true)
-                                           @PathVariable(name = "project_id") Long projectId,
-                                           @RequestBody IamUserVO iamUserVO) {
-
-        iamUserService.projectBindUsers(projectId, iamUserVO);
-        return ResponseEntity.ok();
-    }
 
     /**
      * 内部端口，不对外使用
