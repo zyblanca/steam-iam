@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.enums.UserOriginEnum;
 import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
+import com.crc.crcloud.steam.iam.common.utils.SearchUtil;
 import com.crc.crcloud.steam.iam.model.dto.IamMemberRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
@@ -60,6 +61,9 @@ public class OrganizationUserController {
     @PostMapping("page")
     public ResponseEntity<IPage<IamOrganizationUserPageResponseVO>> page(@PathVariable("organization_id") Long organizationId
             , @RequestBody @Valid IamOrganizationUserPageRequestVO vo) {
+        //模糊查询参数转义
+        vo.setLoginName(SearchUtil.likeParam(vo.getLoginName()));
+        vo.setRealName(SearchUtil.likeParam(vo.getRealName()));
         Optional.ofNullable(vo.getPage()).ifPresent(value -> vo.setCurrent(Convert.toLong(value)));
         Optional.ofNullable(vo.getPageSize()).ifPresent(value -> vo.setSize(Convert.toLong(value)));
         IPage<IamUserVO> pageResult = iamUserService.pageQueryOrganizationUser(organizationId, vo);

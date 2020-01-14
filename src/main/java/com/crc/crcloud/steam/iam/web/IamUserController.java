@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
+import com.crc.crcloud.steam.iam.common.utils.SearchUtil;
 import com.crc.crcloud.steam.iam.model.dto.*;
 import com.crc.crcloud.steam.iam.model.vo.IamOrganizationVO;
 import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
@@ -92,8 +93,9 @@ public class IamUserController {
                                                             @PathVariable(name = "project_id") Long projectId,
                                                             UserSearchDTO userSearchDTO,
                                                             PageUtil page) {
-
-
+        //模糊查询优化
+        userSearchDTO.setLoginName(SearchUtil.likeParam(userSearchDTO.getLoginName()));
+        userSearchDTO.setRealName(SearchUtil.likeParam(userSearchDTO.getRealName()));
         return new ResponseEntity<>(iamUserService.pageByProject(projectId, userSearchDTO, page));
     }
 
