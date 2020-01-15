@@ -194,5 +194,5 @@ public interface IamUserService {
      * @param projectId 项目id
      * @param userId 用户id
      */
-    void projectUnbindUser(Long projectId, Long userId);
+    void projectUnbindUser(@NotNull Long projectId,@NotNull Long userId);
 }
