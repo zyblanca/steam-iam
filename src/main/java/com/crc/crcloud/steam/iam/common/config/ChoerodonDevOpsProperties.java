@@ -30,6 +30,7 @@ public class ChoerodonDevOpsProperties {
      * 判定是否为新项目的时间戳
      * <p>填写了就不应该再修改</p>
      */
+    @Deprecated
     @NotBlank
     @Getter(AccessLevel.NONE)
     @Value("${" + PREFIX + ".conditionDate}")
@@ -42,6 +43,7 @@ public class ChoerodonDevOpsProperties {
      * @return 时间
      */
     @NotNull
+    @Deprecated
     public Date getConditionDate() {
         return DateUtil.parse(conditionDate);
     }
