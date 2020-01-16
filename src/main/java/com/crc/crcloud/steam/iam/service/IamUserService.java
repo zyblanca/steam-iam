@@ -195,4 +195,12 @@ public interface IamUserService {
      * @param userId 用户id
      */
     void projectUnbindUser(@NotNull Long projectId,@NotNull Long userId);
+    /**
+     * 获取指定用户的项目级别的权限，仅限普通用户，客户端用户不可使用
+     *
+     * @param projectId 项目id
+     * @param userId    用户id
+     * @return 用户权限数据
+     */
+    IamUserDTO queryProjectRole(@NotNull Long projectId,@NotNull Long userId);
 }

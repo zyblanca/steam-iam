@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @Author:
@@ -146,5 +147,5 @@ public class IamUserDTO {
      */
     private Date lastUpdateDate;
 
-
+    private List<Long> roleIds;
 }

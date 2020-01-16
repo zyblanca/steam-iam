@@ -23,6 +23,7 @@ import com.crc.crcloud.steam.iam.model.dto.iam.UserWithRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.UserMemberEventPayload;
 import com.crc.crcloud.steam.iam.model.dto.user.SearchDTO;
 import com.crc.crcloud.steam.iam.model.event.IamUnbindUserRoleEvent;
+import com.crc.crcloud.steam.iam.model.event.IamUpdateUserRoleEvent;
 import com.crc.crcloud.steam.iam.model.event.IamUserManualCreateEvent;
 import com.crc.crcloud.steam.iam.model.feign.role.RoleDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamOrganizationVO;
@@ -227,6 +228,27 @@ public class IamUserServiceImpl implements IamUserService {
 
     }
 
+    @Override
+    public IamUserDTO queryProjectRole(@NotNull Long projectId, @NotNull Long userId) {
+        IamUser iamUser = iamUserMapper.selectById(userId);
+        if (Objects.isNull(iamUser)) {
+            throw new IamAppCommException("user.not.exist");
+        }
+
+        IamUserDTO iamUserDTO = new IamUserDTO();
+        BeanUtil.copyProperties(iamUser, iamUserDTO);
+        //获取已经拥有的权限
+        List<IamMemberRole> iamMemberRoles = iamMemberRoleMapper.selectList(Wrappers.<IamMemberRole>lambdaQuery()
+                .eq(IamMemberRole::getSourceId, projectId)
+                .eq(IamMemberRole::getMemberId, userId)
+                .eq(IamMemberRole::getMemberType, MemberType.USER.getValue())
+                .eq(IamMemberRole::getSourceType, ResourceLevel.PROJECT.value())
+        );
+
+        iamUserDTO.setRoleIds(iamMemberRoles.stream().map(IamMemberRole::getRoleId).collect(Collectors.toList()));
+        return iamUserDTO;
+    }
+
     /**
      * 根据条件获取第一个
      *
@@ -328,13 +350,86 @@ public class IamUserServiceImpl implements IamUserService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void projectBindUsers(Long projectId, IamUserVO iamUserVO) {
         List<Long> userIds, roleIds;
         if (CollectionUtils.isEmpty(userIds = iamUserVO.getUserIds()) || CollectionUtils.isEmpty(roleIds = iamUserVO.getRoleIds())) {
-            throw new IamAppCommException("");
+            throw new IamAppCommException("comm.param.error");
+        }
+        //新增授权
+        Set<Long> newUser = new HashSet<>(userIds.size());
+        //人员去重
+        Set<Long> allUser = new HashSet<>(userIds);
+        for (Long userId : allUser) {
+            //查询历史权限
+            List<IamMemberRole> iamMemberRoles = iamMemberRoleMapper.selectList(Wrappers.<IamMemberRole>lambdaQuery()
+                    .eq(IamMemberRole::getSourceId, projectId)
+                    .eq(IamMemberRole::getMemberId, userId)
+                    .eq(IamMemberRole::getMemberType, MemberType.USER.getValue())
+                    .eq(IamMemberRole::getSourceType, ResourceLevel.PROJECT.value())
+            );
+            //无历史权限则属于增加权限
+            if (CollectionUtils.isEmpty(iamMemberRoles)) {
+                newUser.add(userId);
+                continue;
+            }
+            //有历史权限，属于修改权限
+            updateUserProjectRole(projectId, userId, roleIds, iamMemberRoles);
+
+        }
+
+        //没有新的需要授权的不继续
+        if (CollectionUtils.isEmpty(newUser)) {
+            return;
         }
         //公共授权通道
-        iamMemberRoleService.grantUserRole(new HashSet<>(userIds), new HashSet<>(roleIds), projectId, ResourceLevel.PROJECT);
+        iamMemberRoleService.grantUserRole(newUser, new HashSet<>(roleIds), projectId, ResourceLevel.PROJECT);
+
+    }
+
+    //修改既有的权限
+    //单用户权限较少，内存比较差异，判断权限变更
+    private void updateUserProjectRole(Long projectId, Long userId, List<Long> roleIds, List<IamMemberRole> oldIamMemberRoles) {
+        //需要进行删除的权限
+        List<Long> needDelete = oldIamMemberRoles.stream().
+                filter(v -> !roleIds.contains(v.getRoleId()))
+                .map(IamMemberRole::getId)
+                .collect(Collectors.toList());
+        List<Long> oldRoles = oldIamMemberRoles.stream().map(IamMemberRole::getRoleId).collect(Collectors.toList());
+        //需要进行新增的权限
+        List<Long> needInsert = roleIds.stream().filter(v -> !oldRoles.contains(v)).collect(Collectors.toList());
+        //没有新增权限，也没有删除权限，不进行额外处理
+        if (CollectionUtils.isEmpty(needDelete) && CollectionUtils.isEmpty(needInsert)) {
+            return;
+        }
+        //删除已被去掉的权限
+        if (!CollectionUtils.isEmpty(needDelete)) {
+            iamMemberRoleMapper.deleteBatchIds(needDelete);
+        }
+        //新增新权限
+        if (!CollectionUtils.isEmpty(needInsert)) {
+            for (Long roleId : needInsert) {
+                IamMemberRole iamMemberRole = new IamMemberRole();
+                iamMemberRole.setMemberType(MemberType.USER.getValue());
+                iamMemberRole.setSourceType(ResourceLevel.PROJECT.value());
+                iamMemberRole.setMemberId(userId);
+                iamMemberRole.setRoleId(roleId);
+                iamMemberRole.setSourceId(projectId);
+                iamMemberRoleMapper.insert(iamMemberRole);
+            }
+        }
+        //发起saga事务参数封装
+        List<UserMemberEventPayload> userMemberEventPayloads = new ArrayList<>();
+        IamUser iamUser = iamUserMapper.selectById(userId);
+        UserMemberEventPayload userMemberEventPayload = new UserMemberEventPayload();
+        userMemberEventPayload.setResourceType(ResourceLevel.PROJECT.value());
+        userMemberEventPayload.setResourceId(projectId);
+        userMemberEventPayload.setUserId(userId);
+        userMemberEventPayload.setUsername(iamUser.getLoginName());
+        userMemberEventPayloads.add(userMemberEventPayload);
+        //发起saga
+        IamUpdateUserRoleEvent iamUpdateUserRoleEvent = new IamUpdateUserRoleEvent(projectId, ResourceLevel.PROJECT, roleIds,userMemberEventPayloads, null);
+        applicationEventPublisher.publishEvent(iamUpdateUserRoleEvent);
 
     }
 
