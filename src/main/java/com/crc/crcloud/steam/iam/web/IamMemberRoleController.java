@@ -132,7 +132,7 @@ public class IamMemberRoleController {
      */
     @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_OWNER})
     @ApiOperation(value = "获取指定用户项目级别的权限信息", notes = "获取指定用户项目级别的权限信息")
-    @GetMapping("/project/{project_id}/iam_user/role/{user_id}")
+    @GetMapping("/projects/{project_id}/iam_user/role/{user_id}")
     public ResponseEntity<IamUserVO> userProjectRole(@ApiParam(value = "项目ID", required = true)
                                                      @PathVariable(name = "project_id") Long projectId,
                                                      @ApiParam(value = "人员id", required = true)
