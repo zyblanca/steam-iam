@@ -8,6 +8,7 @@ import com.crc.crcloud.steam.iam.api.feign.SteamAgileServiceClient;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
+import com.crc.crcloud.steam.iam.common.utils.SearchUtil;
 import com.crc.crcloud.steam.iam.common.utils.UserDetail;
 import com.crc.crcloud.steam.iam.model.dto.IamProjectDTO;
 import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
@@ -119,6 +120,8 @@ public class IamProjectController {
     @PostMapping()
     public ResponseEntity<IPage<IamUserProjectResponseVO>> queryAllProject(
             Page page, IamUserProjectRequestVO vo) {
+        //模糊参数转义
+        vo.setName(SearchUtil.likeParam(vo.getName()));
         final IamUserDTO iamUser = iamUserService.getAndThrow(UserDetail.getUserId());
         if (Objects.isNull(vo.getOrganizationId())) {
             vo.setOrganizationId(iamUser.getCurrentOrganizationId());
