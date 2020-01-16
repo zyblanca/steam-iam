@@ -2,9 +2,11 @@ package com.crc.crcloud.steam.iam.web;
 
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
+import com.crc.crcloud.steam.iam.entity.IamUser;
+import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.iam.RoleAssignmentSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.iam.UserWithRoleDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamUserVO;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
+import java.util.List;
 
 
 /**
@@ -83,13 +86,12 @@ public class IamMemberRoleController {
 
     /**
      * 项目绑定用户
-     * 给用户授权项目权限
+     * 给用户授权/重新授权项目权限
      *
      * @param projectId 项目id
      * @param iamUserVO 用户信息
      * @return 绑定结果
      */
-    //简易权限，后续需要根据实际情况做校验
     @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_OWNER})
     @ApiOperation(value = "项目绑定用户", notes = "项目绑定用户")
     @PostMapping("/projects/{project_id}/iam_user/bind/users")
@@ -105,6 +107,7 @@ public class IamMemberRoleController {
      * 回收用户的项目权限
      * 单个用户收回项目权限
      * note： 当前接口不支持批量回收
+     *
      * @param projectId 项目id
      * @param userId    人员id
      * @return 状态
@@ -120,8 +123,27 @@ public class IamMemberRoleController {
         return ResponseEntity.ok();
     }
 
+    /**
+     * 获取指定用户的项目级别的权限，仅限普通用户，客户端用户不可使用
+     *
+     * @param projectId 项目id
+     * @param userId    用户id
+     * @return 用户角色id
+     */
+    @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_OWNER})
+    @ApiOperation(value = "获取指定用户项目级别的权限信息", notes = "获取指定用户项目级别的权限信息")
+    @GetMapping("/project/{project_id}/iam_user/role/{user_id}")
+    public ResponseEntity<IamUserVO> userProjectRole(@ApiParam(value = "项目ID", required = true)
+                                                     @PathVariable(name = "project_id") Long projectId,
+                                                     @ApiParam(value = "人员id", required = true)
+                                                     @PathVariable(name = "user_id") Long userId) {
 
-
+        IamUserDTO iamUserDTO = iamUserService.queryProjectRole(projectId, userId);
+        IamUserVO iamUserVO = new IamUserVO();
+        iamUserVO.setId(userId);
+        iamUserVO.setRoleIds(iamUserDTO.getRoleIds());
+        return new ResponseEntity<>(iamUserVO);
+    }
 
 
 }
