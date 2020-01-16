@@ -13,6 +13,7 @@ import com.crc.crcloud.steam.iam.common.constant.IamConstant;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
 import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
+import com.crc.crcloud.steam.iam.common.utils.SearchUtil;
 import com.crc.crcloud.steam.iam.model.dto.IamOrganizationDTO;
 import com.crc.crcloud.steam.iam.model.dto.organization.IamOrganizationWithProjectCountDTO;
 import com.crc.crcloud.steam.iam.model.vo.IamOrganizationVO;
@@ -151,6 +152,9 @@ public class IamOrganizationController {
     @ApiOperation(value = "组织列表(分页)")
     @PostMapping(value = "page")
     public ResponseEntity<IPage<IamOrganizationPageResponseVO>> page(@RequestBody IamOrganizationPageRequestVO vo) {
+        //查询模糊参数 转义
+        vo.setCode(SearchUtil.likeParam(vo.getCode()));
+        vo.setName(SearchUtil.likeParam(vo.getName()));
         @NotNull IPage<IamOrganizationWithProjectCountDTO> pageResult = iamOrganizationService.page(vo);
         return new ResponseEntity<>(pageResult.convert(t -> {
             IamOrganizationPageResponseVO responseVO = new IamOrganizationPageResponseVO();
