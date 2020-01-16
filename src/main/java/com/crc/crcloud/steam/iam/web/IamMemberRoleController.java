@@ -114,7 +114,7 @@ public class IamMemberRoleController {
      */
     @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_OWNER})
     @ApiOperation(value = "项目删除用户权限", notes = "项目删除用户权限")
-    @Delete("/projects/{project_id}/iam_user/unbind/users/{user_id}")
+    @DeleteMapping("/projects/{project_id}/iam_user/unbind/users/{user_id}")
     public ResponseEntity projectDeleteUser(@ApiParam(value = "项目ID", required = true)
                                             @PathVariable(name = "project_id") Long projectId,
                                             @ApiParam(value = "人员id", required = true)
