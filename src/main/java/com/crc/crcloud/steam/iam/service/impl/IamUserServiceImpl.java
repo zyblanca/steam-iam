@@ -220,7 +220,7 @@ public class IamUserServiceImpl implements IamUserService {
         userMemberEventPayload.setResourceId(projectId);
         userMemberEventPayload.setResourceType(ResourceLevel.PROJECT.value());
         userMemberEventPayloads.add(userMemberEventPayload);
-        IamUnbindUserRoleEvent event = new IamUnbindUserRoleEvent(null, ResourceLevel.PROJECT, projectId, userMemberEventPayloads);
+        IamUnbindUserRoleEvent event = new IamUnbindUserRoleEvent(userMemberEventPayloads, ResourceLevel.PROJECT, projectId, userMemberEventPayloads);
         //发起通知事件
         applicationEventPublisher.publishEvent(event);
         //删除指定权限
@@ -428,7 +428,7 @@ public class IamUserServiceImpl implements IamUserService {
         userMemberEventPayload.setUsername(iamUser.getLoginName());
         userMemberEventPayloads.add(userMemberEventPayload);
         //发起saga
-        IamUpdateUserRoleEvent iamUpdateUserRoleEvent = new IamUpdateUserRoleEvent(projectId, ResourceLevel.PROJECT, roleIds,userMemberEventPayloads, null);
+        IamUpdateUserRoleEvent iamUpdateUserRoleEvent = new IamUpdateUserRoleEvent(projectId, ResourceLevel.PROJECT, roleIds,userMemberEventPayloads, userMemberEventPayloads);
         applicationEventPublisher.publishEvent(iamUpdateUserRoleEvent);
 
     }
