@@ -210,6 +210,12 @@ public class IamUserServiceImpl implements IamUserService {
         if (CollectionUtils.isEmpty(iamMemberRoles)) {
             return;
         }
+
+        //删除指定权限
+        iamMemberRoleMapper.deleteBatchIds(iamMemberRoles.stream().map(IamMemberRole::getId).collect(Collectors.toList()));
+        //检查删除后该项目是否还有管理员权限
+        checkHasOwner(projectId);
+
         //人员信息
         IamUser iamUser = iamUserMapper.selectById(userId);
         //封装saga事务参数
@@ -223,8 +229,26 @@ public class IamUserServiceImpl implements IamUserService {
         IamUnbindUserRoleEvent event = new IamUnbindUserRoleEvent(userMemberEventPayloads, ResourceLevel.PROJECT, projectId, userMemberEventPayloads);
         //发起通知事件
         applicationEventPublisher.publishEvent(event);
-        //删除指定权限
-        iamMemberRoleMapper.deleteBatchIds(iamMemberRoles.stream().map(IamMemberRole::getId).collect(Collectors.toList()));
+
+
+    }
+
+    //检查指定项目是否存在管理员权限
+    private void checkHasOwner(Long projectId) {
+        //获取管理员权限
+        IamRole iamRole = iamRoleMapper.selectOne(Wrappers.<IamRole>lambdaQuery()
+                .eq(IamRole::getCode, InitRoleCode.PROJECT_OWNER)
+                .eq(IamRole::getFdLevel, ResourceLevel.PROJECT.value())
+                .eq(IamRole::getIsEnabled, Boolean.TRUE));
+        //查询项目下是否存在管理员权限
+        int count = iamMemberRoleMapper.selectCount(Wrappers.<IamMemberRole>lambdaQuery()
+                .eq(IamMemberRole::getMemberType, MemberType.USER.getValue())
+                .eq(IamMemberRole::getRoleId, iamRole.getId())
+                .eq(IamMemberRole::getSourceId, projectId)
+                .eq(IamMemberRole::getSourceType, ResourceLevel.PROJECT.value()));
+        if (0 == count) {
+            throw new IamAppCommException("project.owner.exist");
+        }
 
     }
 
@@ -356,6 +380,8 @@ public class IamUserServiceImpl implements IamUserService {
         if (CollectionUtils.isEmpty(userIds = iamUserVO.getUserIds()) || CollectionUtils.isEmpty(roleIds = iamUserVO.getRoleIds())) {
             throw new IamAppCommException("comm.param.error");
         }
+        //检查授权或者变更授权后是否会造成无项目管理员
+        checkProjectOwner(projectId,roleIds,userIds);
         //新增授权
         Set<Long> newUser = new HashSet<>(userIds.size());
         //人员去重
@@ -384,6 +410,31 @@ public class IamUserServiceImpl implements IamUserService {
         }
         //公共授权通道
         iamMemberRoleService.grantUserRole(newUser, new HashSet<>(roleIds), projectId, ResourceLevel.PROJECT);
+
+    }
+    //验证操作后是否会存在一个管理员
+    private void checkProjectOwner(Long projectId, List<Long> roleIds, List<Long> userIds) {
+        //获取管理员权限
+        IamRole iamRole = iamRoleMapper.selectOne(Wrappers.<IamRole>lambdaQuery()
+                .eq(IamRole::getCode, InitRoleCode.PROJECT_OWNER)
+                .eq(IamRole::getFdLevel, ResourceLevel.PROJECT.value())
+                .eq(IamRole::getIsEnabled, Boolean.TRUE));
+        //需要变动的权限包含管理员，那么无需校验
+        if(roleIds.contains(iamRole.getId())){
+            return;
+        }
+        //排除当前人员 是否还有管理人存在
+        int count = iamMemberRoleMapper.selectCount(Wrappers.<IamMemberRole>lambdaQuery()
+        .eq(IamMemberRole::getMemberType,MemberType.USER.getValue())
+        .eq(IamMemberRole::getRoleId,iamRole.getId())
+        .eq(IamMemberRole::getSourceId,projectId)
+        .eq(IamMemberRole::getSourceType,ResourceLevel.PROJECT.value())
+        .notIn(IamMemberRole::getMemberId,userIds));
+
+        if(count ==  0){
+            throw new IamAppCommException("project.owner.exist");
+        }
+
 
     }
 
@@ -428,7 +479,7 @@ public class IamUserServiceImpl implements IamUserService {
         userMemberEventPayload.setUsername(iamUser.getLoginName());
         userMemberEventPayloads.add(userMemberEventPayload);
         //发起saga
-        IamUpdateUserRoleEvent iamUpdateUserRoleEvent = new IamUpdateUserRoleEvent(projectId, ResourceLevel.PROJECT, roleIds,userMemberEventPayloads, userMemberEventPayloads);
+        IamUpdateUserRoleEvent iamUpdateUserRoleEvent = new IamUpdateUserRoleEvent(projectId, ResourceLevel.PROJECT, roleIds, userMemberEventPayloads, userMemberEventPayloads);
         applicationEventPublisher.publishEvent(iamUpdateUserRoleEvent);
 
     }
