@@ -263,7 +263,9 @@ public class OauthLdapServiceImpl implements OauthLdapService {
     @Override
     public OauthLdapVO queryOneByOrganizationId(Long organizationId) {
         OauthLdap oauthLdap = oauthLdapMapper.selectOne(Wrappers.<OauthLdap>lambdaQuery().eq(OauthLdap::getOrganizationId, organizationId));
-        if (Objects.isNull(oauthLdap)) return null;
+        if (Objects.isNull(oauthLdap) || Objects.isNull(oauthLdap.getId())){
+            return null;
+        }
         return CopyUtil.copy(oauthLdap, OauthLdapVO.class);
     }
 
