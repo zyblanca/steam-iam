@@ -77,7 +77,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
         try {
             sync(event.getSource(), event.getRoles());
         } catch (Exception ex) {
-            log.info("同步用户[{}]角色失败", event.getSource().getLoginName());
+            log.info("同步用户[{}]角色失败", event.getSource().getLoginName(), ex);
         }
 
         log.info("同步用户[{}]授权角色数据;结束,耗时:{}/ms", event.getSource().getLoginName(), timer.interval());
