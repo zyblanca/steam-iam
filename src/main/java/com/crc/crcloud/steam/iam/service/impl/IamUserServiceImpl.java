@@ -18,6 +18,11 @@ import com.crc.crcloud.steam.iam.common.utils.*;
 import com.crc.crcloud.steam.iam.dao.*;
 import com.crc.crcloud.steam.iam.entity.*;
 import com.crc.crcloud.steam.iam.model.dto.*;
+import com.crc.crcloud.steam.iam.entity.*;
+import com.crc.crcloud.steam.iam.model.dto.IamProjectDTO;
+import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
+import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
+import com.crc.crcloud.steam.iam.model.dto.UserSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.iam.RoleAssignmentSearchDTO;
 import com.crc.crcloud.steam.iam.model.dto.iam.UserWithRoleDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.UserMemberEventPayload;
@@ -322,13 +327,15 @@ public class IamUserServiceImpl implements IamUserService {
         page.setAsc(vo.getAsc());
         page.setDesc(vo.getDesc());
         PageWrapper<IamUser> pageWrapper = PageWrapper.instance(page);
-        pageWrapper.addTableAliasSortFieldConvert("iam_user", IamUser::getRealName);
         pageWrapper.addGbkFieldConvert(IamUser::getRealName);
         pageWrapper.addSortFieldConvert(origin -> EntityUtil.getSimpleField(IamUser::getIsLdap), "origin");
-        pageWrapper.addTableAliasSortFieldConvert("iam_role", "roleName");
-        pageWrapper.addGbkFieldConvert("roleName");
+        //roleName-> imr.role_id
+        pageWrapper.addSortFieldConvert(t -> EntityUtil.getSimpleField(IamMemberRole::getRoleId), "roleName");
+        pageWrapper.addTableAliasSortFieldConvert("imr", "roleName");
+        //creationDate->any_value(imr.creation_date)
         pageWrapper.addDefaultOrderByDesc(IamUser::getCreationDate);
-        pageWrapper.addTableAliasSortFieldConvert("iam_user", IamUser::getCreationDate);
+        pageWrapper.addTableAliasSortFieldConvert("imr", IamUser::getCreationDate);
+        pageWrapper.addSortFieldConvert(t -> StrUtil.format("ANY_VALUE({})", t), IamUser::getCreationDate);
         IPage<IamUser> pageResult = iamUserMapper.pageQueryOrganizationUser(pageWrapper, CollUtil.newHashSet(organizationId), searchDTO);
         return pageResult.convert(t -> CopyUtil.copy(t, IamUserVO.class));
     }
