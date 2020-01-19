@@ -336,6 +336,7 @@ public class IamUserServiceImpl implements IamUserService {
         pageWrapper.addDefaultOrderByDesc(IamUser::getCreationDate);
         pageWrapper.addTableAliasSortFieldConvert("imr", IamUser::getCreationDate);
         pageWrapper.addSortFieldConvert(t -> StrUtil.format("ANY_VALUE({})", t), IamUser::getCreationDate);
+        pageWrapper.addSortFieldConvert(t -> StrUtil.format("MAX({})", t), IamUser::getCreationDate);
         IPage<IamUser> pageResult = iamUserMapper.pageQueryOrganizationUser(pageWrapper, CollUtil.newHashSet(organizationId), searchDTO);
         return pageResult.convert(t -> CopyUtil.copy(t, IamUserVO.class));
     }
