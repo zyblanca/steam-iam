@@ -3,7 +3,6 @@ package com.crc.crcloud.steam.iam.common.eventhander.listener;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.lang.Assert;
@@ -14,7 +13,9 @@ import com.crc.crcloud.steam.iam.common.enums.MemberType;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.EntityUtil;
 import com.crc.crcloud.steam.iam.common.utils.SagaTopic;
-import com.crc.crcloud.steam.iam.model.dto.*;
+import com.crc.crcloud.steam.iam.model.dto.IamMemberRoleDTO;
+import com.crc.crcloud.steam.iam.model.dto.IamRoleDTO;
+import com.crc.crcloud.steam.iam.model.dto.IamUserDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.UserMemberEventPayload;
 import com.crc.crcloud.steam.iam.model.dto.user.IamMemberRoleWithRoleDTO;
 import com.crc.crcloud.steam.iam.model.event.IamGrantUserRoleEvent;
@@ -32,7 +33,6 @@ import io.choerodon.core.validator.ValidList;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.policy.SimpleRetryPolicy;
@@ -51,7 +51,6 @@ import java.util.stream.Collectors;
 
 /**
  * 用户被授权角色事件-同步到老行云
- *
  * @author LiuYang
  * @date 2019/11/25
  */
@@ -86,9 +85,8 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
 
     /**
      * 该接口全量增量同步均支持
-     * <p>会忽略掉项目或者组织创建时间在{@link ChoerodonDevOpsProperties#getConditionDate()}之后的数据</p>
-     *
-     * @param user  用户
+     * <s><p>会忽略掉项目或者组织创建时间在{@link ChoerodonDevOpsProperties#getConditionDate()}之后的数据</p></s>
+     * @param user 用户
      * @param roles 授权的角色
      */
     @Saga(code = SagaTopic.MemberRole.MEMBER_ROLE_UPDATE, description = "新行云人员授权事件", inputSchemaClass = List.class)
@@ -119,31 +117,20 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
         }
         Map<ResourceLevel, Function<List<IamMemberRoleDTO>, List<MemberRoleDTO>>> grantConsumer = new HashMap<>(3);
         final List<Long> memberIds = CollUtil.newArrayList(iamServerUser.getId());
-        final DateTime conditionDate = DateTime.of(properties.getConditionDate());
-        log.info("新老数据判定时间conditionDate: {}", conditionDate);
-
-
         grantConsumer.put(ResourceLevel.ORGANIZATION, items -> {
             return this.grantRole(items, list -> {
                 Long organizationId = CollUtil.getFirst(list).getSourceId();
-                if (iamOrganizationService.get(organizationId).map(IamOrganizationDTO::getCreationDate)/*.filter(conditionDate::isAfter)*/.isPresent()) {
-
-                    ResponseEntity<List<MemberRoleDTO>> result = this.iamServiceClient.createOrUpdateOnOrganizationLevel(false, organizationId, MemberType.USER.getValue(), memberIds, list);
-                    sendSaga(organizationId, ResourceLevel.ORGANIZATION, user);
-                    return result;
-                }
-                return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
+                ResponseEntity<List<MemberRoleDTO>> result = this.iamServiceClient.createOrUpdateOnOrganizationLevel(false, organizationId, MemberType.USER.getValue(), memberIds, list);
+                sendSaga(organizationId, ResourceLevel.ORGANIZATION, user);
+                return result;
             });
         });
         grantConsumer.put(ResourceLevel.PROJECT, items -> {
             return this.grantRole(items, list -> {
                 Long projectId = CollUtil.getFirst(list).getSourceId();
-                if (iamProjectService.get(projectId).map(IamProjectDTO::getCreationDate)/*.filter(conditionDate::isAfter)*/.isPresent()) {
-                    ResponseEntity<List<MemberRoleDTO>> result = this.iamServiceClient.createOrUpdateOnProjectLevel(false, projectId, MemberType.USER.getValue(), memberIds, list);
-                    sendSaga(projectId, ResourceLevel.PROJECT, user);
-                    return result;
-                }
-                return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
+                ResponseEntity<List<MemberRoleDTO>> result = this.iamServiceClient.createOrUpdateOnProjectLevel(false, projectId, MemberType.USER.getValue(), memberIds, list);
+                sendSaga(projectId, ResourceLevel.PROJECT, user);
+                return result;
             });
         });
 
@@ -203,7 +190,6 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
 
     /**
      * 组织授权
-     *
      * @param items 按照级别分组之后的数据
      * @return
      */
@@ -236,7 +222,6 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
 
     /**
      * 通过新的角色列表查询老的角色列表
-     *
      * @param roles 新关联的角色列表
      * @return 老的那边的角色列表
      */
@@ -268,7 +253,6 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
 
     /**
      * 根据邮箱获取对应的老行云用户
-     *
      * @param loginName 邮箱
      * @return 老行云用户
      */
