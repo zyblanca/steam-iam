@@ -23,7 +23,8 @@ public enum LdapSyncUserErrorEnum {
     PHONE_GET_FAILURE("获取手机号失败"),
     SAME_LOGIN_DIFF_LDAP("相同用户名，不同的ldap配置"),
     LOGIN_NAME_EXIST_NOT_LDAP("用户名已被非ldap用户占用"),
-    SYNC_STEAM_USER_ERROR("同步到老行云失败");
+    SYNC_STEAM_USER_ERROR("同步到老行云失败"),
+    INSERT_METHOD_ERROR("调用插入方法失败");
 
     private String msg;
 

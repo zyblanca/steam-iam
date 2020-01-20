@@ -1,5 +1,6 @@
 package com.crc.crcloud.steam.iam.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.crc.crcloud.steam.iam.api.feign.IamServiceClient;
@@ -325,10 +326,25 @@ public class LdapServiceImpl implements LdapService {
         oauthLdapHistory.setUpdateUserCount(oauthLdapHistory.getUpdateUserCount() + updateUser.size());
         //插入新用户,启用事务支持
         LdapService ldapService= ApplicationContextHelper.getContext().getBean(LdapService.class);
-        List<OauthLdapErrorUser> insertError = ldapService.insertLdapUser(oauthLdapHistory.getId(), insertUser, oauthLdapDTO.getOrganizationId());
-        oauthLdapHistory.setNewUserCount(oauthLdapHistory.getNewUserCount() - insertError.size());
-        oauthLdapHistory.setErrorUserCount(oauthLdapHistory.getErrorUserCount() + insertError.size());
-        errorUsers.addAll(insertError);
+        try{
+            List<OauthLdapErrorUser> insertError = ldapService.insertLdapUser(oauthLdapHistory.getId(), insertUser, oauthLdapDTO.getOrganizationId());
+            oauthLdapHistory.setNewUserCount(oauthLdapHistory.getNewUserCount() - insertError.size());
+            oauthLdapHistory.setErrorUserCount(oauthLdapHistory.getErrorUserCount() + insertError.size());
+            errorUsers.addAll(insertError);
+       }catch (Exception e){
+           log.warn("新增用户失败==》{}", JSON.toJSONString(insertUser),e);
+            oauthLdapHistory.setNewUserCount(0);
+            oauthLdapHistory.setErrorUserCount(oauthLdapHistory.getErrorUserCount() + insertUser.size());
+            errorUsers.addAll(insertUser.stream().map(v -> OauthLdapErrorUser.builder().cause(LdapSyncUserErrorEnum.INSERT_METHOD_ERROR.getMsg())
+                    .email(v.getEmail())
+                    .loginName(v.getLoginName())
+                    .phone(v.getPhone())
+                    .realName(v.getRealName())
+                    .uuid("--")
+                    .ldapHistoryId(oauthLdapHistory.getId()).build()
+            ).collect(Collectors.toList()));
+        }
+
         updateLdapUser(updateUser);
         //新组织绑定用户
         bandLdapUser(bandUser, oauthLdapDTO.getOrganizationId());
