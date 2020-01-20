@@ -198,19 +198,19 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
         List<MemberRoleDTO> result = new ArrayList<>(items.size());
         /*重试策略：最多重试15次，每次间隔500毫秒*/
         final RetryTemplate retryTemplate = new RetryTemplate();
-        FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
-        fixedBackOffPolicy.setBackOffPeriod(500L);
-        retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
-        retryTemplate.setRetryPolicy(new SimpleRetryPolicy(15));
+        retryTemplate.setBackOffPolicy(new FixedBackOffPolicy());
+        retryTemplate.setRetryPolicy(new SimpleRetryPolicy(30));
         //同资源ID分组
         List<List<IamMemberRoleDTO>> groupBySourceId = CollUtil.groupByField(items, EntityUtil.getSimpleFieldToCamelCase(IamMemberRoleDTO::getSourceId));
         for (List<IamMemberRoleDTO> list : groupBySourceId) {
             RetryCallback<List<MemberRoleDTO>, RuntimeException> retryCallback = context -> {
+                if (context.getRetryCount() > 0) {
+                    log.info("retry callback retry count: {}", context.getRetryCount());
+                }
                 ResponseEntity<List<MemberRoleDTO>> responseEntity = sourceFeignFunc.apply(convert(list));
                 Assert.notNull(responseEntity, "sourceFeignFunc result is must not null", responseEntity);
                 //noinspection ConstantConditions
                 result.addAll(responseEntity.getBody());
-                log.info("retry callback retry count: {}", context.getRetryCount());
                 return responseEntity.getBody();
             };
             result.addAll(retryTemplate.execute(retryCallback));
