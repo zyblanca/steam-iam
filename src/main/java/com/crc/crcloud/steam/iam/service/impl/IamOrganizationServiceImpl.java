@@ -243,6 +243,8 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
         entity.setImageUrl(vo.getImageUrl());
         entity.setName(vo.getName());
         this.iamOrganizationMapper.insert(entity);
+        IamOrganizationDTO iamOrganizationDTO = ConvertHelper.convert(entity, IamOrganizationDTO.class);
+        createOrganizationSaga(iamOrganizationDTO);
         //创建完后需要将该创建者设置为该组织管理员
         Optional.ofNullable(entity.getCreatedBy()).ifPresent(userId -> {
             ApplicationContextHelper.getContext().getBean(IamRoleService.class)
@@ -252,8 +254,6 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
                                 .grantUserRole(userId, CollUtil.newHashSet(role.getId()), entity.getId(), ResourceLevel.ORGANIZATION);
                     });
         });
-        IamOrganizationDTO iamOrganizationDTO = ConvertHelper.convert(entity, IamOrganizationDTO.class);
-        createOrganizationSaga(iamOrganizationDTO);
         return iamOrganizationDTO;
     }
 

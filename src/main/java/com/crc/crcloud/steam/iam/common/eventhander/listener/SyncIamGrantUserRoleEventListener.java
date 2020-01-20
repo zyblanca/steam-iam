@@ -203,9 +203,10 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
         //同资源ID分组
         List<List<IamMemberRoleDTO>> groupBySourceId = CollUtil.groupByField(items, EntityUtil.getSimpleFieldToCamelCase(IamMemberRoleDTO::getSourceId));
         for (List<IamMemberRoleDTO> list : groupBySourceId) {
+            final IamMemberRoleDTO first = CollUtil.getFirst(list);
             RetryCallback<List<MemberRoleDTO>, RuntimeException> retryCallback = context -> {
                 if (context.getRetryCount() > 0) {
-                    log.info("retry callback retry count: {}", context.getRetryCount());
+                    log.info("授权类型[{}|{}] retry callback retry count: {}", first.getSourceType(), first.getSourceId(), context.getRetryCount());
                 }
                 ResponseEntity<List<MemberRoleDTO>> responseEntity = sourceFeignFunc.apply(convert(list));
                 Assert.notNull(responseEntity, "sourceFeignFunc result is must not null", responseEntity);
@@ -214,7 +215,6 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
                 return responseEntity.getBody();
             };
             result.addAll(retryTemplate.execute(retryCallback));
-            IamMemberRoleDTO first = CollUtil.getFirst(list);
             String collect = list.stream().map(IamMemberRoleDTO::getRoleId).map(Object::toString).collect(Collectors.joining(","));
             log.info("授权类型[{}|{}]授权角色[{}]", first.getSourceType(), first.getSourceId(), collect);
         }
