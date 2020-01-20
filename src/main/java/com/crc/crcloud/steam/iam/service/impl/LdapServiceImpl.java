@@ -17,6 +17,7 @@ import com.crc.crcloud.steam.iam.model.event.IamUserLdapBatchCreateEvent;
 import com.crc.crcloud.steam.iam.service.IamMemberRoleService;
 import com.crc.crcloud.steam.iam.service.IamRoleService;
 import com.crc.crcloud.steam.iam.service.LdapService;
+import io.choerodon.core.convertor.ApplicationContextHelper;
 import io.choerodon.core.iam.InitRoleCode;
 import io.choerodon.core.iam.ResourceLevel;
 import lombok.extern.slf4j.Slf4j;
@@ -201,6 +202,7 @@ public class LdapServiceImpl implements LdapService {
                                 //属性转对象
                                 transformationToUser(oauthLdapHistory, attributesList, normalUser, errorUsers, oauthLdapDTO);
                                 //对象对比并且进行插入或者更新
+
                                 operationUsers(oauthLdapHistory, normalUser, errorUsers, oauthLdapDTO);
                                 //help gc
                                 normalUser = null;
@@ -321,8 +323,9 @@ public class LdapServiceImpl implements LdapService {
         oauthLdapHistory.setErrorUserCount(oauthLdapHistory.getErrorUserCount() + errorUsers.size() - initErrorSize);
         oauthLdapHistory.setNewUserCount(oauthLdapHistory.getNewUserCount() + insertUser.size());
         oauthLdapHistory.setUpdateUserCount(oauthLdapHistory.getUpdateUserCount() + updateUser.size());
-        //插入新用户
-        List<OauthLdapErrorUser> insertError = insertLdapUser(oauthLdapHistory.getId(), insertUser, oauthLdapDTO.getOrganizationId());
+        //插入新用户,启用事务支持
+        LdapService ldapService= ApplicationContextHelper.getContext().getBean(LdapService.class);
+        List<OauthLdapErrorUser> insertError = ldapService.insertLdapUser(oauthLdapHistory.getId(), insertUser, oauthLdapDTO.getOrganizationId());
         oauthLdapHistory.setNewUserCount(oauthLdapHistory.getNewUserCount() - insertError.size());
         oauthLdapHistory.setErrorUserCount(oauthLdapHistory.getErrorUserCount() + insertError.size());
         errorUsers.addAll(insertError);
@@ -366,7 +369,8 @@ public class LdapServiceImpl implements LdapService {
     }
 
     //插入用户
-    private List<OauthLdapErrorUser> insertLdapUser(Long historyId, List<IamUser> insertUser, Long organizationId) {
+    @Transactional(isolation = Isolation.READ_COMMITTED,rollbackFor = Exception.class)
+    public List<OauthLdapErrorUser> insertLdapUser(Long historyId, List<IamUser> insertUser, Long organizationId) {
         if (CollectionUtils.isEmpty(insertUser)) return new ArrayList<>();
 
         //默认都是成功的
@@ -401,7 +405,7 @@ public class LdapServiceImpl implements LdapService {
                     log.warn("ldap同步数据严重警告===发送插入的数据id与返回的数据id不一致{},返回{}", insertIds, eUser.getId());
                     continue;
                 }
-                eUser.setUuid("--");
+                eUser.setUuid(eUser.getId()+"");
                 eUser.setLdapHistoryId(historyId);
                 errorIds.add(eUser.getId());
                 eUser.setId(null);
@@ -412,7 +416,10 @@ public class LdapServiceImpl implements LdapService {
                         .in(IamUserOrganizationRel::getUserId, errorIds));
             }
         }
-        if (errorIds.size() == insertIds.size()) return errorUsers;
+        if (errorIds.size() == insertIds.size()){
+            log.warn("=====同步的用户全部失败===》{}",historyId);
+            return errorUsers;
+        }
         //删除无效的用户，有效用户进行授权
         if (!CollectionUtils.isEmpty(errorIds)) {
             insertIds.removeAll(errorIds);

@@ -1,6 +1,8 @@
 package com.crc.crcloud.steam.iam.service;
 
+import com.crc.crcloud.steam.iam.entity.IamUser;
 import com.crc.crcloud.steam.iam.entity.OauthLdap;
+import com.crc.crcloud.steam.iam.entity.OauthLdapErrorUser;
 import com.crc.crcloud.steam.iam.entity.OauthLdapHistory;
 import com.crc.crcloud.steam.iam.model.dto.LdapConnectionDTO;
 import com.crc.crcloud.steam.iam.model.dto.OauthLdapDTO;
@@ -58,5 +60,12 @@ public interface LdapService {
      */
     Long checkLast(Long ldapId);
 
-
+    /**
+     * 内部使用，便于事务控制
+     * @param id
+     * @param insertUser
+     * @param organizationId
+     * @return
+     */
+    List<OauthLdapErrorUser> insertLdapUser(Long id, List<IamUser> insertUser, Long organizationId);
 }
