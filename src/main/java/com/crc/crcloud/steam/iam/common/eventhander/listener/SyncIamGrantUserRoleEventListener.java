@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.http.ResponseEntity;
 import org.springframework.retry.RetryCallback;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
@@ -191,21 +192,31 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
     /**
      * 组织授权
      * @param items 按照级别分组之后的数据
-     * @return
+     * @return iam-service授权结果数据
      */
     private List<MemberRoleDTO> grantRole(List<IamMemberRoleDTO> items, @NotNull Function<ValidList<MemberRoleDTO>, ResponseEntity<List<MemberRoleDTO>>> sourceFeignFunc) {
         List<MemberRoleDTO> result = new ArrayList<>(items.size());
+        /*重试策略：最多重试15次，每次间隔500毫秒*/
+        final RetryTemplate retryTemplate = new RetryTemplate();
+        FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
+        fixedBackOffPolicy.setBackOffPeriod(500L);
+        retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
+        retryTemplate.setRetryPolicy(new SimpleRetryPolicy(15));
         //同资源ID分组
         List<List<IamMemberRoleDTO>> groupBySourceId = CollUtil.groupByField(items, EntityUtil.getSimpleFieldToCamelCase(IamMemberRoleDTO::getSourceId));
         for (List<IamMemberRoleDTO> list : groupBySourceId) {
-            //todo 是否进行重试处理
-            ResponseEntity<List<MemberRoleDTO>> responseEntity = sourceFeignFunc.apply(convert(list));
-            Assert.notNull(responseEntity, "sourceFeignFunc result is must not null", responseEntity);
-            //noinspection ConstantConditions
-            result.addAll(responseEntity.getBody());
+            RetryCallback<List<MemberRoleDTO>, RuntimeException> retryCallback = context -> {
+                ResponseEntity<List<MemberRoleDTO>> responseEntity = sourceFeignFunc.apply(convert(list));
+                Assert.notNull(responseEntity, "sourceFeignFunc result is must not null", responseEntity);
+                //noinspection ConstantConditions
+                result.addAll(responseEntity.getBody());
+                log.info("retry callback retry count: {}", context.getRetryCount());
+                return responseEntity.getBody();
+            };
+            result.addAll(retryTemplate.execute(retryCallback));
             IamMemberRoleDTO first = CollUtil.getFirst(list);
             String collect = list.stream().map(IamMemberRoleDTO::getRoleId).map(Object::toString).collect(Collectors.joining(","));
-            log.info("授权类型[{}|{}]授权角色[{}],结果: {}", first.getSourceType(), first.getSourceId(), collect, JSONUtil.toJsonStr(responseEntity.getBody()));
+            log.info("授权类型[{}|{}]授权角色[{}]", first.getSourceType(), first.getSourceId(), collect);
         }
         return result;
     }
