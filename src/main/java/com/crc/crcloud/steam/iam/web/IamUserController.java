@@ -101,7 +101,7 @@ public class IamUserController {
 
     /**
      * 查询指定项目下的所有成员信息
-     * 当前只有id loginName realName email 四个属性 后续可以根据需要添加
+     * 当前只有id loginName realName  四个属性 后续可以根据需要添加
      *
      * @param projectId     项目id
      * @param userSearchDTO 人员查询参数
