@@ -292,7 +292,8 @@
         SELECT
         iu.id,
         iu.login_name,
-        iu.real_name
+        iu.real_name,
+        iu.email
         FROM (select DISTINCT imr.member_id
         FROM iam_member_role imr
         WHERE imr.member_type = #{userSearch.memberType}
