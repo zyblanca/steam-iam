@@ -8,10 +8,7 @@ import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.crc.crcloud.steam.iam.common.utils.CopyUtil;
-import com.crc.crcloud.steam.iam.common.utils.PageUtil;
-import com.crc.crcloud.steam.iam.common.utils.ResponseEntity;
-import com.crc.crcloud.steam.iam.common.utils.SearchUtil;
+import com.crc.crcloud.steam.iam.common.utils.*;
 import com.crc.crcloud.steam.iam.model.dto.*;
 import com.crc.crcloud.steam.iam.model.vo.IamOrganizationVO;
 import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
@@ -30,6 +27,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -101,7 +99,7 @@ public class IamUserController {
 
     /**
      * 查询指定项目下的所有成员信息
-     * 当前只有id loginName realName email 四个属性 后续可以根据需要添加
+     * 当前只有id loginName realName  四个属性 后续可以根据需要添加
      *
      * @param projectId     项目id
      * @param userSearchDTO 人员查询参数
@@ -115,8 +113,11 @@ public class IamUserController {
                                                            @PathVariable(name = "project_id") Long projectId,
                                                            UserSearchDTO userSearchDTO) {
 
-
-        return new ResponseEntity<>(iamUserService.listByProject(projectId, userSearchDTO));
+        List<IamUserVO>  users = iamUserService.listByProject(projectId, userSearchDTO);
+        if(!CollectionUtils.isEmpty(users)){
+            users.forEach(v->v.setEmail(null));
+        }
+        return new ResponseEntity<>(users);
     }
 
     /**
