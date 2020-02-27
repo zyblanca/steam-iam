@@ -1,7 +1,7 @@
 package com.crc.crcloud.steam.iam.common.eventhander.listener;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.enums.ApplicationCategory;
@@ -15,13 +15,13 @@ import com.crc.crcloud.steam.iam.dao.IamMemberRoleMapper;
 import com.crc.crcloud.steam.iam.entity.IamApplication;
 import com.crc.crcloud.steam.iam.entity.IamApplicationExploration;
 import com.crc.crcloud.steam.iam.entity.IamMemberRole;
+import com.crc.crcloud.steam.iam.model.dto.QueryApplicationParamDTO;
 import com.crc.crcloud.steam.iam.model.dto.payload.ApplicationReqPayload;
 import com.crc.crcloud.steam.iam.model.dto.payload.UserMemberEventPayload;
 import com.crc.crcloud.steam.iam.model.vo.IamApplicationVO;
 import com.crc.crcloud.steam.iam.model.vo.IamProjectVO;
 import com.crc.crcloud.steam.iam.service.IamApplicationService;
 import com.crc.crcloud.steam.iam.service.IamProjectService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.choerodon.asgard.saga.annotation.SagaTask;
@@ -70,6 +70,8 @@ public class SagaDevopsServiceApplicationListener {
     private IamMemberRoleMapper iamMemberRoleMapper;
     @Autowired
     private IamLabelMapper iamLabelMapper;
+    @Autowired
+    IamApplicationService iamApplicationService;
 
     @SagaTask(code = "steam-iam-sync-application", description = "iam 接受 devops-service 同步 application 集合事件",
             sagaCode = APP_SYNC,
@@ -263,5 +265,21 @@ public class SagaDevopsServiceApplicationListener {
         iamApplicationService.createApplication(iamApplicationVO);
     }
 
+    @SagaTask(code = "deleteApplicationSagaTask",
+            description = "删除steam-iam应用",
+            sagaCode = "devops-ci-delete-application",
+            maxRetryCount = 3,
+            seq = 1)
+    public void  deleteApplicationSagaTask(String data) {
+        try {
+            JSONObject jsonObject = JSONObject.parseObject(data);
+            QueryApplicationParamDTO queryApplicationParamDTO = jsonObject.parseObject(data,QueryApplicationParamDTO.class);
+            iamApplicationService.deleteApplication(queryApplicationParamDTO.getOrganizationId(),
+                    queryApplicationParamDTO.getSteamProjectId(),queryApplicationParamDTO.getCode());
+            log.info("删除devops应用成功");
+        }catch (Exception e){
+            log.info("删除devops-service应用失败",e.getMessage());
+        }
+    }
 
 }

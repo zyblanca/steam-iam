@@ -1,5 +1,6 @@
 package com.crc.crcloud.steam.iam.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.crc.crcloud.steam.iam.common.config.ChoerodonDevOpsProperties;
 import com.crc.crcloud.steam.iam.common.enums.ApplicationCategory;
 import com.crc.crcloud.steam.iam.common.enums.ApplicationType;
@@ -17,6 +18,7 @@ import io.choerodon.asgard.saga.producer.StartSagaBuilder;
 import io.choerodon.asgard.saga.producer.TransactionalProducer;
 import io.choerodon.core.convertor.ConvertHelper;
 import io.choerodon.core.iam.ResourceLevel;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -27,7 +29,7 @@ import org.springframework.util.ObjectUtils;
 import java.util.Objects;
 
 import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.Application.*;
-
+@Slf4j
 @Service
 public class IamApplicationServiceImpl implements IamApplicationService {
 
@@ -243,5 +245,27 @@ public class IamApplicationServiceImpl implements IamApplicationService {
         }
         return iamApplicationMapper.selectById(iamApplication.getId());
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void deleteApplication(Long organizationId, Long steamProjectId, String code) {
+        QueryWrapper<IamApplication> queryWrapper = new QueryWrapper();
+        queryWrapper.eq("organization_id",organizationId).eq("project_id",steamProjectId)
+                .eq("code",code);
+        IamApplication iamApplication = iamApplicationMapper.selectOne(queryWrapper);
+        if (Objects.nonNull(iamApplication)){
+            //删除steam-iam系统应用
+            QueryWrapper<IamApplication> aplicationWrapper = new QueryWrapper();
+            aplicationWrapper.eq("organization_id",organizationId).eq("project_id",steamProjectId)
+                    .eq("code",code);
+            iamApplicationMapper.delete(aplicationWrapper);
+            //应用勘探
+            QueryWrapper<IamApplicationExploration> ApplicationExplorationWrapper = new QueryWrapper();
+            ApplicationExplorationWrapper.eq("application_id",iamApplication.getId());
+            iamApplicationExplorationMapper.delete(ApplicationExplorationWrapper);
+        }
+        log.info("steam-iam服务应用删除成功！");
+    }
+
 
 }

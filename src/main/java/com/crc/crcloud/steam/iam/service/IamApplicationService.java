@@ -33,4 +33,13 @@ public interface IamApplicationService {
      * @return
      */
     IamApplicationVO updateApplication(IamApplicationVO iamApplicationVO);
+
+    /**
+     * 删除steam-iam服务应用
+     * @param organizationId 组织id
+     * @param steamProjectId 项目id
+     * @param code 应用code
+     * @return
+     */
+    void deleteApplication(Long organizationId,Long steamProjectId,String code);
 }
