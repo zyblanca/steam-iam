@@ -1,6 +1,7 @@
 package com.crc.crcloud.steam.iam.common.eventhander.listener;
 
 import cn.hutool.core.collection.CollUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
@@ -267,18 +268,17 @@ public class SagaDevopsServiceApplicationListener {
 
     @SagaTask(code = "deleteApplicationSagaTask",
             description = "删除steam-iam应用",
-            sagaCode = "devops-ci-delete-application",
+            sagaCode = "steam-ci-delete-application",
             maxRetryCount = 3,
-            seq = 1)
-    public void  deleteApplicationSagaTask(String data) {
+            seq = 2)
+    public void deleteApplicationSagaTask(String data) {
         try {
-            JSONObject jsonObject = JSONObject.parseObject(data);
-            QueryApplicationParamDTO queryApplicationParamDTO = jsonObject.parseObject(data,QueryApplicationParamDTO.class);
+            QueryApplicationParamDTO queryApplicationParamDTO = JSON.parseObject(data, QueryApplicationParamDTO.class);
             iamApplicationService.deleteApplication(queryApplicationParamDTO.getOrganizationId(),
-                    queryApplicationParamDTO.getSteamProjectId(),queryApplicationParamDTO.getCode());
+                    queryApplicationParamDTO.getSteamProjectId(), queryApplicationParamDTO.getCode());
             log.info("删除devops应用成功");
-        }catch (Exception e){
-            log.info("删除devops-service应用失败",e.getMessage());
+        } catch (Exception e) {
+            log.info("删除devops-service应用失败", e.getMessage());
         }
     }
 
