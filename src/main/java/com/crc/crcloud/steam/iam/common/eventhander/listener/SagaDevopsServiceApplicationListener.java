@@ -271,15 +271,13 @@ public class SagaDevopsServiceApplicationListener {
             sagaCode = "steam-ci-delete-application",
             maxRetryCount = 3,
             seq = 2)
-    public void deleteSteamIamApplication(String data) {
-        try {
-            QueryApplicationParamDTO queryApplicationParamDTO = JSON.parseObject(data, QueryApplicationParamDTO.class);
-            iamApplicationService.deleteApplication(queryApplicationParamDTO.getOrganizationId(),
-                    queryApplicationParamDTO.getSteamProjectId(), queryApplicationParamDTO.getCode());
-            log.info("删除devops应用成功");
-        } catch (Exception e) {
-            log.info("删除devops-service应用失败", e.getMessage());
-        }
+    public QueryApplicationParamDTO deleteSteamIamApplication(String data) {
+        log.info("saga任务接受参数data={}", data);
+        QueryApplicationParamDTO queryApplicationParamDTO = JSON.parseObject(data, QueryApplicationParamDTO.class);
+        iamApplicationService.deleteApplication(queryApplicationParamDTO.getOrganizationId(),
+                queryApplicationParamDTO.getSteamProjectId(), queryApplicationParamDTO.getCode());
+        log.info("steam-iam应用删除成功");
+        return queryApplicationParamDTO;
     }
 
 }
