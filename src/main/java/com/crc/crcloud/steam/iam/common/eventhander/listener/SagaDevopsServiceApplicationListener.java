@@ -266,12 +266,12 @@ public class SagaDevopsServiceApplicationListener {
         iamApplicationService.createApplication(iamApplicationVO);
     }
 
-    @SagaTask(code = "deleteApplicationSagaTask",
+    @SagaTask(code = "deleteSteamIamApplication",
             description = "删除steam-iam应用",
             sagaCode = "steam-ci-delete-application",
             maxRetryCount = 3,
             seq = 2)
-    public void deleteApplicationSagaTask(String data) {
+    public void deleteSteamIamApplication(String data) {
         try {
             QueryApplicationParamDTO queryApplicationParamDTO = JSON.parseObject(data, QueryApplicationParamDTO.class);
             iamApplicationService.deleteApplication(queryApplicationParamDTO.getOrganizationId(),
