@@ -15,55 +15,54 @@ import java.lang.Byte;
 /**
  * @Author:
  * @Date: 2019-12-03
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @ApiModel("")
-public class IamLabelVO{
+public class IamLabelVO {
 
 
-        @ApiModelProperty("")
-        private Long id;
+    @ApiModelProperty("")
+    private Long id;
 
 
-        @ApiModelProperty("名称")
-        private String name;
+    @ApiModelProperty("名称")
+    private String name;
 
 
-        @ApiModelProperty("类型")
-        private String type;
+    @ApiModelProperty("类型")
+    private String type;
 
 
-        @ApiModelProperty("层级")
-        private String fdLevel;
+    @ApiModelProperty("层级")
+    private String fdLevel;
 
 
-        @ApiModelProperty("描述")
-        private String description;
+    @ApiModelProperty("描述")
+    private String description;
 
 
-        @ApiModelProperty("")
-        private Long objectVersionNumber;
+    @ApiModelProperty("")
+    private Long objectVersionNumber;
 
 
-        @ApiModelProperty("")
-        private Long createdBy;
+    @ApiModelProperty("")
+    private Long createdBy;
 
 
-        @ApiModelProperty("")
-        private Date creationDate;
+    @ApiModelProperty("")
+    private Date creationDate;
 
 
-        @ApiModelProperty("")
-        private Long lastUpdatedBy;
+    @ApiModelProperty("")
+    private Long lastUpdatedBy;
 
 
-        @ApiModelProperty("")
-        private Date lastUpdateDate;
-
+    @ApiModelProperty("")
+    private Date lastUpdateDate;
 
 
 }

@@ -11,25 +11,25 @@ import java.util.Optional;
  */
 public class UserDTO {
 
-    private Long    id;
-    private String  loginName;
-    private String  email;
-    private Long    organizationId;
-    private String  password;
-    private String  realName;
-    private String  phone;
-    private String  imageUrl;
-    private String  profilePhoto;
+    private Long id;
+    private String loginName;
+    private String email;
+    private Long organizationId;
+    private String password;
+    private String realName;
+    private String phone;
+    private String imageUrl;
+    private String profilePhoto;
     private Boolean isEnabled;
     private Boolean isLdap;
     private Boolean enabled;
     private Boolean ldap;
-    private String  language;
-    private String  timeZone;
-    private Date    lastPasswordUpdatedAt;
-    private Date    lastLoginAt;
+    private String language;
+    private String timeZone;
+    private Date lastPasswordUpdatedAt;
+    private Date lastLoginAt;
     private Boolean isLocked; //连续登录错误次数超出规定次数后是否锁定账户
-    private Date    lockedUntilAt;
+    private Date lockedUntilAt;
     private Integer passwordAttempt;
     private String internationalTelCode;
     private Boolean admin;

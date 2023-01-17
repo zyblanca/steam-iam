@@ -2,6 +2,7 @@ package com.crc.crcloud.steam.iam.common.utils;
 
 /**
  * 公共返回信息
+ *
  * @author liuchun
  */
 public class ResponseEntity<T> {

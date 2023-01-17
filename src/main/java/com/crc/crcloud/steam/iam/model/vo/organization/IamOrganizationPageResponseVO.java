@@ -10,7 +10,6 @@ import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 /**
- *
  * @author LiuYang
  * @date 2019/12/3
  */

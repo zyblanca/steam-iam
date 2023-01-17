@@ -18,7 +18,7 @@ import java.util.Date;
 @Builder
 @TableName("iam_application_exploration")
 public class IamApplicationExploration {
-//    @Id
+    //    @Id
 //    @GeneratedValue
     @TableId
     private Long id;
@@ -27,35 +27,35 @@ public class IamApplicationExploration {
     private Long rootId;
     private Long parentId;
     private String hashcode;
-//    @Column(name = "is_enabled")
+    //    @Column(name = "is_enabled")
     @TableField("is_enabled")
     private Boolean enabled;
 
-//    @Transient
+    //    @Transient
     @TableField(exist = false)
     private String applicationName;
-//    @Transient
+    //    @Transient
     @TableField(exist = false)
     private String applicationCode;
-//    @Transient
+    //    @Transient
     @TableField(exist = false)
     private String applicationCategory;
-//    @Transient
+    //    @Transient
     @TableField(exist = false)
     private String applicationType;
-//    @Transient
+    //    @Transient
     @TableField(exist = false)
     private Boolean applicationEnabled;
-//    @Transient
+    //    @Transient
     @TableField(exist = false)
     private Long projectId;
-//    @Transient
+    //    @Transient
     @TableField(exist = false)
     private String projectCode;
-//    @Transient
+    //    @Transient
     @TableField(exist = false)
     private String projectName;
-//    @Transient
+    //    @Transient
     @TableField(exist = false)
     private String projectImageUrl;
 
@@ -63,7 +63,7 @@ public class IamApplicationExploration {
     private Long objectVersionNumber;
 
     @ApiModelProperty(hidden = true)
-    @TableField(fill= FieldFill.INSERT)
+    @TableField(fill = FieldFill.INSERT)
     private Date creationDate;
 
     @ApiModelProperty(hidden = true)

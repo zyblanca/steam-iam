@@ -22,7 +22,7 @@ public class SagaSteamCiApplicationListener {
     @SagaTask(code = "steam-iam-ServiceApplicationStatusSync", description = "CI应用 状态 同步服务",
             sagaCode = APPLICATION_STATUS_SAGA_CODE,
             maxRetryCount = 1, seq = 2)
-    public void processStatus(String data){
+    public void processStatus(String data) {
         log.info("CI应用状态同步服务请求参数：{}", data);
         ApplicationPayload payload = JsonUtils.parse(data, ApplicationPayload.class);
         steamCiApplicationService.processStatus(payload);
@@ -32,7 +32,7 @@ public class SagaSteamCiApplicationListener {
     @SagaTask(code = "steam-iam-ServiceApplicationNameSync", description = "CI应用 名称 同步服务",
             sagaCode = APPLICATION_NAME_SAGA_CODE,
             maxRetryCount = 1, seq = 2)
-    public void processName(String data){
+    public void processName(String data) {
         log.info("CI应用名称同步服务请求参数：{}", data);
         ApplicationPayload payload = JsonUtils.parse(data, ApplicationPayload.class);
         steamCiApplicationService.processName(payload);

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+
 import java.util.Date;
 import java.lang.Integer;
 import java.lang.Long;
@@ -13,7 +14,7 @@ import java.lang.Byte;
 /**
  * @Author:
  * @Date: 2019-12-03
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
@@ -22,50 +23,50 @@ import java.lang.Byte;
 @TableName("iam_role_label")
 public class IamRoleLabel {
 
-        /**
-        * 
-        */
-        @TableId(type = IdType.AUTO)
-        private Long id;
+    /**
+     *
+     */
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
-        /**
-        * 角色的id
-        */
-        private Long roleId;
+    /**
+     * 角色的id
+     */
+    private Long roleId;
 
-        /**
-        * label的id
-        */
-        private Long labelId;
+    /**
+     * label的id
+     */
+    private Long labelId;
 
-        /**
-        * 
-        */
-        private Long objectVersionNumber;
+    /**
+     *
+     */
+    private Long objectVersionNumber;
 
-        /**
-        * 
-        */
-        @TableField(fill=FieldFill.INSERT)
-        private Long createdBy;
+    /**
+     *
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Long createdBy;
 
-        /**
-        * 
-        */
-        @TableField(fill=FieldFill.INSERT)
-        private Date creationDate;
+    /**
+     *
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Date creationDate;
 
-        /**
-        * 
-        */
-        @TableField(fill=FieldFill.INSERT_UPDATE)
-        private Long lastUpdatedBy;
+    /**
+     *
+     */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Long lastUpdatedBy;
 
-        /**
-        * 
-        */
-        @TableField(fill=FieldFill.INSERT_UPDATE)
-        private Date lastUpdateDate;
+    /**
+     *
+     */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Date lastUpdateDate;
 
 
 }

@@ -2,6 +2,7 @@ package com.crc.crcloud.steam.iam.common.enums;
 
 /**
  * 用户来源枚举
+ *
  * @author hand-196
  */
 public enum UserOriginEnum implements IBaseEnum<String> {

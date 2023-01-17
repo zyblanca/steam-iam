@@ -17,6 +17,7 @@ public class AssertHelper {
 
     /**
      * 检查组织是否存在
+     *
      * @param organizationId
      * @return
      */
@@ -31,6 +32,7 @@ public class AssertHelper {
 
     /**
      * 检查项目是否存在
+     *
      * @param projectId
      * @return
      */
@@ -45,10 +47,11 @@ public class AssertHelper {
 
     /**
      * 检查应用是否存在
+     *
      * @param applicationId
      * @return
      */
-    public IamApplication applicationNotExisted(Long applicationId){
+    public IamApplication applicationNotExisted(Long applicationId) {
         IamApplicationMapper iamApplicationMapper = ApplicationContextHelper.getContext().getBean(IamApplicationMapper.class);
         IamApplication iamApplication = iamApplicationMapper.selectById(applicationId);
         if (ObjectUtils.isEmpty(iamApplication)) {
@@ -59,9 +62,10 @@ public class AssertHelper {
 
     /**
      * 检查版本号是否存在
+     *
      * @param objectVersionNumber
      */
-    public void objectVersionNumberNotNull(Long objectVersionNumber){
+    public void objectVersionNumberNotNull(Long objectVersionNumber) {
         if (ObjectUtils.isEmpty(objectVersionNumber)) {
             throw new CommonException("error.steam-iamObjectVersionNumber.isNull");
         }

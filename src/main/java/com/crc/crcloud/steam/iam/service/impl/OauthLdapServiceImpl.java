@@ -263,7 +263,7 @@ public class OauthLdapServiceImpl implements OauthLdapService {
     @Override
     public OauthLdapVO queryOneByOrganizationId(Long organizationId) {
         OauthLdap oauthLdap = oauthLdapMapper.selectOne(Wrappers.<OauthLdap>lambdaQuery().eq(OauthLdap::getOrganizationId, organizationId));
-        if (Objects.isNull(oauthLdap) || Objects.isNull(oauthLdap.getId())){
+        if (Objects.isNull(oauthLdap) || Objects.isNull(oauthLdap.getId())) {
             return null;
         }
         return CopyUtil.copy(oauthLdap, OauthLdapVO.class);
@@ -291,7 +291,7 @@ public class OauthLdapServiceImpl implements OauthLdapService {
         if (Objects.isNull(oauthLdapVO.getIsEnabled())) {
             oauthLdapVO.setIsEnabled(1L);
         }
-        if(StringUtils.isEmpty(oauthLdapVO.getPhoneField())){
+        if (StringUtils.isEmpty(oauthLdapVO.getPhoneField())) {
             oauthLdapVO.setPhoneField(null);
         }
 

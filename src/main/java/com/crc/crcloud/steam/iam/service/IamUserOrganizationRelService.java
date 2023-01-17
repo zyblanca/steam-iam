@@ -17,13 +17,15 @@ import java.util.Set;
 public interface IamUserOrganizationRelService {
     /**
      * 用户关联组织
-     * @param userId 用户编号
+     *
+     * @param userId          用户编号
      * @param organizationIds 组织编号
      */
     void link(@NotNull Long userId, @NotEmpty Set<Long> organizationIds);
 
     /**
      * 获取用户所属组织
+     *
      * @param userId 用户编号
      * @return 用户所属组织编号列表，按照关联的时间升序
      */
@@ -33,6 +35,7 @@ public interface IamUserOrganizationRelService {
     /**
      * 获取用户所属组织
      * <p>key:用户ID</p>
+     *
      * @param userIds 用户编号集合
      * @return 用户所属组织编号列表，按照关联的时间升序
      */

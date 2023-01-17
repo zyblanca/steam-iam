@@ -14,7 +14,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 /**
  * @Author:
  * @Date: 2019-11-29
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
@@ -23,18 +23,18 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 public class IamRolePermissionDTO {
 
     /**
-    * 
-    */
+     *
+     */
     private Long id;
 
     /**
-    * 角色id
-    */
+     * 角色id
+     */
     private Long roleId;
 
     /**
-    * 权限id
-    */
+     * 权限id
+     */
     private Long permissionId;
 
 

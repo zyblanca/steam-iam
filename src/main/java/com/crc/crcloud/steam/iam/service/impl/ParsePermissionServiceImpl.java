@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
 import static io.choerodon.core.iam.InitRoleCode.SITE_ADMINISTRATOR;
 
 /**
- *
  * @author LiuYang
  * @date 2019/11/29
  */
@@ -114,8 +113,9 @@ public class ParsePermissionServiceImpl implements ParsePermissionService {
 
     /**
      * 清除掉这个服务过时的接口
+     *
      * @param permissionCodes 本次服务的所有权限的接口code
-     * @param serviceName 服务名
+     * @param serviceName     服务名
      */
     private void deleteDeprecatedPermission(List<String> permissionCodes, String serviceName) {
         @NotNull List<IamPermissionDTO> servicePermissions = iamPermissionService.getByService(serviceName);
@@ -253,9 +253,10 @@ public class ParsePermissionServiceImpl implements ParsePermissionService {
 
     /**
      * 给权限关联上对应角色
-     * @param roleCodes 角色编码
+     *
+     * @param roleCodes    角色编码
      * @param permissionId 权限编号
-     * @param level 级别
+     * @param level        级别
      */
     private void processRolePermission(@NotEmpty Set<String> roleCodes, @NotNull Long permissionId, @NotBlank String level) {
         final Map<String, IamRoleDTO> codeRoleMap = iamRoleService.getRolesByCode(roleCodes).stream().collect(Collectors.toMap(IamRoleDTO::getCode, Function.identity()));
@@ -294,6 +295,7 @@ public class ParsePermissionServiceImpl implements ParsePermissionService {
 
     /**
      * 返回{@link InitRoleCode#values()}的角色对应关系
+     *
      * @return key {@link InitRoleCode} 编码,角色对象
      */
     @Deprecated

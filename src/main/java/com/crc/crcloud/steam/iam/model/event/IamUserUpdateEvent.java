@@ -8,6 +8,7 @@ import javax.validation.constraints.NotNull;
 
 /**
  * 更新用户事件
+ *
  * @author LiuYang
  */
 public class IamUserUpdateEvent extends ApplicationEvent {
@@ -28,6 +29,7 @@ public class IamUserUpdateEvent extends ApplicationEvent {
 
     /**
      * 更新用户之后的数据
+     *
      * @return
      */
     @NotNull

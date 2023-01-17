@@ -86,16 +86,18 @@ public interface IamServiceClient {
 
     /**
      * 同步steam中ldap新增用户
+     *
      * @param organizationId 组织编号
-     * @param users 用户
+     * @param users          用户
      * @return
      */
     @PostMapping("/v1/organizations/{organization_id}/ldaps/sync_steam_users")
     ResponseEntity<List<OauthLdapErrorUser>> syncSteamUser(@PathVariable("organization_id") Long organizationId,
-                                                     @RequestBody List<IamUser> users);
+                                                           @RequestBody List<IamUser> users);
 
     /**
      * steam-iam同步用户，用户ID一致
+     *
      * @param userDTO 用户数据，需要携带ID
      * @return 返回插入数据
      */

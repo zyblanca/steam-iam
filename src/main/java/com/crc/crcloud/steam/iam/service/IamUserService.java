@@ -135,7 +135,7 @@ public interface IamUserService {
      *
      * @param id               用户编号
      * @param includedDisabled 是否包含禁用项目 已废弃
-     * @param organizationId 组织编号
+     * @param organizationId   组织编号
      * @return 项目列表
      */
     List<IamProjectVO> queryProjectsNew(Long id, @NotNull Long organizationId, boolean includedDisabled);
@@ -155,6 +155,7 @@ public interface IamUserService {
     /**
      * 获取用户通过用户编号
      * <p>查询所有用户，只要用户编号存在，后续逻辑删除除外</p>
+     *
      * @param ids 用户编号
      * @return 用户集合
      */
@@ -165,6 +166,7 @@ public interface IamUserService {
      * 获取admin用户
      * <p>{@link IamUser#getIsAdmin()}=true</p>
      * <p>查询所有用户，只要用户编号存在，后续逻辑删除除外</p>
+     *
      * @return 用户集合
      */
     @NotNull
@@ -172,6 +174,7 @@ public interface IamUserService {
 
     /**
      * 通过登录名查询
+     *
      * @param loginName 登录名
      * @return 用户信息
      */
@@ -179,22 +182,27 @@ public interface IamUserService {
 
     /**
      * 通过邮箱查询
+     *
      * @param email 邮箱
      * @return 用户信息
      */
     Optional<IamUserDTO> getByEmail(@NotBlank String email);
+
     /**
      * 用于判断当前人员是否是该项目的拥有者
+     *
      * @return 判断标志
      */
     Boolean projectOwner(Long projectId);
 
     /**
-     *  单个用户收回项目权限
+     * 单个用户收回项目权限
+     *
      * @param projectId 项目id
-     * @param userId 用户id
+     * @param userId    用户id
      */
-    void projectUnbindUser(@NotNull Long projectId,@NotNull Long userId);
+    void projectUnbindUser(@NotNull Long projectId, @NotNull Long userId);
+
     /**
      * 获取指定用户的项目级别的权限，仅限普通用户，客户端用户不可使用
      *
@@ -202,5 +210,5 @@ public interface IamUserService {
      * @param userId    用户id
      * @return 用户权限数据
      */
-    IamUserDTO queryProjectRole(@NotNull Long projectId,@NotNull Long userId);
+    IamUserDTO queryProjectRole(@NotNull Long projectId, @NotNull Long userId);
 }

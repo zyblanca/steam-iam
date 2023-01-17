@@ -113,9 +113,9 @@ public class IamUserController {
                                                            @PathVariable(name = "project_id") Long projectId,
                                                            UserSearchDTO userSearchDTO) {
 
-        List<IamUserVO>  users = iamUserService.listByProject(projectId, userSearchDTO);
-        if(!CollectionUtils.isEmpty(users)){
-            users.forEach(v->v.setEmail(null));
+        List<IamUserVO> users = iamUserService.listByProject(projectId, userSearchDTO);
+        if (!CollectionUtils.isEmpty(users)) {
+            users.forEach(v -> v.setEmail(null));
         }
         return new ResponseEntity<>(users);
     }
@@ -157,7 +157,6 @@ public class IamUserController {
     }
 
 
-
     /**
      * 内部端口，不对外使用
      * 通过用户id集合，查询用户信息
@@ -184,7 +183,6 @@ public class IamUserController {
 
         return new ResponseEntity<>(CopyUtil.copy(iamUserService.getByLoginName(loginName).get(), IamUserVO.class));
     }
-
 
 
     @Permission(level = ResourceLevel.SITE, permissionLogin = true)
@@ -355,15 +353,15 @@ public class IamUserController {
     }
 
     /**
-     * @note: 临时接口，用于判断当前人员是否是该项目的拥有者
      * @return 判断标志
+     * @note: 临时接口，用于判断当前人员是否是该项目的拥有者
      */
     @Permission(permissionLogin = true)
     @GetMapping("user/project/{project_id}/is_owner")
     @ApiOperation(value = "临时接口，用于判断当前人员是否是该项目的拥有者(管理者)")
-    public ResponseEntity<Boolean> isProjectOwner(@PathVariable("project_id")Long projectId){
+    public ResponseEntity<Boolean> isProjectOwner(@PathVariable("project_id") Long projectId) {
 
-       return new ResponseEntity<>(iamUserService.projectOwner(projectId));
+        return new ResponseEntity<>(iamUserService.projectOwner(projectId));
 
     }
 

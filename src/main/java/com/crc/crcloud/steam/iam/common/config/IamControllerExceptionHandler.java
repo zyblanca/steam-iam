@@ -102,6 +102,7 @@ public class IamControllerExceptionHandler {
                 new IamExceptionResponse(true, BUSINESS_ERROR_CODE, "请求方式异常"),
                 HttpStatus.OK);
     }
+
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<IamExceptionResponse> process(MissingServletRequestParameterException exception) {
         log.info("exception info {}", exception.getMessage());

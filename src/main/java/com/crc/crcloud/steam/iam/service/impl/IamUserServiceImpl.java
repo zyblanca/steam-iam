@@ -102,7 +102,8 @@ public class IamUserServiceImpl implements IamUserService {
 
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     @Override
-    public @NotNull IamUserDTO createUserByManual(@Valid IamUserCreateRequestVO vo, @NotEmpty Set<Long> organizationIds) {
+    public @NotNull
+    IamUserDTO createUserByManual(@Valid IamUserCreateRequestVO vo, @NotEmpty Set<Long> organizationIds) {
         @NotNull IamUserDTO user = createUserByManual(vo);
         log.info("手动添加用户[{}],期望属于组织[{}]", vo.getRealName(), CollUtil.join(organizationIds, ","));
         iamUserOrganizationRelService.link(user.getId(), organizationIds);
@@ -118,7 +119,8 @@ public class IamUserServiceImpl implements IamUserService {
     }
 
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
-    public @NotNull IamUserDTO createUserByManual(@Valid IamUserCreateRequestVO vo) {
+    public @NotNull
+    IamUserDTO createUserByManual(@Valid IamUserCreateRequestVO vo) {
         //只能以字母和数字开头，且长度不能少于2，内容可以包含字母数字.-
         Predicate<String> matchLoginName = loginName -> ReUtil.isMatch("^[a-zA-Z0-9._][a-zA-Z0-9_.-]+$", loginName);
         //不能以. .git .atom 结尾
@@ -389,7 +391,7 @@ public class IamUserServiceImpl implements IamUserService {
             throw new IamAppCommException("comm.param.error");
         }
         //检查授权或者变更授权后是否会造成无项目管理员
-        checkProjectOwner(projectId,roleIds,userIds);
+        checkProjectOwner(projectId, roleIds, userIds);
         //新增授权
         Set<Long> newUser = new HashSet<>(userIds.size());
         //人员去重
@@ -420,6 +422,7 @@ public class IamUserServiceImpl implements IamUserService {
         iamMemberRoleService.grantUserRole(newUser, new HashSet<>(roleIds), projectId, ResourceLevel.PROJECT);
 
     }
+
     //验证操作后是否会存在一个管理员
     private void checkProjectOwner(Long projectId, List<Long> roleIds, List<Long> userIds) {
         //获取管理员权限
@@ -428,18 +431,18 @@ public class IamUserServiceImpl implements IamUserService {
                 .eq(IamRole::getFdLevel, ResourceLevel.PROJECT.value())
                 .eq(IamRole::getIsEnabled, Boolean.TRUE));
         //需要变动的权限包含管理员，那么无需校验
-        if(roleIds.contains(iamRole.getId())){
+        if (roleIds.contains(iamRole.getId())) {
             return;
         }
         //排除当前人员 是否还有管理人存在
         int count = iamMemberRoleMapper.selectCount(Wrappers.<IamMemberRole>lambdaQuery()
-        .eq(IamMemberRole::getMemberType,MemberType.USER.getValue())
-        .eq(IamMemberRole::getRoleId,iamRole.getId())
-        .eq(IamMemberRole::getSourceId,projectId)
-        .eq(IamMemberRole::getSourceType,ResourceLevel.PROJECT.value())
-        .notIn(IamMemberRole::getMemberId,userIds));
+                .eq(IamMemberRole::getMemberType, MemberType.USER.getValue())
+                .eq(IamMemberRole::getRoleId, iamRole.getId())
+                .eq(IamMemberRole::getSourceId, projectId)
+                .eq(IamMemberRole::getSourceType, ResourceLevel.PROJECT.value())
+                .notIn(IamMemberRole::getMemberId, userIds));
 
-        if(count ==  0){
+        if (count == 0) {
             throw new IamAppCommException("project.owner.exist");
         }
 
@@ -727,7 +730,8 @@ public class IamUserServiceImpl implements IamUserService {
     }
 
     @Override
-    public @NotNull List<IamUserDTO> getUsers(@Nullable Set<Long> ids) {
+    public @NotNull
+    List<IamUserDTO> getUsers(@Nullable Set<Long> ids) {
         if (CollUtil.isEmpty(ids)) {
             return new ArrayList<>();
         }
@@ -735,7 +739,8 @@ public class IamUserServiceImpl implements IamUserService {
     }
 
     @Override
-    public @NotNull List<IamUserDTO> getAdminUsers() {
+    public @NotNull
+    List<IamUserDTO> getAdminUsers() {
         LambdaQueryWrapper<IamUser> queryWrapper = Wrappers.<IamUser>lambdaQuery().eq(IamUser::getIsAdmin, true);
         return iamUserMapper.selectList(queryWrapper)
                 .stream().map(t -> ConvertHelper.convert(t, IamUserDTO.class)).collect(Collectors.toList());

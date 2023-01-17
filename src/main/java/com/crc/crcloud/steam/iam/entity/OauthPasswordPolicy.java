@@ -39,15 +39,15 @@ public class OauthPasswordPolicy {
     private Integer maxCheckCaptcha;
     private Long objectVersionNumber;
 
-    @TableField(fill= FieldFill.INSERT)
+    @TableField(fill = FieldFill.INSERT)
     private Long createdBy;
 
-    @TableField(fill=FieldFill.INSERT)
+    @TableField(fill = FieldFill.INSERT)
     private Date creationDate;
 
-    @TableField(fill=FieldFill.INSERT_UPDATE)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private Long lastUpdatedBy;
 
-    @TableField(fill=FieldFill.INSERT_UPDATE)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private Date lastUpdateDate;
 }

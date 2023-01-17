@@ -29,6 +29,7 @@ import org.springframework.util.ObjectUtils;
 import java.util.Objects;
 
 import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.Application.*;
+
 @Slf4j
 @Service
 public class IamApplicationServiceImpl implements IamApplicationService {
@@ -53,7 +54,7 @@ public class IamApplicationServiceImpl implements IamApplicationService {
     public IamApplicationVO createApplication(IamApplicationVO iamApplicationVO) {
         assertHelper.organizationNotExisted(iamApplicationVO.getOrganizationId());
         validate(iamApplicationVO);
-        if (Objects.isNull(iamApplicationVO.getProjectId())){
+        if (Objects.isNull(iamApplicationVO.getProjectId())) {
             iamApplicationVO.setProjectId(PROJECT_DOES_NOT_EXIST_ID);
         }
         IamApplication iamApplication = voToEntity(iamApplicationVO);
@@ -95,9 +96,9 @@ public class IamApplicationServiceImpl implements IamApplicationService {
         IamApplication iamApplication = voToEntity(iamApplicationVO);
         String combination = ApplicationCategory.COMBINATION.code();
         IamApplication result = null;
-        if (choerodonDevOpsProperties.isMessage() && !combination.equals(iamApplication.getApplicationCategory())){
-            if ( PROJECT_DOES_NOT_EXIST_ID.equals(targetProjectId)){
-                if (!PROJECT_DOES_NOT_EXIST_ID.equals(originProjectId)){
+        if (choerodonDevOpsProperties.isMessage() && !combination.equals(iamApplication.getApplicationCategory())) {
+            if (PROJECT_DOES_NOT_EXIST_ID.equals(targetProjectId)) {
+                if (!PROJECT_DOES_NOT_EXIST_ID.equals(originProjectId)) {
                     result = updateAndGet(iamApplication);
                     sendSagaEvent(iamApplication, APP_UPDATE);
                 } else {
@@ -115,6 +116,7 @@ public class IamApplicationServiceImpl implements IamApplicationService {
 
     /**
      * 更新前预操作 —— 将 organizationId applicationCategory code 设置为空，调用 updateById 不会被更新
+     *
      * @param vo
      * @param before
      */
@@ -122,8 +124,8 @@ public class IamApplicationServiceImpl implements IamApplicationService {
         if (!PROJECT_DOES_NOT_EXIST_ID.equals(before.getProjectId())) {
             // 为空情况，调用 updateById 不会被更新
             vo.setProjectId(null);
-        } else if (!PROJECT_DOES_NOT_EXIST_ID.equals(vo.getProjectId())){
-                assertHelper.projectNotExisted(vo.getProjectId());
+        } else if (!PROJECT_DOES_NOT_EXIST_ID.equals(vo.getProjectId())) {
+            assertHelper.projectNotExisted(vo.getProjectId());
         }
         vo.setOrganizationId(null);
         vo.setApplicationCategory(null);
@@ -148,20 +150,21 @@ public class IamApplicationServiceImpl implements IamApplicationService {
     }
 
     private IamApplication insertAndGet(IamApplication iamApplication) {
-        if (1 != iamApplicationMapper.insert(iamApplication)){
-            throw  new IamAppCommException("error.steam-iam.application.insert");
+        if (1 != iamApplicationMapper.insert(iamApplication)) {
+            throw new IamAppCommException("error.steam-iam.application.insert");
         }
         return iamApplication;
     }
 
     /**
      * 检验 创建对象 的 category 和 type 是否符合规范
+     *
      * @param iamApplicationVO
      */
     private void validate(IamApplicationVO iamApplicationVO) {
         String applicationCategory = iamApplicationVO.getApplicationCategory();
         String applicationType = iamApplicationVO.getApplicationType();
-        if (!ApplicationCategory.matchCode(applicationCategory)){
+        if (!ApplicationCategory.matchCode(applicationCategory)) {
             throw new IamAppCommException("error.steam-iam.application.applicationCategory.illegal");
         }
         if (!ApplicationType.matchCode(applicationType)) {
@@ -191,7 +194,7 @@ public class IamApplicationServiceImpl implements IamApplicationService {
                 (!combination.equals(iamApplication.getApplicationCategory())
                         && !PROJECT_DOES_NOT_EXIST_ID.equals(iamApplication.getProjectId())
                         && choerodonDevOpsProperties.isMessage());
-        if (sendSagaEvent){
+        if (sendSagaEvent) {
             IamApplication update = updateAndGet(iamApplication);
             sendSagaEvent(update, sagaCode);
             return entityToVo(iamApplication);
@@ -201,12 +204,12 @@ public class IamApplicationServiceImpl implements IamApplicationService {
         }
     }
 
-    private IamApplicationVO entityToVo(IamApplication iamApplication){
+    private IamApplicationVO entityToVo(IamApplication iamApplication) {
         IamApplicationDTO dto = ConvertHelper.convert(iamApplication, IamApplicationDTO.class);
         return ConvertHelper.convert(dto, IamApplicationVO.class);
     }
 
-    private IamApplication voToEntity(IamApplicationVO iamApplicationVO){
+    private IamApplication voToEntity(IamApplicationVO iamApplicationVO) {
         IamApplicationDTO dto = ConvertHelper.convert(iamApplicationVO, IamApplicationDTO.class);
         return ConvertHelper.convert(dto, IamApplication.class);
     }
@@ -214,11 +217,12 @@ public class IamApplicationServiceImpl implements IamApplicationService {
 
     /**
      * 发送 Saga 事务
+     *
      * @param iamApplication
      * @param sagaCode
      * @return IamApplication
      */
-    private IamApplication sendSagaEvent(IamApplication iamApplication, String sagaCode){
+    private IamApplication sendSagaEvent(IamApplication iamApplication, String sagaCode) {
         return producer.applyAndReturn(
                 StartSagaBuilder
                         .newBuilder()
@@ -236,11 +240,12 @@ public class IamApplicationServiceImpl implements IamApplicationService {
 
     /**
      * 更新并且获得更新后应用数据
+     *
      * @param iamApplication
      * @return
      */
-    private IamApplication updateAndGet(IamApplication iamApplication){
-        if (1 != iamApplicationMapper.updateById(iamApplication)){
+    private IamApplication updateAndGet(IamApplication iamApplication) {
+        if (1 != iamApplicationMapper.updateById(iamApplication)) {
             throw new IamAppCommException("error.application.update");
         }
         return iamApplicationMapper.selectById(iamApplication.getId());
@@ -250,18 +255,18 @@ public class IamApplicationServiceImpl implements IamApplicationService {
     @Override
     public void deleteApplication(Long organizationId, Long steamProjectId, String code) {
         QueryWrapper<IamApplication> queryWrapper = new QueryWrapper();
-        queryWrapper.eq("organization_id",organizationId).eq("project_id",steamProjectId)
-                .eq("code",code);
+        queryWrapper.eq("organization_id", organizationId).eq("project_id", steamProjectId)
+                .eq("code", code);
         IamApplication iamApplication = iamApplicationMapper.selectOne(queryWrapper);
-        if (Objects.nonNull(iamApplication)){
+        if (Objects.nonNull(iamApplication)) {
             //删除steam-iam系统应用
             QueryWrapper<IamApplication> aplicationWrapper = new QueryWrapper();
-            aplicationWrapper.eq("organization_id",organizationId).eq("project_id",steamProjectId)
-                    .eq("code",code);
+            aplicationWrapper.eq("organization_id", organizationId).eq("project_id", steamProjectId)
+                    .eq("code", code);
             iamApplicationMapper.delete(aplicationWrapper);
             //应用勘探
             QueryWrapper<IamApplicationExploration> ApplicationExplorationWrapper = new QueryWrapper();
-            ApplicationExplorationWrapper.eq("application_id",iamApplication.getId());
+            ApplicationExplorationWrapper.eq("application_id", iamApplication.getId());
             iamApplicationExplorationMapper.delete(ApplicationExplorationWrapper);
         }
         log.info("steam-iam服务应用删除成功！");

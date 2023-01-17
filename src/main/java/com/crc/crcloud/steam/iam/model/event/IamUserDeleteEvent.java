@@ -7,6 +7,7 @@ import javax.validation.constraints.NotNull;
 
 /**
  * 用户删除之后事件
+ *
  * @author LiuYang
  */
 public class IamUserDeleteEvent extends ApplicationEvent {

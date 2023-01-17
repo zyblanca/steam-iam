@@ -15,7 +15,7 @@ import java.util.Set;
 /**
  * @Author:
  * @Date: 2019-12-03
- * @Description: 
+ * @Description:
  */
 public interface IamLabelMapper extends BaseMapper<IamLabel> {
 

@@ -16,6 +16,7 @@ import java.util.List;
 
 /**
  * 用户所授权组织列表
+ *
  * @author LiuYang
  * @date 2019/12/5
  */

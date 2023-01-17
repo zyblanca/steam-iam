@@ -82,7 +82,7 @@ public class SagaDevopsServiceApplicationListener {
         List<IamApplication> applications = objectMapper.readValue(data, new TypeReference<List<IamApplication>>() {
         });
         log.info("steam-iam开始同步应用，总共[{}]", applications.size());
-        if (CollUtil.isEmpty(applications)){
+        if (CollUtil.isEmpty(applications)) {
             log.warn("steam-iam同步应用程序时未收到任何应用程序");
             return;
         }
@@ -117,7 +117,7 @@ public class SagaDevopsServiceApplicationListener {
 
     }
 
-    private Boolean isIllegal(IamApplication app){
+    private Boolean isIllegal(IamApplication app) {
         Long organizationId = app.getOrganizationId();
         if (ObjectUtils.isEmpty(organizationId)) {
             log.error("illegal application because of organization id is empty, application: {}", app);
@@ -125,7 +125,7 @@ public class SagaDevopsServiceApplicationListener {
             try {
                 assertHelper.organizationNotExisted(organizationId);
             } catch (IamAppCommException e) {
-                log.error("illegal application because of organization does not existed, application: {}，{}", app,e.getCode());
+                log.error("illegal application because of organization does not existed, application: {}，{}", app, e.getCode());
                 return true;
             }
         }
@@ -137,7 +137,7 @@ public class SagaDevopsServiceApplicationListener {
             try {
                 assertHelper.projectNotExisted(projectId);
             } catch (IamAppCommException e) {
-                log.error("illegal application because of project does not existed, application: {},{}", app,e.getCode());
+                log.error("illegal application because of project does not existed, application: {},{}", app, e.getCode());
                 return true;
             }
         }
@@ -211,7 +211,7 @@ public class SagaDevopsServiceApplicationListener {
             payload.setResourceId(sourceId);
             payload.setResourceType("project");
             payload.setUserId(userId);
-            if (CollUtil.isNotEmpty(roleIds)){
+            if (CollUtil.isNotEmpty(roleIds)) {
                 payload.setRoleLabels(iamLabelMapper.selectLabelNamesInRoleIds(roleIds));
             }
             userMemberEventPayloadList.add(payload);
@@ -223,13 +223,13 @@ public class SagaDevopsServiceApplicationListener {
                 String refIds = list.stream().map(t -> t.getUserId() + "").collect(Collectors.joining(","));
                 log.info("steam-iam开始发送Saga事件[{code:{}}],内容: {}", ORG_UPDATE, input);
                 producer.apply(StartSagaBuilder.newBuilder()
-                        .withLevel(ResourceLevel.PROJECT)
-                        .withSagaCode(MEMBER_ROLE_UPDATE),
+                                .withLevel(ResourceLevel.PROJECT)
+                                .withSagaCode(MEMBER_ROLE_UPDATE),
                         builder -> {
-                        builder.withPayloadAndSerialize(list)
-                                .withRefType("users")
-                                .withRefId(refIds);
-                });
+                            builder.withPayloadAndSerialize(list)
+                                    .withRefType("users")
+                                    .withRefId(refIds);
+                        });
             } catch (Exception e) {
                 log.warn(e.getMessage());
                 throw new IamAppCommException("error.iRoleMemberServiceImpl.updateMemberRole.event");

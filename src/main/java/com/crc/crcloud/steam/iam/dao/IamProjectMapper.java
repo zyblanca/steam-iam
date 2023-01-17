@@ -22,7 +22,8 @@ public interface IamProjectMapper extends BaseMapper<IamProject> {
     /**
      * 修改项目信息
      * 当前code和organization字段不修改
-     * @param   project 项目信息
+     *
+     * @param project 项目信息
      * @return
      */
     int updateBySql(@Param("project") IamProjectDTO project);

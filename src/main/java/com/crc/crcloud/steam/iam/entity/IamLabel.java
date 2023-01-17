@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+
 import java.util.Date;
 import java.lang.Integer;
 import java.lang.Long;
@@ -13,7 +14,7 @@ import java.lang.Byte;
 /**
  * @Author:
  * @Date: 2019-12-03
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
@@ -22,60 +23,60 @@ import java.lang.Byte;
 @TableName("iam_label")
 public class IamLabel {
 
-        /**
-        * 
-        */
-        @TableId(type = IdType.AUTO)
-        private Long id;
+    /**
+     *
+     */
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
-        /**
-        * 名称
-        */
-        private String name;
+    /**
+     * 名称
+     */
+    private String name;
 
-        /**
-        * 类型
-        */
-        private String type;
+    /**
+     * 类型
+     */
+    private String type;
 
-        /**
-        * 层级
-        */
-        private String fdLevel;
+    /**
+     * 层级
+     */
+    private String fdLevel;
 
-        /**
-        * 描述
-        */
-        private String description;
+    /**
+     * 描述
+     */
+    private String description;
 
-        /**
-        * 
-        */
-        private Long objectVersionNumber;
+    /**
+     *
+     */
+    private Long objectVersionNumber;
 
-        /**
-        * 
-        */
-        @TableField(fill=FieldFill.INSERT)
-        private Long createdBy;
+    /**
+     *
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Long createdBy;
 
-        /**
-        * 
-        */
-        @TableField(fill=FieldFill.INSERT)
-        private Date creationDate;
+    /**
+     *
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Date creationDate;
 
-        /**
-        * 
-        */
-        @TableField(fill=FieldFill.INSERT_UPDATE)
-        private Long lastUpdatedBy;
+    /**
+     *
+     */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Long lastUpdatedBy;
 
-        /**
-        * 
-        */
-        @TableField(fill=FieldFill.INSERT_UPDATE)
-        private Date lastUpdateDate;
+    /**
+     *
+     */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Date lastUpdateDate;
 
 
 }

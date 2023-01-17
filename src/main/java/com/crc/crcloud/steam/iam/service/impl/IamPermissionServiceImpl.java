@@ -52,7 +52,8 @@ public class IamPermissionServiceImpl implements IamPermissionService {
     }
 
     @Override
-    public @NotNull IamPermissionDTO put(@NotNull IamPermissionDTO dto) {
+    public @NotNull
+    IamPermissionDTO put(@NotNull IamPermissionDTO dto) {
         IamPermission iamPermission = ConvertHelper.convert(dto, IamPermission.class);
         iamPermission.setId(null);
         Assert.notBlank(iamPermission.getCode(), "权限code不能为空");
@@ -75,7 +76,8 @@ public class IamPermissionServiceImpl implements IamPermissionService {
     }
 
     @Override
-    public @NotNull List<IamPermissionDTO> getByService(@NotBlank String serviceName) {
+    public @NotNull
+    List<IamPermissionDTO> getByService(@NotBlank String serviceName) {
         LambdaQueryWrapper<IamPermission> queryWrapper = Wrappers.<IamPermission>lambdaQuery().in(IamPermission::getServiceName, serviceName);
         return this.iamPermissionMapper.selectList(queryWrapper).stream().map(t -> ConvertHelper.convert(t, IamPermissionDTO.class)).collect(Collectors.toList());
     }

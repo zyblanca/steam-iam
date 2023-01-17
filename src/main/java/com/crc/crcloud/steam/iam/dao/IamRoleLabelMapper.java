@@ -11,7 +11,7 @@ import org.apache.ibatis.annotations.Param;
 /**
  * @Author:
  * @Date: 2019-12-03
- * @Description: 
+ * @Description:
  */
 public interface IamRoleLabelMapper extends BaseMapper<IamRoleLabel> {
 

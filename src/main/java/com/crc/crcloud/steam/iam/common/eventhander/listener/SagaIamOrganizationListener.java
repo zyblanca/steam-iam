@@ -40,8 +40,8 @@ public class SagaIamOrganizationListener {
     @Autowired
     private OauthPasswordPolicyService oauthPasswordPolicyService;
 
-/*    @SagaTask(code = TASK_ORG_CREATE, sagaCode = ORG_CREATE, description = "iam接收org服务创建组织事件",
-            seq = 1 )*/
+    /*    @SagaTask(code = TASK_ORG_CREATE, sagaCode = ORG_CREATE, description = "iam接收org服务创建组织事件",
+                seq = 1 )*/
     public OrganizationPayload sagaTaskCreateEventHandle(String data) throws IOException {
         OrganizationPayload organizationEventPayload = objectMapper.readValue(data, OrganizationPayload.class);
         log.info("steam-iam-sagaTask create the organization trigger task, payload: {}", organizationEventPayload);

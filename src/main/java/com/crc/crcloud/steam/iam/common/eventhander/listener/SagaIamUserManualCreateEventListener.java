@@ -51,12 +51,13 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public SagaIamUserManualCreateEventListener(){
+    public SagaIamUserManualCreateEventListener() {
         log.info("已注册创建用户事件-发送saga事件");
     }
 
     /**
      * 创建用户事件，兼容 批量创建用户
+     *
      * @param event
      */
     @Saga(code = USER_CREATE, description = "steam-iam创建用户", inputSchemaClass = UserEventPayload.class)
@@ -97,7 +98,7 @@ public class SagaIamUserManualCreateEventListener implements ApplicationListener
                             return input;
                         });
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             log.warn(e.getMessage());
             throw new CommonException("error.sagaEvent.organizationUserService.createUserByManual", e);
         }

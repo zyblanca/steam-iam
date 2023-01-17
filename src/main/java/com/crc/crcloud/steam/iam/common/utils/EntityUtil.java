@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 /**
  * 实体类工具类
+ *
  * @author LiuYang
  */
 public class EntityUtil {
@@ -30,10 +31,10 @@ public class EntityUtil {
     private final static Cache<Class, String> ID_FIELD_CACHE = new LRUCache<>(200, DateUnit.DAY.getMillis());
 
 
-
     /**
      * 获取bean字段值
      * <code>getSimpleField(AgileIssue:getIssueId);return issue_id</code>
+     *
      * @param func 字段的lambda形式
      * @return 字段名下划线表示
      */
@@ -46,6 +47,7 @@ public class EntityUtil {
     /**
      * 获取bean字段值
      * <code>getSimpleField(AgileIssue:getIssueId);return issueId</code>
+     *
      * @param func 字段的lambda形式
      * @return 字段名驼峰表示
      */

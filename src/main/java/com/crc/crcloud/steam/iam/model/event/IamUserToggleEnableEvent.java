@@ -8,6 +8,7 @@ import java.util.Optional;
 
 /**
  * 用户禁用启用事件
+ *
  * @author LiuYang
  */
 public class IamUserToggleEnableEvent extends ApplicationEvent {

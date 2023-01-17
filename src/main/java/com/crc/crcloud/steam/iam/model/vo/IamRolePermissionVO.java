@@ -15,27 +15,26 @@ import java.lang.Byte;
 /**
  * @Author:
  * @Date: 2019-11-29
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @ApiModel("")
-public class IamRolePermissionVO{
+public class IamRolePermissionVO {
 
 
-        @ApiModelProperty("")
-        private Long id;
+    @ApiModelProperty("")
+    private Long id;
 
 
-        @ApiModelProperty("角色id")
-        private Long roleId;
+    @ApiModelProperty("角色id")
+    private Long roleId;
 
 
-        @ApiModelProperty("权限id")
-        private Long permissionId;
-
+    @ApiModelProperty("权限id")
+    private Long permissionId;
 
 
 }

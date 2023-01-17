@@ -11,6 +11,7 @@ import javax.validation.constraints.NotNull;
 
 /**
  * LDAP用户信息
+ *
  * @author LiuYang
  * @date 2019/12/16
  */

@@ -52,10 +52,11 @@ public class SteamCiApplicationServiceImpl implements SteamCiApplicationService 
 
     /**
      * 将 ApplicationPayload 转化为 IamApplication
+     *
      * @param payload 更新对象
      * @return 返回的 IamApplication 只有 projectId 和 code
      */
-    private IamApplication convert2Application(ApplicationPayload payload){
+    private IamApplication convert2Application(ApplicationPayload payload) {
         return IamApplication.builder()
                 .projectId(payload.getSteamProjectId())
                 .code(payload.getApplicationCode())

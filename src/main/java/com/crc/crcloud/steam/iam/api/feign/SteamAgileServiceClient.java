@@ -30,8 +30,8 @@ import java.util.List;
 public interface SteamAgileServiceClient {
 
     @PostMapping("/v1/projects/{project_id}/agile_issue/init/template/{user_id}")
-    public ResponseEntity initKanbanTemplate(@PathVariable(value = "project_id")Long projectId,
-                                             @PathVariable(value = "user_id")Long userId,
+    public ResponseEntity initKanbanTemplate(@PathVariable(value = "project_id") Long projectId,
+                                             @PathVariable(value = "user_id") Long userId,
                                              @RequestBody IamProjectDTO iamProjectDTO);
 
 }

@@ -44,13 +44,13 @@ public class SagaIamUserToggleEnableEventListener implements ApplicationListener
 
     final private ObjectMapper objectMapper = new ObjectMapper();
 
-    public SagaIamUserToggleEnableEventListener(){
+    public SagaIamUserToggleEnableEventListener() {
         log.info("已注册启用禁用用户事件-发送saga事件");
     }
 
     @Override
     public void onApplicationEvent(IamUserToggleEnableEvent event) {
-        if (event.isEnable()){
+        if (event.isEnable()) {
             enableUser(event);
         } else {
             disabledUser(event);

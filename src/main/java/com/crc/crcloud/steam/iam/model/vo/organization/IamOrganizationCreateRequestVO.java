@@ -11,6 +11,7 @@ import javax.validation.constraints.NotBlank;
 
 /**
  * 组织创建请求参数
+ *
  * @author LiuYang
  * @date 2019/12/4
  */
@@ -24,7 +25,7 @@ public class IamOrganizationCreateRequestVO {
     @ApiModelProperty("组织名")
     private String name;
     /**
-     *最多15个字符，编码只能由小写字母、数字、"-"组成，且以小写字母开头，不能以"-"结尾且不能连续出现两个"-"
+     * 最多15个字符，编码只能由小写字母、数字、"-"组成，且以小写字母开头，不能以"-"结尾且不能连续出现两个"-"
      */
     @NotBlank
     @Length(max = 15, message = "organization.code.length")

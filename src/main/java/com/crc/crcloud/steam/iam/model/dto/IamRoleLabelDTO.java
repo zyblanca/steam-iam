@@ -14,7 +14,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 /**
  * @Author:
  * @Date: 2019-12-03
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
@@ -23,43 +23,43 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 public class IamRoleLabelDTO {
 
     /**
-    * 
-    */
+     *
+     */
     private Long id;
 
     /**
-    * 角色的id
-    */
+     * 角色的id
+     */
     private Long roleId;
 
     /**
-    * label的id
-    */
+     * label的id
+     */
     private Long labelId;
 
     /**
-    * 
-    */
+     *
+     */
     private Long objectVersionNumber;
 
     /**
-    * 
-    */
+     *
+     */
     private Long createdBy;
 
     /**
-    * 
-    */
+     *
+     */
     private Date creationDate;
 
     /**
-    * 
-    */
+     *
+     */
     private Long lastUpdatedBy;
 
     /**
-    * 
-    */
+     *
+     */
     private Date lastUpdateDate;
 
 

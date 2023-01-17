@@ -3,23 +3,23 @@
 <mapper namespace="com.crc.crcloud.steam.iam.dao.IamLabelMapper">
 
 
-        <!-- 通用查询映射结果 -->
-        <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamLabel">
-                    <id column="id" property="id" />
-                    <result column="name" property="name" />
-                    <result column="type" property="type" />
-                    <result column="fd_level" property="fdLevel" />
-                    <result column="description" property="description" />
-                    <result column="object_version_number" property="objectVersionNumber" />
-                    <result column="created_by" property="createdBy" />
-                    <result column="creation_date" property="creationDate" />
-                    <result column="last_updated_by" property="lastUpdatedBy" />
-                    <result column="last_update_date" property="lastUpdateDate" />
-        </resultMap>
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamLabel">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="fd_level" property="fdLevel"/>
+        <result column="description" property="description"/>
+        <result column="object_version_number" property="objectVersionNumber"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="creation_date" property="creationDate"/>
+        <result column="last_updated_by" property="lastUpdatedBy"/>
+        <result column="last_update_date" property="lastUpdateDate"/>
+    </resultMap>
 
 
-        <!-- 通用查询结果列 -->
-        <sql id="Base_Column_List">
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
                      id,
                      name,
                      type,
@@ -33,7 +33,8 @@
         </sql>
 
     <select id="page" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"/>
+        select
+        <include refid="Base_Column_List"/>
         from iam_label
 
     </select>
@@ -43,7 +44,8 @@
         LEFT JOIN iam_label
         ON iam_role_label.label_id = iam_label.id
         AND iam_label.type = 'role'
-        WHERE iam_role_label.role_id in <foreach collection="roleIds" separator="," open="(" item="item" close=")">#{item}</foreach>
+        WHERE iam_role_label.role_id in
+        <foreach collection="roleIds" separator="," open="(" item="item" close=")">#{item}</foreach>
     </select>
 
 

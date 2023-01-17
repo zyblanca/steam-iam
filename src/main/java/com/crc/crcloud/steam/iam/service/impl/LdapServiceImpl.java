@@ -325,14 +325,14 @@ public class LdapServiceImpl implements LdapService {
         oauthLdapHistory.setNewUserCount(oauthLdapHistory.getNewUserCount() + insertUser.size());
         oauthLdapHistory.setUpdateUserCount(oauthLdapHistory.getUpdateUserCount() + updateUser.size());
         //插入新用户,启用事务支持
-        LdapService ldapService= ApplicationContextHelper.getContext().getBean(LdapService.class);
-        try{
+        LdapService ldapService = ApplicationContextHelper.getContext().getBean(LdapService.class);
+        try {
             List<OauthLdapErrorUser> insertError = ldapService.insertLdapUser(oauthLdapHistory.getId(), insertUser, oauthLdapDTO.getOrganizationId());
             oauthLdapHistory.setNewUserCount(oauthLdapHistory.getNewUserCount() - insertError.size());
             oauthLdapHistory.setErrorUserCount(oauthLdapHistory.getErrorUserCount() + insertError.size());
             errorUsers.addAll(insertError);
-       }catch (Exception e){
-           log.warn("新增用户失败==》{}", JSON.toJSONString(insertUser),e);
+        } catch (Exception e) {
+            log.warn("新增用户失败==》{}", JSON.toJSONString(insertUser), e);
             oauthLdapHistory.setNewUserCount(0);
             oauthLdapHistory.setErrorUserCount(oauthLdapHistory.getErrorUserCount() + insertUser.size());
             errorUsers.addAll(insertUser.stream().map(v -> OauthLdapErrorUser.builder().cause(LdapSyncUserErrorEnum.INSERT_METHOD_ERROR.getMsg())
@@ -368,7 +368,7 @@ public class LdapServiceImpl implements LdapService {
                 .eq(IamRole::getCode, InitRoleCode.ORGANIZATION_MEMBER));
         if (Objects.isNull(iamRole)) {
             log.warn("查询组织成员权限失败{},{}", ResourceLevel.ORGANIZATION.value(), InitRoleCode.ORGANIZATION_MEMBER);
-            return ;
+            return;
         }
         Set<Long> roleIds = new HashSet<>();
         roleIds.add(iamRole.getId());
@@ -385,7 +385,7 @@ public class LdapServiceImpl implements LdapService {
     }
 
     //插入用户
-    @Transactional(isolation = Isolation.READ_COMMITTED,rollbackFor = Exception.class)
+    @Transactional(isolation = Isolation.READ_COMMITTED, rollbackFor = Exception.class)
     public List<OauthLdapErrorUser> insertLdapUser(Long historyId, List<IamUser> insertUser, Long organizationId) {
         if (CollectionUtils.isEmpty(insertUser)) return new ArrayList<>();
 
@@ -421,7 +421,7 @@ public class LdapServiceImpl implements LdapService {
                     log.warn("ldap同步数据严重警告===发送插入的数据id与返回的数据id不一致{},返回{}", insertIds, eUser.getId());
                     continue;
                 }
-                eUser.setUuid(eUser.getId()+"");
+                eUser.setUuid(eUser.getId() + "");
                 eUser.setLdapHistoryId(historyId);
                 errorIds.add(eUser.getId());
                 eUser.setId(null);
@@ -432,8 +432,8 @@ public class LdapServiceImpl implements LdapService {
                         .in(IamUserOrganizationRel::getUserId, errorIds));
             }
         }
-        if (errorIds.size() == insertIds.size()){
-            log.warn("=====同步的用户全部失败===》{}",historyId);
+        if (errorIds.size() == insertIds.size()) {
+            log.warn("=====同步的用户全部失败===》{}", historyId);
             return errorUsers;
         }
         //删除无效的用户，有效用户进行授权

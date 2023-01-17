@@ -25,18 +25,20 @@ public interface IamMemberRoleService {
      * <p>增量授权</p>
      * <p>资源类型只允许{site,organization,project}</p>
      * <p>会进行匹配，角色类型和资源类型是否匹配，也会校验资源</p>
-     * @param userId 用户编号
-     * @param roleIds 角色ID
-     * @param sourceId 关联资源
+     *
+     * @param userId        用户编号
+     * @param roleIds       角色ID
+     * @param sourceId      关联资源
      * @param resourceLevel 资源类型
      */
     void grantUserRole(@NotNull Long userId, @NotEmpty Set<Long> roleIds, @NotNull Long sourceId, @NotNull ResourceLevel resourceLevel);
 
     /**
      * 授权用户角色到目标资源；（给用户授权在某组织下角色）
-     * @param userIds 用户编号
-     * @param roleIds 角色ID
-     * @param sourceId 关联资源
+     *
+     * @param userIds       用户编号
+     * @param roleIds       角色ID
+     * @param sourceId      关联资源
      * @param resourceLevel 资源类型
      * @see this#grantUserRole(Long, Set, Long, ResourceLevel)
      */
@@ -44,7 +46,8 @@ public interface IamMemberRoleService {
 
     /**
      * 查询用户组织下关联关系
-     * @param userId 用户编号
+     *
+     * @param userId          用户编号
      * @param organizationIds 组织编号
      * @return 关联关系集合
      */
@@ -53,7 +56,8 @@ public interface IamMemberRoleService {
 
     /**
      * 查询用户组织下关联关系
-     * @param userId 用户编号
+     *
+     * @param userId     用户编号
      * @param sourceType 资源类型
      * @return 关联关系集合
      */
@@ -64,8 +68,9 @@ public interface IamMemberRoleService {
      * 查询某资源类型下的关联关系
      * <p>资源编号不传递时，只按照资源类型查询</p>
      * <p>资源类型为{@link ResourceLevel#SITE}时，sourceIds不使用</p>
+     *
      * @param sourceType 资源类型
-     * @param sourceIds 资源编号
+     * @param sourceIds  资源编号
      * @return 关联关系集合
      */
     @NotNull
@@ -73,14 +78,16 @@ public interface IamMemberRoleService {
 
     /**
      * 查询平台级资源类型下的关联关系
-     * @see this#getUserMemberRoleBySource(ResourceLevel, Long...)
+     *
      * @return 关联关系集合
+     * @see this#getUserMemberRoleBySource(ResourceLevel, Long...)
      */
     List<IamMemberRoleDTO> getSiteUserMemberRoleBySource();
 
     /**
      * 授权用户平台级角色
-     * @param userId 用户编号
+     *
+     * @param userId  用户编号
      * @param roleIds 角色编号
      * @see this#grantUserRole(Long, Set, Long, ResourceLevel)
      */
@@ -88,7 +95,8 @@ public interface IamMemberRoleService {
 
     /**
      * 获取平台管理员-包括管理员
-     * @param page  分页信息
+     *
+     * @param page 分页信息
      * @return 用户分页
      */
     @NotNull

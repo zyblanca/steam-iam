@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+
 import java.util.Date;
 import java.lang.Integer;
 import java.lang.Long;
@@ -13,7 +14,7 @@ import java.lang.Byte;
 /**
  * @Author:
  * @Date: 2019-11-29
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
@@ -22,21 +23,21 @@ import java.lang.Byte;
 @TableName("iam_role_permission")
 public class IamRolePermission {
 
-        /**
-        * 
-        */
-        @TableId(type = IdType.AUTO)
-        private Long id;
+    /**
+     *
+     */
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
-        /**
-        * 角色id
-        */
-        private Long roleId;
+    /**
+     * 角色id
+     */
+    private Long roleId;
 
-        /**
-        * 权限id
-        */
-        private Long permissionId;
+    /**
+     * 权限id
+     */
+    private Long permissionId;
 
 
 }

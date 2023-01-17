@@ -1,4 +1,5 @@
 package com.crc.crcloud.steam.iam.common.utils;
+
 import org.springframework.util.StringUtils;
 
 /**

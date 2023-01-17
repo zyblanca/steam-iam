@@ -52,6 +52,7 @@ import java.util.stream.Collectors;
 
 /**
  * 用户被授权角色事件-同步到老行云
+ *
  * @author LiuYang
  * @date 2019/11/25
  */
@@ -87,7 +88,8 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
     /**
      * 该接口全量增量同步均支持
      * <s><p>会忽略掉项目或者组织创建时间在{@link ChoerodonDevOpsProperties#getConditionDate()}之后的数据</p></s>
-     * @param user 用户
+     *
+     * @param user  用户
      * @param roles 授权的角色
      */
     @Saga(code = SagaTopic.MemberRole.MEMBER_ROLE_UPDATE, description = "新行云人员授权事件", inputSchemaClass = List.class)
@@ -191,6 +193,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
 
     /**
      * 组织授权
+     *
      * @param items 按照级别分组之后的数据
      * @return iam-service授权结果数据
      */
@@ -233,6 +236,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
 
     /**
      * 通过新的角色列表查询老的角色列表
+     *
      * @param roles 新关联的角色列表
      * @return 老的那边的角色列表
      */
@@ -264,6 +268,7 @@ public class SyncIamGrantUserRoleEventListener implements ApplicationListener<Ia
 
     /**
      * 根据邮箱获取对应的老行云用户
+     *
      * @param loginName 邮箱
      * @return 老行云用户
      */

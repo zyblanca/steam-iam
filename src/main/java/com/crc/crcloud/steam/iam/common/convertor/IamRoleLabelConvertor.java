@@ -6,9 +6,10 @@ import com.crc.crcloud.steam.iam.model.vo.IamRoleLabelVO;
 import io.choerodon.core.convertor.ConvertorI;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
+
 /**
  * @Author
- * @Description 
+ * @Description
  * @Date 2019-12-03
  */
 @Component

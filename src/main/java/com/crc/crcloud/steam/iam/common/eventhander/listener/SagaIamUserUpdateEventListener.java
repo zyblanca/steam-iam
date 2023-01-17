@@ -71,7 +71,7 @@ public class SagaIamUserUpdateEventListener implements ApplicationListener<IamUs
                         builder.withPayloadAndSerialize(payload)
                                 .withRefType("user")
                                 .withRefId(user.getId().toString());
-                        return  input;
+                        return input;
                     });
         } catch (Exception e) {
             log.warn(e.getMessage());

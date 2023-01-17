@@ -11,7 +11,7 @@ import org.apache.ibatis.annotations.Param;
 /**
  * @Author:
  * @Date: 2019-11-12
- * @Description: 
+ * @Description:
  */
 public interface OauthLdapHistoryMapper extends BaseMapper<OauthLdapHistory> {
 
@@ -19,6 +19,7 @@ public interface OauthLdapHistoryMapper extends BaseMapper<OauthLdapHistory> {
 
     /**
      * 查询最后一条执行记录
+     *
      * @param ldapId
      * @return
      */

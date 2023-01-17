@@ -30,7 +30,7 @@ public class OauthPasswordPolicyServiceImpl implements OauthPasswordPolicyServic
         passwordPolicyDTO.setOrganizationId(orgId);
         OauthPasswordPolicy oauthPasswordPolicy = ConvertHelper.convert(passwordPolicyDTO, OauthPasswordPolicy.class);
         ;
-        if (1 != oauthPasswordPolicyMapper.insert(oauthPasswordPolicy)){
+        if (1 != oauthPasswordPolicyMapper.insert(oauthPasswordPolicy)) {
             throw new IamAppCommException("error.passwordPolicy.create");
         }
         return ConvertHelper.convert(oauthPasswordPolicy, OauthPasswordPolicyDTO.class);
@@ -64,7 +64,7 @@ public class OauthPasswordPolicyServiceImpl implements OauthPasswordPolicyServic
     }
 
     @Override
-    public void sagaCreatePasswordPolicy(Long orgId, OauthPasswordPolicyDTO passwordPolicyDTO){
+    public void sagaCreatePasswordPolicy(Long orgId, OauthPasswordPolicyDTO passwordPolicyDTO) {
         this.create(orgId, passwordPolicyDTO);
     }
 }

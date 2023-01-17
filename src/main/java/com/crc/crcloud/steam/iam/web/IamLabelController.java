@@ -1,7 +1,6 @@
 package com.crc.crcloud.steam.iam.web;
 
 
-
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.crc.crcloud.steam.iam.common.exception.IamAppCommException;
 import com.crc.crcloud.steam.iam.common.utils.PageUtil;
@@ -21,10 +20,10 @@ import java.util.Optional;
 
 
 /**
-* @Author:
-* @Date: 2019-12-03
-* @Description: 
-*/
+ * @Author:
+ * @Date: 2019-12-03
+ * @Description:
+ */
 @Api("")
 @RestController
 @RequestMapping(value = "/v1/projects/{project_id}/iam_label")
@@ -34,95 +33,97 @@ public class IamLabelController {
     private IamLabelService iamLabelService;
 
     /**
-    * 新增
-    *
-    * @param projectId 项目ID
-    * @param iamLabel
-    * @return
-    */
+     * 新增
+     *
+     * @param projectId 项目ID
+     * @param iamLabel
+     * @return
+     */
     @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
     @ApiOperation(value = "新增", notes = "新增", response = IamLabelVO.class)
     @PostMapping
     public ResponseEntity<IamLabelVO> insert(@ApiParam(value = "项目ID", required = true)
-                                                            @PathVariable(name = "project_id") Long projectId,
-                                                            @ApiParam(value = "", required = true)
-                                                            @RequestBody IamLabelVO iamLabel){
-        return Optional.ofNullable(iamLabelService.insert(projectId,iamLabel)).map(ResponseEntity::new)
-        .orElseThrow(() -> new IamAppCommException("common.insert.error"));
+                                             @PathVariable(name = "project_id") Long projectId,
+                                             @ApiParam(value = "", required = true)
+                                             @RequestBody IamLabelVO iamLabel) {
+        return Optional.ofNullable(iamLabelService.insert(projectId, iamLabel)).map(ResponseEntity::new)
+                .orElseThrow(() -> new IamAppCommException("common.insert.error"));
     }
 
     /**
-    * 删除
-    * @param projectId 项目ID
-    * @param id
-    * @return REST状态
-    */
+     * 删除
+     *
+     * @param projectId 项目ID
+     * @param id
+     * @return REST状态
+     */
     @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
-    @ApiOperation(value="删除",notes="删除")
+    @ApiOperation(value = "删除", notes = "删除")
     @DeleteMapping("/{id}")
     public ResponseEntity delete(
-                                @ApiParam(value = "项目ID", required = true)
-                                @PathVariable(name = "project_id") Long projectId,
-                                @ApiParam(value = "", required = true)
-                                @PathVariable(name = "id") Long id){
+            @ApiParam(value = "项目ID", required = true)
+            @PathVariable(name = "project_id") Long projectId,
+            @ApiParam(value = "", required = true)
+            @PathVariable(name = "id") Long id) {
 
-        iamLabelService.delete(projectId,id);
+        iamLabelService.delete(projectId, id);
         return ResponseEntity.ok();
     }
 
     /**
-    * 修改
-    *
-    * @param projectId 项目ID
-    * @param iamLabel
-    * @return
-    */
+     * 修改
+     *
+     * @param projectId 项目ID
+     * @param iamLabel
+     * @return
+     */
     @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
-    @ApiOperation(value="修改",notes="修改",response = IamLabelVO.class)
+    @ApiOperation(value = "修改", notes = "修改", response = IamLabelVO.class)
     @PutMapping
     public ResponseEntity<IamLabelVO> update(@ApiParam(value = "项目ID", required = true)
-                                                            @PathVariable(name = "project_id") Long projectId,
-                                                            @ApiParam(value = "", required = true)
-                                                            @RequestBody IamLabelVO iamLabel){
-        return Optional.ofNullable(iamLabelService.update(projectId,iamLabel))
-        .map(ResponseEntity::new)
-        .orElseThrow(() -> new IamAppCommException("common.update.error"));
+                                             @PathVariable(name = "project_id") Long projectId,
+                                             @ApiParam(value = "", required = true)
+                                             @RequestBody IamLabelVO iamLabel) {
+        return Optional.ofNullable(iamLabelService.update(projectId, iamLabel))
+                .map(ResponseEntity::new)
+                .orElseThrow(() -> new IamAppCommException("common.update.error"));
     }
 
     /**
-    * 详情
-    *
-    * @param id
-    * @return
-    */
+     * 详情
+     *
+     * @param id
+     * @return
+     */
     @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
-    @ApiOperation(value="查询单个信息",notes = "查询单个详情",response = IamLabelVO.class)
+    @ApiOperation(value = "查询单个信息", notes = "查询单个详情", response = IamLabelVO.class)
     @GetMapping("{id}")
     public ResponseEntity<IamLabelVO> load(@ApiParam(value = "项目ID", required = true)
-                                                          @PathVariable(name = "project_id") Long projectId,
-                                                          @ApiParam(value = "", required = true)
-                                                          @PathVariable(name = "id") Long id){
-        return Optional.ofNullable(iamLabelService.queryOne(projectId,id)).map(ResponseEntity::new)
-            .orElseThrow(() -> new IamAppCommException("common.data.null.error"));
+                                           @PathVariable(name = "project_id") Long projectId,
+                                           @ApiParam(value = "", required = true)
+                                           @PathVariable(name = "id") Long id) {
+        return Optional.ofNullable(iamLabelService.queryOne(projectId, id)).map(ResponseEntity::new)
+                .orElseThrow(() -> new IamAppCommException("common.data.null.error"));
     }
+
     /**
-    * 分页查询
-    *
-    * @param projectId      项目ID
-    * @param iamLabel
-    * @param page           分页信息
-    * @return
-    */
+     * 分页查询
+     *
+     * @param projectId 项目ID
+     * @param iamLabel
+     * @param page      分页信息
+     * @return
+     */
     @Permission(level = ResourceLevel.PROJECT, roles = {InitRoleCode.PROJECT_MEMBER, InitRoleCode.PROJECT_OWNER})
-    @ApiOperation(value = "列表",notes="列表", response = IamLabelVO.class)
+    @ApiOperation(value = "列表", notes = "列表", response = IamLabelVO.class)
     @GetMapping
     public ResponseEntity<IPage<IamLabelVO>> page(@ApiParam(value = "项目ID", required = true)
-                                                                 @PathVariable(name = "project_id") Long projectId,
-                                                                 IamLabelVO iamLabel,
-                                                                 PageUtil page) {
+                                                  @PathVariable(name = "project_id") Long projectId,
+                                                  IamLabelVO iamLabel,
+                                                  PageUtil page) {
 
         return Optional.ofNullable(iamLabelService.queryPage(iamLabel, projectId, page)).map(ResponseEntity::new)
-                    .orElseThrow(() -> new IamAppCommException("common.search.data.error"));
+                .orElseThrow(() -> new IamAppCommException("common.search.data.error"));
     }
 
 

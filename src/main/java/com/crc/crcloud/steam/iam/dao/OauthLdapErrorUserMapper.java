@@ -11,7 +11,7 @@ import org.apache.ibatis.annotations.Param;
 /**
  * @Author:
  * @Date: 2019-11-12
- * @Description: 
+ * @Description:
  */
 public interface OauthLdapErrorUserMapper extends BaseMapper<OauthLdapErrorUser> {
 

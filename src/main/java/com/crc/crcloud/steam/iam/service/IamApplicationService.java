@@ -8,6 +8,7 @@ public interface IamApplicationService {
 
     /**
      * 启用应用
+     *
      * @param applicationId
      * @return
      */
@@ -15,6 +16,7 @@ public interface IamApplicationService {
 
     /**
      * 禁用应用
+     *
      * @param applicationId
      * @return
      */
@@ -22,6 +24,7 @@ public interface IamApplicationService {
 
     /**
      * 创建应用
+     *
      * @param iamApplicationVO
      * @return
      */
@@ -29,6 +32,7 @@ public interface IamApplicationService {
 
     /**
      * 更改应用
+     *
      * @param iamApplicationVO
      * @return
      */
@@ -36,10 +40,11 @@ public interface IamApplicationService {
 
     /**
      * 删除steam-iam服务应用
+     *
      * @param organizationId 组织id
      * @param steamProjectId 项目id
-     * @param code 应用code
+     * @param code           应用code
      * @return
      */
-    void deleteApplication(Long organizationId,Long steamProjectId,String code);
+    void deleteApplication(Long organizationId, Long steamProjectId, String code);
 }

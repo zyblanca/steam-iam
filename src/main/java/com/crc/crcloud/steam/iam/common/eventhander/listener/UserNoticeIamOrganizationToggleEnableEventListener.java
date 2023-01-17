@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * 禁用启用组织之后用户站内信通知
+ *
  * @author LiuYang
  * @date 2019/11/26
  */

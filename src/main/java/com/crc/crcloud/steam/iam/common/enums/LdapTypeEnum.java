@@ -5,6 +5,7 @@ import lombok.Getter;
 
 /**
  * ldap类型
+ *
  * @author LiuChun
  */
 @SuppressWarnings("AlibabaEnumConstantsMustHaveComment")

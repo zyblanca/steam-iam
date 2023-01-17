@@ -43,7 +43,8 @@ public class IamRolePermissionServiceImpl extends ServiceImpl<IamRolePermissionM
     private IamRolePermissionMapper iamRolePermissionMapper;
 
     @Override
-    public @NotNull List<IamRolePermissionDTO> link(@NotNull Long permissionId, @NotEmpty Set<Long> roleIds) {
+    public @NotNull
+    List<IamRolePermissionDTO> link(@NotNull Long permissionId, @NotEmpty Set<Long> roleIds) {
         final IamPermissionService iamPermissionService = ApplicationContextHelper.getContext().getBean(IamPermissionService.class);
         final IamRoleService iamRoleService = ApplicationContextHelper.getContext().getBean(IamRoleService.class);
         final IamPermissionDTO iamPermission = iamPermissionService.getAndThrow(permissionId);
@@ -78,7 +79,8 @@ public class IamRolePermissionServiceImpl extends ServiceImpl<IamRolePermissionM
     }
 
     @Override
-    public @NotNull List<IamRolePermissionDTO> selectErrorLevelPermissionByRole(@NotNull Long roleId) {
+    public @NotNull
+    List<IamRolePermissionDTO> selectErrorLevelPermissionByRole(@NotNull Long roleId) {
         List<IamRolePermission> list = iamRolePermissionMapper.selectErrorLevelPermissionByRole(roleId);
         return ConvertHelper.convertList(CollUtil.newArrayList(list), IamRolePermissionDTO.class);
     }

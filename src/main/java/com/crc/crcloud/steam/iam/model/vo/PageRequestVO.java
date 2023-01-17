@@ -9,6 +9,7 @@ import java.util.Optional;
 
 /**
  * 请求分页接收参数
+ *
  * @author LiuYang
  * @date 2019/12/3
  */
@@ -30,6 +31,7 @@ public class PageRequestVO {
     /**
      * 当前页码
      * <p>小于0的页码自动格式化为1</p>
+     *
      * @return 页码 从1开始
      */
     @NotNull
@@ -46,6 +48,7 @@ public class PageRequestVO {
     /**
      * 每页数量
      * <p>小于0的页码自动格式化为10</p>
+     *
      * @return 每页数量 从1开始
      */
     @NotNull

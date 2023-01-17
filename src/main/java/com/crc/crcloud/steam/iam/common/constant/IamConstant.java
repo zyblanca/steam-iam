@@ -1,7 +1,6 @@
 package com.crc.crcloud.steam.iam.common.constant;
 
 /**
- *
  * @author LiuYang
  * @date 2019/12/4
  */

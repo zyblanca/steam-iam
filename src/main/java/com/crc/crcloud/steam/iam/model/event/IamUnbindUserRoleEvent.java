@@ -17,9 +17,9 @@ public class IamUnbindUserRoleEvent extends ApplicationEvent {
     //资源id
     private Long sourceId;
 
-    public IamUnbindUserRoleEvent(Object source,ResourceLevel level,Long sourceId, List<UserMemberEventPayload> userMemberEventPayloads) {
+    public IamUnbindUserRoleEvent(Object source, ResourceLevel level, Long sourceId, List<UserMemberEventPayload> userMemberEventPayloads) {
         super(source);
-        this.level =level;
+        this.level = level;
         this.sourceId = sourceId;
         this.userMemberEventPayloads = userMemberEventPayloads;
     }

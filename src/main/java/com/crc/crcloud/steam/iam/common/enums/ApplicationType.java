@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * 应用的分类
  */
-public enum  ApplicationType {
+public enum ApplicationType {
     /**
      * 开发应用
      */

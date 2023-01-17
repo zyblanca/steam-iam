@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 /**
  * 负责静态数据的读取，不会因为path上面的project_id和organization_id影响
+ *
  * @author hand-196
  */
 @Validated

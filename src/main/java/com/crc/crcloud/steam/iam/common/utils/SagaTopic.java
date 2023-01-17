@@ -1,10 +1,12 @@
 package com.crc.crcloud.steam.iam.common.utils;
 
 public final class SagaTopic {
-    private SagaTopic() {}
+    private SagaTopic() {
+    }
 
-    public  static class User {
-        private User() {}
+    public static class User {
+        private User() {
+        }
 
         // 创建用户
         public static final String USER_CREATE = "steam-iam-create-user";
@@ -23,7 +25,8 @@ public final class SagaTopic {
     }
 
     public static class Project {
-        private Project() {}
+        private Project() {
+        }
 
         // 创建项目
         public static final String PROJECT_CREATE = "steam-iam-create-project";
@@ -37,7 +40,8 @@ public final class SagaTopic {
     }
 
     public static class MemberRole {
-        private MemberRole() {}
+        private MemberRole() {
+        }
 
         //更新用户角色
         public static final String MEMBER_ROLE_UPDATE = "steam-iam-update-memberRole";
@@ -46,7 +50,8 @@ public final class SagaTopic {
     }
 
     public static class Organization {
-        private Organization() {}
+        private Organization() {
+        }
 
         // 组织服务创建组织
         public static final String ORG_CREATE = "steam-org-create-organization";

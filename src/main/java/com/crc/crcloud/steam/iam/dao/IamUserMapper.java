@@ -68,35 +68,42 @@ public interface IamUserMapper extends BaseMapper<IamUser> {
     /**
      * 通过项目查询用户
      * 不分页，结果集尽量少，下拉使用
+     *
      * @param userSearch 用户查询条件
      * @return 用户信息
      */
-    List<IamUser> projectDropDownUser( @Param("userSearch")UserSearchDTO userSearch);
+    List<IamUser> projectDropDownUser(@Param("userSearch") UserSearchDTO userSearch);
+
     /**
      * 查询组织下未被当前项目选择的人
      * 不分页，结果集尽量少，下拉使用
+     *
      * @param userSearch 用户查询条件
      * @return 用户信息
      */
-    List<IamUser> projectUnselectUser(@Param("userSearch")UserSearchDTO userSearch);
+    List<IamUser> projectUnselectUser(@Param("userSearch") UserSearchDTO userSearch);
 
     /**
      * 查询用户的ldap比对信息
      * 包含登入名 是否ldap账户，所属机构信息
+     *
      * @param loginNames 登入名集合
      * @return 用户信息
      */
     List<UserMatchLdapDTO> selectUserMatchLdapByLoginName(@Param("loginNames") Collection<String> loginNames);
+
     /**
      * 查询用户的ldap比对信息
      * 包含登入名 邮箱信息
+     *
      * @param emails 邮箱集合
      * @return 用户信息
      */
-    List<UserMatchLdapDTO> selectEmailUserByEmail(@Param("emails")Set<String> emails);
+    List<UserMatchLdapDTO> selectEmailUserByEmail(@Param("emails") Set<String> emails);
 
     /**
      * 通过ldap修改用户信息
+     *
      * @param iamUser
      * @return
      */
@@ -104,29 +111,30 @@ public interface IamUserMapper extends BaseMapper<IamUser> {
 
     /**
      * ldap初始化密码
-     * @param userIds 用户id
+     *
+     * @param userIds  用户id
      * @param password 用户密码
      * @return
      */
-    int batchUpdateLdapPassword(@Param("userIds") Set<Long> userIds,@Param("password") String password);
+    int batchUpdateLdapPassword(@Param("userIds") Set<Long> userIds, @Param("password") String password);
 
     int selectCountUsers(@Param("roleAssignmentSearchDTO")
                                  RoleAssignmentSearchDTO roleAssignmentSearchDTO,
                          @Param("sourceId") Long sourceId,
                          @Param("sourceType") String sourceType);
 
-    List<IamUser> selectUserByOption( @Param("roleAssignmentSearchDTO") RoleAssignmentSearchDTO roleAssignmentSearchDTO,
-                                      @Param("sourceId") Long sourceId,
-                                      @Param("sourceType") String sourceType,
-                                      @Param("start") Long start,
-                                      @Param("size") Long size);
+    List<IamUser> selectUserByOption(@Param("roleAssignmentSearchDTO") RoleAssignmentSearchDTO roleAssignmentSearchDTO,
+                                     @Param("sourceId") Long sourceId,
+                                     @Param("sourceType") String sourceType,
+                                     @Param("start") Long start,
+                                     @Param("size") Long size);
 
 
-    List<IamRoleDTO> selectUserWithRolesByOption(@Param("sourceId")Long sourceId,@Param("sourceType")  String sourceType, @Param("userIds") List<Long> userIds);
+    List<IamRoleDTO> selectUserWithRolesByOption(@Param("sourceId") Long sourceId, @Param("sourceType") String sourceType, @Param("userIds") List<Long> userIds);
 
     Long[] selectAllIds();
 
-    IPage<IamUser> pagingQueryUsers(PageUtil pageUtil,@Param("user") IamUserDTO user);
+    IPage<IamUser> pagingQueryUsers(PageUtil pageUtil, @Param("user") IamUserDTO user);
 
-    List<IamUser> listByProject(@Param("userSearch")UserSearchDTO user);
+    List<IamUser> listByProject(@Param("userSearch") UserSearchDTO user);
 }

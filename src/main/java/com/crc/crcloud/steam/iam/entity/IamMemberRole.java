@@ -22,67 +22,69 @@ import java.util.Date;
 @TableName("iam_member_role")
 public class IamMemberRole {
 
-        /**
-         *
-        */
-        @TableId(type = IdType.AUTO)
-        private Long id;
+    /**
+     *
+     */
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
-        /**
-        * 角色id
-        */
-        private Long roleId;
+    /**
+     * 角色id
+     */
+    private Long roleId;
 
-        /**
-        * 成员id,可以是userid,clientid等，与member_type对应
-        */
-        private Long memberId;
+    /**
+     * 成员id,可以是userid,clientid等，与member_type对应
+     */
+    private Long memberId;
 
-        /**
-        * 成员类型，默认为user
-         * @see MemberType#getValue()
-         */
-        private String memberType;
+    /**
+     * 成员类型，默认为user
+     *
+     * @see MemberType#getValue()
+     */
+    private String memberType;
 
-        /**
-        * 创建该记录的源id，可以是projectid,也可以是organizarionid等
-        */
-        private Long sourceId;
+    /**
+     * 创建该记录的源id，可以是projectid,也可以是organizarionid等
+     */
+    private Long sourceId;
 
-        /**
-        * 创建该记录的源类型，sit/organization/project/user等
-         * @see ResourceLevel#value()
-         */
-        private String sourceType;
+    /**
+     * 创建该记录的源类型，sit/organization/project/user等
+     *
+     * @see ResourceLevel#value()
+     */
+    private String sourceType;
 
-        /**
-         *
-        */
-        private Long objectVersionNumber;
+    /**
+     *
+     */
+    private Long objectVersionNumber;
 
-        /**
-         *
-        */
-        @TableField(fill=FieldFill.INSERT)
-        private Long createdBy;
+    /**
+     *
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Long createdBy;
 
-        /**
-         *
-        */
-        @TableField(fill=FieldFill.INSERT)
-        private Date creationDate;
+    /**
+     *
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Date creationDate;
 
-        /**
-         *
-        */
-        @TableField(fill=FieldFill.INSERT_UPDATE)
-        private Long lastUpdatedBy;
+    /**
+     *
+     */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Long lastUpdatedBy;
 
-        /**
-         *
-        */
-        @TableField(fill=FieldFill.INSERT_UPDATE)
-        private Date lastUpdateDate;
+    /**
+     *
+     */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Date lastUpdateDate;
 
 
 }

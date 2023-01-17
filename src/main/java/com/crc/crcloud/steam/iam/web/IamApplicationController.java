@@ -24,7 +24,7 @@ public class IamApplicationController {
     @ApiOperation("创建应用")
     @PostMapping
     public ResponseEntity<IamApplicationVO> createApplication(@PathVariable("organization_id") Long organizationId,
-                                                              @RequestBody @Valid IamApplicationVO iamApplicationVO){
+                                                              @RequestBody @Valid IamApplicationVO iamApplicationVO) {
         iamApplicationVO.setOrganizationId(organizationId);
         IamApplicationVO returnApplication = iamApplicationService.createApplication(iamApplicationVO);
         return new ResponseEntity<>(returnApplication, HttpStatus.OK);
@@ -35,7 +35,7 @@ public class IamApplicationController {
     @PostMapping("/{id}")
     public ResponseEntity<IamApplicationVO> updateApplication(@PathVariable("organization_id") Long organizationId,
                                                               @PathVariable("id") Long applicationId,
-                                                              @RequestBody @Valid IamApplicationVO iamApplicationVO){
+                                                              @RequestBody @Valid IamApplicationVO iamApplicationVO) {
         iamApplicationVO.setOrganizationId(organizationId);
         iamApplicationVO.setId(applicationId);
         IamApplicationVO returnVO = iamApplicationService.updateApplication(iamApplicationVO);
@@ -45,7 +45,7 @@ public class IamApplicationController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @ApiOperation("启动应用")
     @PutMapping("/{id}/enable")
-    public ResponseEntity<IamApplicationVO> enableApplication(@PathVariable("id") Long applicationId){
+    public ResponseEntity<IamApplicationVO> enableApplication(@PathVariable("id") Long applicationId) {
         IamApplicationVO iamApplicationVO = iamApplicationService.enableApplication(applicationId);
         return new ResponseEntity<>(iamApplicationVO, HttpStatus.OK);
     }
@@ -53,7 +53,7 @@ public class IamApplicationController {
     @Permission(level = ResourceLevel.ORGANIZATION)
     @ApiOperation("禁用应用")
     @PutMapping("/{id}/disable")
-    public ResponseEntity<IamApplicationVO> disableApplication(@PathVariable("id") Long applicationId){
+    public ResponseEntity<IamApplicationVO> disableApplication(@PathVariable("id") Long applicationId) {
         IamApplicationVO iamApplicationVO = iamApplicationService.disableApplication(applicationId);
         return new ResponseEntity<>(iamApplicationVO, HttpStatus.OK);
     }

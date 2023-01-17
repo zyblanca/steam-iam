@@ -70,6 +70,7 @@ public interface OauthLdapService {
 
     /**
      * 查询组织下的ldap配置
+     *
      * @param organizationId
      * @return
      */
@@ -83,6 +84,7 @@ public interface OauthLdapService {
 
     /**
      * 处理 SagaTask 创建 Ldap
+     *
      * @param orgId
      * @param ldapDTO
      */

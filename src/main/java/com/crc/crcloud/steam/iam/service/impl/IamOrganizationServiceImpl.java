@@ -87,7 +87,8 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
     private TransactionalProducer producer;
 
     @Override
-    public @NotNull List<IamOrganizationDTO> getUserOrganizations(@NotNull Long userId) {
+    public @NotNull
+    List<IamOrganizationDTO> getUserOrganizations(@NotNull Long userId) {
         @NotNull List<IamUserOrganizationRel> userOrganizations = userOrganizationRelService.getUserOrganizations(userId);
         if (CollUtil.isNotEmpty(userOrganizations)) {
             List<Long> organizationIds = userOrganizations.stream().map(IamUserOrganizationRel::getOrganizationId).collect(Collectors.toList());
@@ -123,7 +124,8 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
 
     @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     @Override
-    public @NotNull IamOrganizationDTO updateByOrganization(@NotNull @Min(1) Long id, @NotNull @Valid IamOrganizationUpdateRequestVO vo) {
+    public @NotNull
+    IamOrganizationDTO updateByOrganization(@NotNull @Min(1) Long id, @NotNull @Valid IamOrganizationUpdateRequestVO vo) {
         return updateByLevel(id, vo, startSagaBuilder -> startSagaBuilder.withLevel(ResourceLevel.ORGANIZATION).withSourceId(id));
     }
 
@@ -204,7 +206,8 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
     }
 
     @Override
-    public @NotNull IPage<IamOrganizationWithProjectCountDTO> page(@NotNull @Valid IamOrganizationPageRequestVO vo) {
+    public @NotNull
+    IPage<IamOrganizationWithProjectCountDTO> page(@NotNull @Valid IamOrganizationPageRequestVO vo) {
         Page<IamOrganizationWithProjectCountDTO> page = new Page<>(vo.getCurrent(), vo.getSize());
         Function<String, String> gbkConvert = orderField -> {
             orderField = StrUtil.toUnderlineCase(orderField);
@@ -281,7 +284,8 @@ public class IamOrganizationServiceImpl implements IamOrganizationService {
     }
 
     @Override
-    public @NotNull List<IamOrganizationDTO> getUserAuthOrganizations(@NotNull final Long userId, final boolean includeDisable) {
+    public @NotNull
+    List<IamOrganizationDTO> getUserAuthOrganizations(@NotNull final Long userId, final boolean includeDisable) {
         final IamUserService iamUserService = ApplicationContextHelper.getContext().getBean(IamUserService.class);
         final IamMemberRoleService iamMemberRoleService = ApplicationContextHelper.getContext().getBean(IamMemberRoleService.class);
         final IamRoleService iamRoleService = ApplicationContextHelper.getContext().getBean(IamRoleService.class);

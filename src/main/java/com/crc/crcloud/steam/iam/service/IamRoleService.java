@@ -20,6 +20,7 @@ import java.util.Set;
 public interface IamRoleService {
     /**
      * 获取用户角色
+     *
      * @param userId 用户编号
      * @param levels 级别,不传递查询所有
      * @return 角色
@@ -29,6 +30,7 @@ public interface IamRoleService {
 
     /**
      * 获取用户组织层角色
+     *
      * @param userId 用户编号
      * @return 角色
      */
@@ -37,6 +39,7 @@ public interface IamRoleService {
 
     /**
      * 获取角色
+     *
      * @param levels 级别,不传递查询所有
      * @return 角色
      */
@@ -45,6 +48,7 @@ public interface IamRoleService {
 
     /**
      * 获取组织层角色
+     *
      * @return 角色
      */
     @NotNull
@@ -52,6 +56,7 @@ public interface IamRoleService {
 
     /**
      * 获取角色
+     *
      * @param ids 角色编号
      * @return 角色
      */
@@ -60,6 +65,7 @@ public interface IamRoleService {
 
     /**
      * 获取角色
+     *
      * @param codes 角色编码
      * @return 角色
      */
@@ -68,6 +74,7 @@ public interface IamRoleService {
 
     /**
      * 获取角色
+     *
      * @param code 角色编码
      * @return 角色
      */
@@ -77,6 +84,7 @@ public interface IamRoleService {
 
     /**
      * 获取项目级别权限信息
+     *
      * @return
      */
     List<IamRoleDTO> getProjectRoles();

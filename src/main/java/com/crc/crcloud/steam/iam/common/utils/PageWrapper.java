@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
  * <li>对排序字段的包装</li>
  * <li>对排序字段的转下划线</li>
  * </ol>
+ *
  * @author LiuYang
  * @date 2019/12/26
  */
@@ -63,6 +64,7 @@ public class PageWrapper<T> implements IPage<T> {
 
     /**
      * 处理默认排序
+     *
      * @param isDesc 是否倒序
      * @return 添加了默认排序的字段
      */
@@ -86,6 +88,7 @@ public class PageWrapper<T> implements IPage<T> {
 
     /**
      * 对排序字段进行转换
+     *
      * @param sorts 原始排序值
      * @return 转换后的值并转换为下划线
      */
@@ -105,9 +108,10 @@ public class PageWrapper<T> implements IPage<T> {
     /**
      * 清洗排序数据
      * <ul>
-     *     <li>清除null值</li>
-     *     <li>清除空串</li>
+     * <li>清除null值</li>
+     * <li>清除空串</li>
      * </ul>
+     *
      * @param sorts nativePage当中的原始值
      * @return 清洗过后的值
      */
@@ -123,7 +127,8 @@ public class PageWrapper<T> implements IPage<T> {
 
     /**
      * 新增排序字段转换器
-     * @param function 转换器 param:排序值（上一任转换后的值),return: 转换后的值
+     *
+     * @param function   转换器 param:排序值（上一任转换后的值),return: 转换后的值
      * @param fieldNames 排序字段名 会自动转换成下划线
      */
     public void addSortFieldConvert(@NotNull Function<String, String> function, @NotBlank String... fieldNames) {
@@ -133,8 +138,9 @@ public class PageWrapper<T> implements IPage<T> {
 
     /**
      * 新增排序字段转换器
+     *
      * @param function 转换器 param:排序值（上一任转换后的值),return: 转换后的值
-     * @param func {@link EntityUtil#getSimpleField}
+     * @param func     {@link EntityUtil#getSimpleField}
      */
     @SafeVarargs
     public final void addSortFieldConvert(@NotNull Function<String, String> function, SFunction<T, ?>... func) {
@@ -143,6 +149,7 @@ public class PageWrapper<T> implements IPage<T> {
 
     /**
      * 新增中文排序转换器
+     *
      * @param fieldNames 排序字段名 会自动转换成下划线
      */
     public void addGbkFieldConvert(String... fieldNames) {
@@ -151,6 +158,7 @@ public class PageWrapper<T> implements IPage<T> {
 
     /**
      * 新增中文排序转换器
+     *
      * @param func {@link EntityUtil#getSimpleField}
      */
     @SafeVarargs
@@ -160,6 +168,7 @@ public class PageWrapper<T> implements IPage<T> {
 
     /**
      * 新增表前缀
+     *
      * @param tableAlias 表别名
      * @param fieldNames 排序字段名 会自动转换成下划线
      */
@@ -169,8 +178,9 @@ public class PageWrapper<T> implements IPage<T> {
 
     /**
      * 新增中文排序转换器
+     *
      * @param tableAlias 表别名
-     * @param func {@link EntityUtil#getSimpleField}
+     * @param func       {@link EntityUtil#getSimpleField}
      */
     @SafeVarargs
     public final void addTableAliasSortFieldConvert(@NotBlank String tableAlias, SFunction<T, ?>... func) {
@@ -179,6 +189,7 @@ public class PageWrapper<T> implements IPage<T> {
 
     /**
      * 添加默认字段排序
+     *
      * @param func {@link EntityUtil#getSimpleField}
      */
     @SafeVarargs
@@ -188,6 +199,7 @@ public class PageWrapper<T> implements IPage<T> {
 
     /**
      * 添加默认字段排序
+     *
      * @param fieldNames 排序字段名 会自动转换成下划线
      */
     public void addDefaultOrderByAsc(String... fieldNames) {
@@ -203,6 +215,7 @@ public class PageWrapper<T> implements IPage<T> {
 
     /**
      * 添加默认字段排序
+     *
      * @param func {@link EntityUtil#getSimpleField}
      */
     @SafeVarargs
@@ -212,6 +225,7 @@ public class PageWrapper<T> implements IPage<T> {
 
     /**
      * 添加默认字段排序
+     *
      * @param fieldNames 排序字段名 会自动转换成下划线
      */
     public void addDefaultOrderByDesc(String... fieldNames) {
@@ -298,6 +312,7 @@ public class PageWrapper<T> implements IPage<T> {
 
     /**
      * 是否已经被CONVERT({} USING gbk)
+     *
      * @param sortField 排序字段
      * @return true:已经被使用过CONVERT({} USING gbk
      */

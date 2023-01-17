@@ -118,7 +118,7 @@
                 AND iam_project.is_enabled = #{project.isEnabled}
             </if>
         </if>
-        ORDER BY  creation_date desc
+        ORDER BY creation_date desc
 
     </select>
 

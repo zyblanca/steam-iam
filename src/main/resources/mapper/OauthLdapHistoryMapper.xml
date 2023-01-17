@@ -3,25 +3,25 @@
 <mapper namespace="com.crc.crcloud.steam.iam.dao.OauthLdapHistoryMapper">
 
 
-        <!-- 通用查询映射结果 -->
-        <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.OauthLdapHistory">
-                    <id column="id" property="id" />
-                    <result column="ldap_id" property="ldapId" />
-                    <result column="new_user_count" property="newUserCount" />
-                    <result column="update_user_count" property="updateUserCount" />
-                    <result column="error_user_count" property="errorUserCount" />
-                    <result column="sync_begin_time" property="syncBeginTime" />
-                    <result column="sync_end_time" property="syncEndTime" />
-                    <result column="object_version_number" property="objectVersionNumber" />
-                    <result column="created_by" property="createdBy" />
-                    <result column="creation_date" property="creationDate" />
-                    <result column="last_updated_by" property="lastUpdatedBy" />
-                    <result column="last_update_date" property="lastUpdateDate" />
-        </resultMap>
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.OauthLdapHistory">
+        <id column="id" property="id"/>
+        <result column="ldap_id" property="ldapId"/>
+        <result column="new_user_count" property="newUserCount"/>
+        <result column="update_user_count" property="updateUserCount"/>
+        <result column="error_user_count" property="errorUserCount"/>
+        <result column="sync_begin_time" property="syncBeginTime"/>
+        <result column="sync_end_time" property="syncEndTime"/>
+        <result column="object_version_number" property="objectVersionNumber"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="creation_date" property="creationDate"/>
+        <result column="last_updated_by" property="lastUpdatedBy"/>
+        <result column="last_update_date" property="lastUpdateDate"/>
+    </resultMap>
 
 
-        <!-- 通用查询结果列 -->
-        <sql id="Base_Column_List">
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
                      id,
                      ldap_id,
                      new_user_count,
@@ -37,12 +37,14 @@
         </sql>
 
     <select id="page" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"/>
+        select
+        <include refid="Base_Column_List"/>
         from oauth_ldap_history
 
     </select>
     <select id="selectLastByLdapId" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"/>
+        select
+        <include refid="Base_Column_List"/>
         from oauth_ldap_history
         where ldap_id=#{ldapId}
         order by sync_begin_time desc

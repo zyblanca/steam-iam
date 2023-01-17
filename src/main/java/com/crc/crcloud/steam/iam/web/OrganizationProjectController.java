@@ -33,7 +33,7 @@ public class OrganizationProjectController {
     @ApiOperation(value = "分页查询项目")
     public ResponseEntity<IPage<IamProjectVO>> list(@PathVariable(name = "organization_id") Long organizationId,
                                                     @ApiIgnore
-                                                           PageUtil pageUtil,
+                                                            PageUtil pageUtil,
                                                     @RequestParam(required = false) String name,
                                                     @RequestParam(required = false) String code,
                                                     @RequestParam(required = false) Boolean enabled,
@@ -46,6 +46,7 @@ public class OrganizationProjectController {
         project.setCategory(category);
         return new ResponseEntity<>(iamProjectService.pagingQuery(project, pageUtil));
     }
+
     @Permission(level = ResourceLevel.ORGANIZATION)
     @ApiOperation(value = "项目信息校验")
     @PostMapping(value = "/check")

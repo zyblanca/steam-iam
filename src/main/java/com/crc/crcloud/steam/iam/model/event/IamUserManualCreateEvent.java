@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 /**
  * 手动用户创建事件
  * <p>将会在设置完角色和所属组织之后发送</p>
+ *
  * @author LiuYang
  */
 public class IamUserManualCreateEvent extends IamUserCreateEvent {
@@ -25,12 +26,13 @@ public class IamUserManualCreateEvent extends IamUserCreateEvent {
     private List<IamUserCreateWithPasswordDTO> users;
 
     /**
-     * @param source 用户信息-持久化之后的
+     * @param source      用户信息-持久化之后的
      * @param rawPassword 明文密码
      */
     public IamUserManualCreateEvent(@NotNull IamUserDTO source, @Nullable String rawPassword) {
         this(CollUtil.newArrayList(new IamUserCreateWithPasswordDTO(source, rawPassword)));
     }
+
     /**
      * @param users 用户信息-持久化之后的
      */
@@ -41,8 +43,8 @@ public class IamUserManualCreateEvent extends IamUserCreateEvent {
     }
 
     /**
-     * @see this#getSource()
      * @return 用户列表-带扩展信息
+     * @see this#getSource()
      */
     public List<IamUserCreateWithPasswordDTO> getUsers() {
         return users;

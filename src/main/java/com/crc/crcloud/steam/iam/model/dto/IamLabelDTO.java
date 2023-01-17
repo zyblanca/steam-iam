@@ -14,7 +14,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 /**
  * @Author:
  * @Date: 2019-12-03
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
@@ -23,53 +23,53 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 public class IamLabelDTO {
 
     /**
-    * 
-    */
+     *
+     */
     private Long id;
 
     /**
-    * 名称
-    */
+     * 名称
+     */
     private String name;
 
     /**
-    * 类型
-    */
+     * 类型
+     */
     private String type;
 
     /**
-    * 层级
-    */
+     * 层级
+     */
     private String fdLevel;
 
     /**
-    * 描述
-    */
+     * 描述
+     */
     private String description;
 
     /**
-    * 
-    */
+     *
+     */
     private Long objectVersionNumber;
 
     /**
-    * 
-    */
+     *
+     */
     private Long createdBy;
 
     /**
-    * 
-    */
+     *
+     */
     private Date creationDate;
 
     /**
-    * 
-    */
+     *
+     */
     private Long lastUpdatedBy;
 
     /**
-    * 
-    */
+     *
+     */
     private Date lastUpdateDate;
 
 

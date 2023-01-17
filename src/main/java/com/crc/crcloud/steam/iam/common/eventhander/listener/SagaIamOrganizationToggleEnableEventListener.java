@@ -22,6 +22,7 @@ import static com.crc.crcloud.steam.iam.common.utils.SagaTopic.Organization.ORG_
 
 /**
  * 禁用启用组织之后发送saga事件
+ *
  * @author LiuYang
  * @date 2019/11/26
  */

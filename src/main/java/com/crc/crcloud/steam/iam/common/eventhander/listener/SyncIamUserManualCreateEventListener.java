@@ -25,6 +25,7 @@ import java.util.function.Predicate;
 
 /**
  * 手动创建用户-同步到老服务的iam-server
+ *
  * @author LiuYang
  * @date 2019/11/22
  */

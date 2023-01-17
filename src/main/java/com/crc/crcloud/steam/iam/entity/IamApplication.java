@@ -27,7 +27,7 @@ public class IamApplication {
 
     private String code;
 
-//    @Column(name = "is_enabled")
+    //    @Column(name = "is_enabled")
     @TableField("is_enabled")
     private Boolean enabled;
 
@@ -35,22 +35,22 @@ public class IamApplication {
 
     private String applicationType;
 
-//    @Transient
+    //    @Transient
     @TableField(exist = false)
     private Integer appCount;
-//    @Transient
+    //    @Transient
     @TableField(exist = false)
     private String projectName;
-//    @Transient
+    //    @Transient
     @TableField(exist = false)
     private String projectCode;
-//    @Transient
+    //    @Transient
     @TableField(exist = false)
     private String imageUrl;
 
     @ApiModelProperty(hidden = true)
     private Long objectVersionNumber;
-    @TableField(fill= FieldFill.INSERT)
+    @TableField(fill = FieldFill.INSERT)
     @ApiModelProperty(hidden = true)
     private Date creationDate;
     @TableField(fill = FieldFill.INSERT)

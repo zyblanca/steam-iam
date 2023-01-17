@@ -86,33 +86,33 @@
     </select>
     <select id="selectProjectOrganizationListByUser" resultMap="BaseResultMap">
         SELECT
-                *
-                FROM iam_organization  fo
-                WHERE fo.id IN (SELECT DISTINCT
-                fp.organization_id
-                FROM iam_project fp
-                INNER JOIN iam_member_role
-                ON iam_member_role.source_id = fp.id
-                INNER JOIN iam_role
-                ON iam_role.is_enabled = 1
-                AND iam_role.id = iam_member_role.role_id
-                AND iam_member_role.source_type = 'project'
-                WHERE iam_member_role.member_id = #{userId}
-                UNION
-                SELECT
-                DISTINCT
-                iam_organization.id
-                FROM iam_organization
-                INNER JOIN iam_member_role
-                ON iam_organization.id = iam_member_role.source_id
-                AND iam_member_role.source_type = 'organization'
-                INNER JOIN iam_role
-                ON iam_role.is_enabled = 1
-                AND iam_role.id = iam_member_role.role_id
-                WHERE iam_member_role.member_id = #{userId}
-                    <if test="!includedDisabled">
-                        AND iam_organization.is_enabled = 1
-                    </if>
+        *
+        FROM iam_organization fo
+        WHERE fo.id IN (SELECT DISTINCT
+        fp.organization_id
+        FROM iam_project fp
+        INNER JOIN iam_member_role
+        ON iam_member_role.source_id = fp.id
+        INNER JOIN iam_role
+        ON iam_role.is_enabled = 1
+        AND iam_role.id = iam_member_role.role_id
+        AND iam_member_role.source_type = 'project'
+        WHERE iam_member_role.member_id = #{userId}
+        UNION
+        SELECT
+        DISTINCT
+        iam_organization.id
+        FROM iam_organization
+        INNER JOIN iam_member_role
+        ON iam_organization.id = iam_member_role.source_id
+        AND iam_member_role.source_type = 'organization'
+        INNER JOIN iam_role
+        ON iam_role.is_enabled = 1
+        AND iam_role.id = iam_member_role.role_id
+        WHERE iam_member_role.member_id = #{userId}
+        <if test="!includedDisabled">
+            AND iam_organization.is_enabled = 1
+        </if>
         )
     </select>
 

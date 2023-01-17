@@ -11,20 +11,20 @@
         <result column="is_enabled" property="enabled" jdbcType="BOOLEAN"/>
         <result column="application_category" property="applicationCategory"/>
         <result column="application_type" property="applicationType"/>
-        <result column="object_version_number" property="objectVersionNumber" />
-        <result column="created_by" property="createdBy" />
-        <result column="creation_date" property="creationDate" />
-        <result column="last_updated_by" property="lastUpdatedBy" />
-        <result column="last_update_date" property="lastUpdateDate" />
+        <result column="object_version_number" property="objectVersionNumber"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="creation_date" property="creationDate"/>
+        <result column="last_updated_by" property="lastUpdatedBy"/>
+        <result column="last_update_date" property="lastUpdateDate"/>
     </resultMap>
 
     <!-- iam-service(fp_project) ——> steam-iam(iam_project) -->
     <select id="fuzzyQuery" resultMap="IamApplication">
         SELECT
-          ia.*,
-          fp.name as project_name,
-          fp.code as project_code,
-          fp.image_url as image_url
+        ia.*,
+        fp.name as project_name,
+        fp.code as project_code,
+        fp.image_url as image_url
         FROM iam_application ia
         LEFT JOIN iam_project fp ON ia.project_id = fp.id
         WHERE 1=1

@@ -4,6 +4,7 @@ import com.crc.crcloud.steam.iam.entity.IamMemberRole;
 
 /**
  * 成员类型
+ *
  * @see IamMemberRole#getMemberType()
  */
 public enum MemberType implements IBaseEnum<String> {

@@ -20,10 +20,10 @@ import java.util.Optional;
 
 
 /**
-* @Author:
-* @Date: 2019-11-12
-* @Description:
-*/
+ * @Author:
+ * @Date: 2019-11-12
+ * @Description:
+ */
 @Api("")
 @RestController
 @RequestMapping(value = "/v1/oauth_ldap_history")
@@ -33,22 +33,21 @@ public class OauthLdapHistoryController {
     private OauthLdapHistoryService oauthLdapHistoryService;
 
 
-
     /**
-    * 详情
-    *
-    * @param id
-    * @return
-    */
+     * 详情
+     *
+     * @param id
+     * @return
+     */
     @Permission(level = ResourceLevel.ORGANIZATION)
-    @ApiOperation(value="查询单个信息",notes = "查询单个详情",response = OauthLdapHistoryVO.class)
+    @ApiOperation(value = "查询单个信息", notes = "查询单个详情", response = OauthLdapHistoryVO.class)
     @GetMapping("organizations/{organization_id}/{id}")
     public ResponseEntity<OauthLdapHistoryVO> load(@ApiParam(value = "组织ID", required = true)
-                                                          @PathVariable(name = "organization_id") Long organizationId,
-                                                          @ApiParam(value = "", required = true)
-                                                          @PathVariable(name = "id") Long id){
-        return Optional.ofNullable(oauthLdapHistoryService.queryOne(organizationId,id)).map(ResponseEntity::new)
-            .orElseThrow(() -> new IamAppCommException("common.data.null.error"));
+                                                   @PathVariable(name = "organization_id") Long organizationId,
+                                                   @ApiParam(value = "", required = true)
+                                                   @PathVariable(name = "id") Long id) {
+        return Optional.ofNullable(oauthLdapHistoryService.queryOne(organizationId, id)).map(ResponseEntity::new)
+                .orElseThrow(() -> new IamAppCommException("common.data.null.error"));
     }
 
 }

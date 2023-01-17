@@ -35,7 +35,8 @@ public class IamRoleServiceImpl implements IamRoleService {
     private IamRoleMapper iamRoleMapper;
 
     @Override
-    public @NotNull List<IamRoleDTO> getUserRoles(@NotNull Long userId, ResourceLevel... levels) {
+    public @NotNull
+    List<IamRoleDTO> getUserRoles(@NotNull Long userId, ResourceLevel... levels) {
         if (ArrayUtil.isEmpty(levels)) {
             levels = ResourceLevel.values();
         }
@@ -45,12 +46,14 @@ public class IamRoleServiceImpl implements IamRoleService {
     }
 
     @Override
-    public @NotNull List<IamRoleDTO> getUserRolesByOrganization(@NotNull Long userId) {
+    public @NotNull
+    List<IamRoleDTO> getUserRolesByOrganization(@NotNull Long userId) {
         return getUserRoles(userId, ResourceLevel.ORGANIZATION);
     }
 
     @Override
-    public @NotNull List<IamRoleDTO> getRoles(ResourceLevel... levels) {
+    public @NotNull
+    List<IamRoleDTO> getRoles(ResourceLevel... levels) {
         LambdaQueryWrapper<IamRole> queryWrapper = Wrappers.<IamRole>lambdaQuery();
         if (ArrayUtil.isNotEmpty(levels)) {
             queryWrapper.in(IamRole::getFdLevel, CollUtil.newHashSet(levels).stream().map(ResourceLevel::value).collect(Collectors.toSet()));
@@ -59,12 +62,14 @@ public class IamRoleServiceImpl implements IamRoleService {
     }
 
     @Override
-    public @NotNull List<IamRoleDTO> getRolesByOrganization() {
+    public @NotNull
+    List<IamRoleDTO> getRolesByOrganization() {
         return getRoles(ResourceLevel.ORGANIZATION);
     }
 
     @Override
-    public @NotNull List<IamRoleDTO> getRoles(@Nullable Set<Long> ids) {
+    public @NotNull
+    List<IamRoleDTO> getRoles(@Nullable Set<Long> ids) {
         if (CollUtil.isEmpty(ids)) {
             return new ArrayList<>(0);
         }
@@ -73,7 +78,8 @@ public class IamRoleServiceImpl implements IamRoleService {
     }
 
     @Override
-    public @NotNull List<IamRoleDTO> getRolesByCode(@Nullable Set<String> codes) {
+    public @NotNull
+    List<IamRoleDTO> getRolesByCode(@Nullable Set<String> codes) {
         if (CollUtil.isEmpty(codes)) {
             return new ArrayList<>(0);
         }

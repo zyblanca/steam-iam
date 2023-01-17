@@ -3,21 +3,21 @@
 <mapper namespace="com.crc.crcloud.steam.iam.dao.IamRoleLabelMapper">
 
 
-        <!-- 通用查询映射结果 -->
-        <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamRoleLabel">
-                    <id column="id" property="id" />
-                    <result column="role_id" property="roleId" />
-                    <result column="label_id" property="labelId" />
-                    <result column="object_version_number" property="objectVersionNumber" />
-                    <result column="created_by" property="createdBy" />
-                    <result column="creation_date" property="creationDate" />
-                    <result column="last_updated_by" property="lastUpdatedBy" />
-                    <result column="last_update_date" property="lastUpdateDate" />
-        </resultMap>
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.crc.crcloud.steam.iam.entity.IamRoleLabel">
+        <id column="id" property="id"/>
+        <result column="role_id" property="roleId"/>
+        <result column="label_id" property="labelId"/>
+        <result column="object_version_number" property="objectVersionNumber"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="creation_date" property="creationDate"/>
+        <result column="last_updated_by" property="lastUpdatedBy"/>
+        <result column="last_update_date" property="lastUpdateDate"/>
+    </resultMap>
 
 
-        <!-- 通用查询结果列 -->
-        <sql id="Base_Column_List">
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
                      id,
                      role_id,
                      label_id,
@@ -29,11 +29,11 @@
         </sql>
 
     <select id="page" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"/>
+        select
+        <include refid="Base_Column_List"/>
         from iam_role_label
 
     </select>
-
 
 
 </mapper>

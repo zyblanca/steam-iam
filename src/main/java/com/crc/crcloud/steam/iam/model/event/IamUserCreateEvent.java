@@ -11,6 +11,7 @@ import java.util.List;
 
 /**
  * 用户创建事件
+ *
  * @author LiuYang
  */
 public class IamUserCreateEvent extends ApplicationEvent {

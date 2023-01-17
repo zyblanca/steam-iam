@@ -62,6 +62,7 @@ public interface LdapService {
 
     /**
      * 内部使用，便于事务控制
+     *
      * @param id
      * @param insertUser
      * @param organizationId

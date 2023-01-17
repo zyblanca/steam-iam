@@ -15,47 +15,46 @@ import java.lang.Byte;
 /**
  * @Author:
  * @Date: 2019-12-03
- * @Description: 
+ * @Description:
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @ApiModel("")
-public class IamRoleLabelVO{
+public class IamRoleLabelVO {
 
 
-        @ApiModelProperty("")
-        private Long id;
+    @ApiModelProperty("")
+    private Long id;
 
 
-        @ApiModelProperty("角色的id")
-        private Long roleId;
+    @ApiModelProperty("角色的id")
+    private Long roleId;
 
 
-        @ApiModelProperty("label的id")
-        private Long labelId;
+    @ApiModelProperty("label的id")
+    private Long labelId;
 
 
-        @ApiModelProperty("")
-        private Long objectVersionNumber;
+    @ApiModelProperty("")
+    private Long objectVersionNumber;
 
 
-        @ApiModelProperty("")
-        private Long createdBy;
+    @ApiModelProperty("")
+    private Long createdBy;
 
 
-        @ApiModelProperty("")
-        private Date creationDate;
+    @ApiModelProperty("")
+    private Date creationDate;
 
 
-        @ApiModelProperty("")
-        private Long lastUpdatedBy;
+    @ApiModelProperty("")
+    private Long lastUpdatedBy;
 
 
-        @ApiModelProperty("")
-        private Date lastUpdateDate;
-
+    @ApiModelProperty("")
+    private Date lastUpdateDate;
 
 
 }

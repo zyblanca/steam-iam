@@ -6,6 +6,7 @@ import lombok.ToString;
 
 /**
  * 组织信息带项目个数
+ *
  * @author LiuYang
  * @date 2019/12/3
  */

@@ -260,7 +260,8 @@ public class IamProjectServiceImpl implements IamProjectService {
     }
 
     @Override
-    public @NotNull List<IamProjectDTO> getByIds(@Nullable Set<Long> ids) {
+    public @NotNull
+    List<IamProjectDTO> getByIds(@Nullable Set<Long> ids) {
         if (CollUtil.isEmpty(ids)) {
             return new ArrayList<>();
         }
